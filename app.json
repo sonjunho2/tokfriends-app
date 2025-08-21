@@ -1,37 +1,37 @@
 {
- "expo": {
-   "name": "딱친",
-   "slug": "ddakchin",
-   "owner": "sonfree",
-   "version": "1.0.0",
-   "orientation": "portrait",
-   "scheme": "ddakchin",
-   "userInterfaceStyle": "light",
-   "icon": "./assets/loge.png",
-   "splash": {
-     "image": "./assets/loge.png",
-     "resizeMode": "contain",
-     "backgroundColor": "#ffffff"
-   },
-   "ios": {
-     "supportsTablet": true,
-     "bundleIdentifier": "com.sonfree.ddakchin"
-   },
-   "android": {
-     "adaptiveIcon": {
-       "foregroundImage": "./assets/adaptive-icon.png",
-       "backgroundColor": "#111827"
-     },
-     "package": "com.sonfree.ddakchin"
-   },
-   "web": {
-     "favicon": "./assets/favicon.png"
-   },
-   "extra": {
-     "apiBaseUrl": "https://relieved-maryjane-tok-friends-1ab206a9.koyeb.app",
-     "eas": {
-       "projectId": "101718db-f90c-4fc8-9b2f-ed06405d9991"
-     }
-   }
- }
+  "expo": {
+    "name": "딱친",
+    "slug": "ddakchin",
+    "owner": "sonfree",
+    "scheme": "ddakchin",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "assetBundlePatterns": ["**/*"],
+    "icon": "./assets/logo.png",
+    "splash": {
+      "image": "./assets/logo.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "android": {
+      "package": "com.sonfree.ddakchin",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#111827"
+      }
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sonfree.ddakchin"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "apiBaseUrl": "https://relieved-maryjane-tok-friends-1ab206a9.koyeb.app",
+      "eas": {
+        "projectId": "101718db-f90c-4fc8-9b2f-ed06405d9991"
+      }
+    }
+  }
 }

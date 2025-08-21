@@ -19,28 +19,27 @@ jobs:
         with:
           node-version: 20
 
-      # EAS CLI 설치
       - name: Install EAS CLI
         run: npm i -g eas-cli@latest
 
-      # ✅ Expo 액션에 최소한 eas-version을 주어야 내부에서 커맨드를 실행합니다.
-      #    이 스텝이 EXPO_TOKEN으로 비대화식 로그인까지 처리합니다.
+      # Expo 로그인 (EXPO_TOKEN 필요)
       - name: Auth with Expo (CI)
         uses: expo/expo-github-action@v8
         with:
           eas-version: latest
           token: ${{ secrets.EXPO_TOKEN }}
 
-      # 의존성 설치 (lockfile 있으면 ci, 없으면 install)
       - name: Install deps
         run: npm ci || npm install
 
-      # eas.json 없으면 생성
       - name: Ensure eas.json (apk build)
         run: |
-          node -e "const fs=require('fs');if(!fs.existsSync('eas.json'))fs.writeFileSync('eas.json',JSON.stringify({cli:{version: '>= 13.0.0'},build:{preview:{android:{buildType:'apk'}}}},null,2))"
+          node -e "const fs=require('fs');if(!fs.existsSync('eas.json'))fs.writeFileSync('eas.json',JSON.stringify({cli:{version: '>= 13.0.0',appVersionSource:'remote'},build:{preview:{android:{buildType:'apk'}}}},null,2))"
 
-      # 빌드 & APK URL 추출
+      # 설정 유효성 점검 (여기서 실패하면 바로 원인 파악 가능)
+      - name: Show Expo config
+        run: npx expo config --json
+
       - name: Build (Android APK) & capture URL
         id: build
         run: |

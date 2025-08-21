@@ -1,0 +1,38 @@
+// app.json
+{
+ "expo": {
+   "name": "딱친",
+   "slug": "ddakchin",
+   "owner": "sonfree",
+   "version": "1.0.0",
+   "orientation": "portrait",
+   "scheme": "ddakchin",
+   "userInterfaceStyle": "light",
+   "icon": "./assets/loge.png",
+   "splash": {
+     "image": "./assets/loge.png",
+     "resizeMode": "contain",
+     "backgroundColor": "#ffffff"
+   },
+   "ios": {
+     "supportsTablet": true,
+     "bundleIdentifier": "com.sonfree.ddakchin"
+   },
+   "android": {
+     "adaptiveIcon": {
+       "foregroundImage": "./assets/adaptive-icon.png",
+       "backgroundColor": "#111827"
+     },
+     "package": "com.sonfree.ddakchin"
+   },
+   "web": {
+     "favicon": "./assets/favicon.png"
+   },
+   "extra": {
+     "apiBaseUrl": "https://relieved-maryjane-tok-friends-1ab206a9.koyeb.app",
+     "eas": {
+       "projectId": "your-project-id"
+     }
+   }
+ }
+}

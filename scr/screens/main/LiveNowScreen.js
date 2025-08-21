@@ -1,0 +1,236 @@
+// src/screens/main/LiveNowScreen.js
+import React, { useState, useEffect } from 'react';
+import {
+ View,
+ Text,
+ StyleSheet,
+ SafeAreaView,
+ FlatList,
+ TouchableOpacity,
+ RefreshControl,
+ Dimensions,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import HeaderLogo from '../../components/HeaderLogo';
+import Card from '../../components/Card';
+import Avatar from '../../components/Avatar';
+import Tag from '../../components/Tag';
+import colors from '../../theme/colors';
+
+const { width } = Dimensions.get('window');
+const CARD_WIDTH = (width - 48) / 2;
+
+// 더미 데이터
+const DUMMY_USERS = [
+ { id: '1', name: '서연', city: '서울', age: 25, gender: 'female', online: true },
+ { id: '2', name: '민준', city: '강남', age: 28, gender: 'male', online: true },
+ { id: '3', name: '지민', city: '판교', age: 23, gender: 'female', online: true },
+ { id: '4', name: '현우', city: '성남', age: 30, gender: 'male', online: true },
+ { id: '5', name: '수아', city: '분당', age: 26, gender: 'female', online: true },
+ { id: '6', name: '준서', city: '용인', age: 27, gender: 'male', online: true },
+ { id: '7', name: '하윤', city: '수원', age: 24, gender: 'female', online: true },
+ { id: '8', name: '도윤', city: '안양', age: 29, gender: 'male', online: true },
+ { id: '9', name: '서진', city: '과천', age: 22, gender: 'female', online: true },
+ { id: '10', name: '예준', city: '의왕', age: 31, gender: 'male', online: true },
+];
+
+export default function LiveNowScreen({ navigation }) {
+ const [users, setUsers] = useState(DUMMY_USERS);
+ const [refreshing, setRefreshing] = useState(false);
+
+ const onRefresh = () => {
+   setRefreshing(true);
+   // 더미 데이터 섞기
+   setTimeout(() => {
+     const shuffled = [...DUMMY_USERS].sort(() => Math.random() - 0.5);
+     setUsers(shuffled);
+     setRefreshing(false);
+   }, 1000);
+ };
+
+ const renderUser = ({ item }) => (
+   <Card
+     style={styles.userCard}
+     onPress={() => navigation.navigate('ChatRoom', { user: item })}
+     padding={16}
+   >
+     <View style={styles.onlineIndicator} />
+     
+     <Avatar
+       name={item.name}
+       size={80}
+       style={styles.avatar}
+     />
+     
+     <Text style={styles.userName}>{item.name}</Text>
+     
+     <View style={styles.userInfo}>
+       <Ionicons 
+         name="location-outline" 
+         size={14} 
+         color={colors.textTertiary} 
+       />
+       <Text style={styles.userCity}>{item.city}</Text>
+       <Text style={styles.userAge}>{item.age}세</Text>
+     </View>
+     
+     <View style={styles.tagContainer}>
+       <Tag 
+         label={item.gender === 'female' ? '여성' : '남성'}
+         size="tiny"
+         color="neutral"
+       />
+     </View>
+   </Card>
+ );
+
+ return (
+   <SafeAreaView style={styles.container}>
+     <View style={styles.header}>
+       <HeaderLogo size="small" />
+       <View style={styles.headerRight}>
+         <View style={styles.onlineCount}>
+           <View style={styles.onlineDot} />
+           <Text style={styles.onlineText}>{users.length}명 접속중</Text>
+         </View>
+       </View>
+     </View>
+
+     <LinearGradient
+       colors={[colors.primary + '10', 'transparent']}
+       style={styles.gradientBanner}
+     >
+       <Text style={styles.bannerTitle}>지금 접속중인 친구들</Text>
+       <Text style={styles.bannerSubtitle}>
+         실시간으로 대화를 나눌 수 있어요
+       </Text>
+     </LinearGradient>
+
+     <FlatList
+       data={users}
+       renderItem={renderUser}
+       keyExtractor={(item) => item.id}
+       numColumns={2}
+       columnWrapperStyle={styles.row}
+       contentContainerStyle={styles.listContent}
+       showsVerticalScrollIndicator={false}
+       refreshControl={
+         <RefreshControl
+           refreshing={refreshing}
+           onRefresh={onRefresh}
+           tintColor={colors.primary}
+         />
+       }
+     />
+   </SafeAreaView>
+ );
+}
+
+const styles = StyleSheet.create({
+ container: {
+   flex: 1,
+   backgroundColor: colors.background,
+ },
+ header: {
+   flexDirection: 'row',
+   justifyContent: 'space-between',
+   alignItems: 'center',
+   paddingHorizontal: 20,
+   paddingVertical: 12,
+   backgroundColor: colors.backgroundSecondary,
+   borderBottomWidth: 1,
+   borderBottomColor: colors.border,
+ },
+ headerRight: {
+   flexDirection: 'row',
+   alignItems: 'center',
+ },
+ onlineCount: {
+   flexDirection: 'row',
+   alignItems: 'center',
+   backgroundColor: colors.success + '15',
+   paddingHorizontal: 12,
+   paddingVertical: 6,
+   borderRadius: 100,
+ },
+ onlineDot: {
+   width: 8,
+   height: 8,
+   borderRadius: 4,
+   backgroundColor: colors.success,
+   marginRight: 6,
+ },
+ onlineText: {
+   fontSize: 12,
+   fontWeight: '600',
+   color: colors.success,
+ },
+ gradientBanner: {
+   paddingHorizontal: 20,
+   paddingVertical: 16,
+ },
+ bannerTitle: {
+   fontSize: 20,
+   fontWeight: '700',
+   color: colors.text,
+   marginBottom: 4,
+ },
+ bannerSubtitle: {
+   fontSize: 14,
+   color: colors.textSecondary,
+ },
+ listContent: {
+   padding: 16,
+ },
+ row: {
+   justifyContent: 'space-between',
+ },
+ userCard: {
+   width: CARD_WIDTH,
+   marginBottom: 16,
+   alignItems: 'center',
+   position: 'relative',
+ },
+ onlineIndicator: {
+   position: 'absolute',
+   top: 12,
+   right: 12,
+   width: 12,
+   height: 12,
+   borderRadius: 6,
+   backgroundColor: colors.success,
+   borderWidth: 2,
+   borderColor: colors.backgroundSecondary,
+   zIndex: 1,
+ },
+ avatar: {
+   marginBottom: 12,
+ },
+ userName: {
+   fontSize: 16,
+   fontWeight: '600',
+   color: colors.text,
+   marginBottom: 4,
+ },
+ userInfo: {
+   flexDirection: 'row',
+   alignItems: 'center',
+   marginBottom: 12,
+ },
+ userCity: {
+   fontSize: 13,
+   color: colors.textTertiary,
+   marginLeft: 4,
+   marginRight: 4,
+ },
+ userAge: {
+   fontSize: 13,
+   color: colors.textSecondary,
+   fontWeight: '500',
+ },
+ tagContainer: {
+   flexDirection: 'row',
+   gap: 4,
+ },
+});

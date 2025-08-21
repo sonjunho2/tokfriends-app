@@ -2,15 +2,15 @@ name: EAS Android Preview (APK)
 
 on:
   push:
-    branches: [ main ]     # 원하면 지우고 manual만 써도 됨
-  workflow_dispatch:        # 수동 실행 지원
+    branches: [ "main" ]      # 필요 없으면 이 줄/블록 삭제
+  workflow_dispatch:           # 수동 실행 지원
 
 jobs:
   build-android:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}  # 리포지토리 Secrets에 반드시 추가
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}  # 리포지토리 Secrets에 추가
       NODE_ENV: production                   # expo-constants 경고 억제
 
     steps:
@@ -20,17 +20,17 @@ jobs:
       - name: Use Node.js 18 with npm cache
         uses: actions/setup-node@v4
         with:
-          node-version: 18
-          cache: 'npm'
+          node-version: 18          # 20을 원하면 20으로 변경 가능
+          cache: npm
 
-      # EAS CLI 설치 + Expo 인증 (중복 없이 이 한 스텝이면 충분)
+      # EAS CLI 설치 + Expo 인증
       - name: Setup EAS
         uses: expo/expo-github-action@v8
         with:
           eas-version: 16.17.4
           token: ${{ secrets.EXPO_TOKEN }}
 
-      # 락파일 있으면 ci, 없으면 install (오류로그 없이 깔끔)
+      # 락파일 있으면 ci, 없으면 install
       - name: Install dependencies
         shell: bash
         run: |
@@ -42,23 +42,24 @@ jobs:
             npm install
           fi
 
-      # 선택: 프로젝트 점검(실패로 빌드 중단하지 않도록 true)
+      # 선택: 프로젝트 점검(실패해도 빌드 계속)
       - name: Expo Doctor (optional)
         run: npx expo-doctor || true
 
       # EAS Build 실행 (eas.json의 preview 프로필: APK)
       - name: EAS Build (Android Preview APK)
         id: eas_build
+        shell: bash
         run: |
           set -e
-          RESULT=$(eas build --platform android --profile preview --non-interactive --json)
+          RESULT=$(eas build --platform android --profile preview --non-interactive --wait --json)
           echo "$RESULT" > build-result.json
-          node -e "const fs=require('fs');const r=fs.readFileSync('build-result.json','utf8');const j=JSON.parse(r);let url='';if(Array.isArray(j)){url=j[0]?.artifactUrl||j[0]?.artifacts?.buildUrl||j[0]?.artifacts?.applicationArchiveUrl||j[0]?.buildUrl||'';}else{url=j?.artifactUrl||j?.artifacts?.buildUrl||j?.artifacts?.applicationArchiveUrl||j?.builds?.[0]?.artifactUrl||'';}console.log('artifact-url='+url)" >> $GITHUB_OUTPUT
+          node -e "const fs=require('fs');const r=fs.readFileSync('build-result.json','utf8');const j=JSON.parse(r);let url='';if(Array.isArray(j)){url=j[0]?.artifactUrl||j[0]?.artifacts?.buildUrl||j[0]?.artifacts?.applicationArchiveUrl||j[0]?.buildUrl||'';}else{url=j?.artifactUrl||j?.artifacts?.buildUrl||j?.artifacts?.applicationArchiveUrl||j?.builds?.[0]?.artifactUrl||'';}console.log('artifact-url='+url)" >> "$GITHUB_OUTPUT"
 
       - name: Show download URL
-        run: echo "APK: ${{ steps.eas_build.outputs.artifact-url }}"
+        run: echo "APK URL: ${{ steps.eas_build.outputs.artifact-url }}"
 
-      # (선택) 결과 JSON 아티팩트 업로드
+      # (선택) 결과 JSON 올려두기
       - name: Upload build-result.json
         uses: actions/upload-artifact@v4
         with:

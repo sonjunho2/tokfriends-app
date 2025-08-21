@@ -1,54 +1,66 @@
-name: Build Android APK (EAS)
+name: EAS Android Preview (APK)
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [ main ]     # 원하면 지우고 manual만 써도 됨
+  workflow_dispatch:        # 수동 실행 지원
 
 jobs:
   build-android:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}  # 리포지토리 Secrets에 반드시 추가
+      NODE_ENV: production                   # expo-constants 경고 억제
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Use Node.js 18 with npm cache
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 18
+          cache: 'npm'
 
-      - name: Install EAS CLI
-        run: npm i -g eas-cli@latest
-
-      # Expo 로그인 (EXPO_TOKEN 필요)
-      - name: Auth with Expo (CI)
+      # EAS CLI 설치 + Expo 인증 (중복 없이 이 한 스텝이면 충분)
+      - name: Setup EAS
         uses: expo/expo-github-action@v8
         with:
-          eas-version: latest
+          eas-version: 16.17.4
           token: ${{ secrets.EXPO_TOKEN }}
 
-      - name: Install deps
-        run: npm ci || npm install
-
-      - name: Ensure eas.json (apk build)
+      # 락파일 있으면 ci, 없으면 install (오류로그 없이 깔끔)
+      - name: Install dependencies
+        shell: bash
         run: |
-          node -e "const fs=require('fs');if(!fs.existsSync('eas.json'))fs.writeFileSync('eas.json',JSON.stringify({cli:{version: '>= 13.0.0',appVersionSource:'remote'},build:{preview:{android:{buildType:'apk'}}}},null,2))"
+          if [ -f package-lock.json ]; then
+            echo "✅ Found package-lock.json -> npm ci"
+            npm ci
+          else
+            echo "⚠️  No package-lock.json -> npm install"
+            npm install
+          fi
 
-      # 설정 유효성 점검 (여기서 실패하면 바로 원인 파악 가능)
-      - name: Show Expo config
-        run: npx expo config --json
+      # 선택: 프로젝트 점검(실패로 빌드 중단하지 않도록 true)
+      - name: Expo Doctor (optional)
+        run: npx expo-doctor || true
 
-      - name: Build (Android APK) & capture URL
-        id: build
+      # EAS Build 실행 (eas.json의 preview 프로필: APK)
+      - name: EAS Build (Android Preview APK)
+        id: eas_build
         run: |
           set -e
-          OUT=$(eas build --platform android --profile preview --non-interactive --wait --json)
-          echo "$OUT" > build.json
-          APK_URL=$(node -e "const o=require('./build.json');console.log(o.artifacts?.buildUrl || o.artifacts?.applicationArchiveUrl || '')")
-          echo "apk_url=$APK_URL" >> $GITHUB_OUTPUT
-          echo "APK_URL: $APK_URL"
+          RESULT=$(eas build --platform android --profile preview --non-interactive --json)
+          echo "$RESULT" > build-result.json
+          node -e "const fs=require('fs');const r=fs.readFileSync('build-result.json','utf8');const j=JSON.parse(r);let url='';if(Array.isArray(j)){url=j[0]?.artifactUrl||j[0]?.artifacts?.buildUrl||j[0]?.artifacts?.applicationArchiveUrl||j[0]?.buildUrl||'';}else{url=j?.artifactUrl||j?.artifacts?.buildUrl||j?.artifacts?.applicationArchiveUrl||j?.builds?.[0]?.artifactUrl||'';}console.log('artifact-url='+url)" >> $GITHUB_OUTPUT
 
-      - name: Show APK URL
-        run: echo "✅ APK_URL = ${{ steps.build.outputs.apk_url }}"
+      - name: Show download URL
+        run: echo "APK: ${{ steps.eas_build.outputs.artifact-url }}"
+
+      # (선택) 결과 JSON 아티팩트 업로드
+      - name: Upload build-result.json
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-result
+          path: build-result.json

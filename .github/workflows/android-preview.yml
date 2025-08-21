@@ -2,8 +2,8 @@ name: EAS Android Preview (APK)
 
 on:
   push:
-    branches: [ "main" ]      # 필요 없으면 이 블록 삭제
-  workflow_dispatch:           # 수동 실행
+    branches: [main]      # 원치 않으면 이 블록 삭제
+  workflow_dispatch:       # 수동 실행
 
 jobs:
   build-android:
@@ -54,14 +54,30 @@ jobs:
           set -e
           RESULT=$(eas build --platform android --profile preview --non-interactive --wait --json)
           echo "$RESULT" > build-result.json
-          # 출력 키는 언더스코어만 사용!
-          node -e "const fs=require('fs');const r=fs.readFileSync('build-result.json','utf8');const j=JSON.parse(r);let url='';if(Array.isArray(j)){url=j[0]?.artifactUrl||j[0]?.artifacts?.buildUrl||j[0]?.artifacts?.applicationArchiveUrl||j[0]?.buildUrl||'';}else{url=j?.artifactUrl||j?.artifacts?.buildUrl||j?.artifacts?.applicationArchiveUrl||j?.builds?.[0]?.artifactUrl||'';}process.stdout.write(`artifact_url=${url}\n`)" >> "$GITHUB_OUTPUT"
+
+          # 안전한 방식으로 JSON에서 URL 추출 (YAML 인용/역따옴표 이슈 회피)
+          URL=$(node <<'NODE'
+          const fs = require('fs');
+          const j = JSON.parse(fs.readFileSync('build-result.json','utf8'));
+          const pick = (o) => {
+            if (Array.isArray(o)) o = o[0] || {};
+            return o.artifactUrl
+              || (o.artifacts && (o.artifacts.buildUrl || o.artifacts.applicationArchiveUrl))
+              || o.buildUrl
+              || (o.builds && o.builds[0] && o.builds[0].artifactUrl)
+              || '';
+          };
+          process.stdout.write(pick(j));
+          NODE
+          )
+
+          echo "artifact_url=$URL" >> "$GITHUB_OUTPUT"
 
       - name: Show download URL
         run: echo "APK URL: ${{ steps.eas_build.outputs.artifact_url }}"
 
       # (선택) 결과 JSON 올려두기
-      - name: Upload build-result.json
+      - name: Upload build-result.json (optional)
         uses: actions/upload-artifact@v4
         with:
           name: build-result

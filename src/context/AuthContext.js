@@ -5,6 +5,29 @@ import * as SecureStore from 'expo-secure-store';
 import axios from 'axios';
 import { API_BASE_URL } from '../config/env'; // 👈 변경: 환경변수에서 가져오기
 
+// 유틸: dob -> ISO(YYYY-MM-DD), gender -> 문자열 정규화
+const normalizeDob = (input) => {
+  if (input === undefined || input === null || input === '') return undefined;
+  // 이미 'YYYY-MM-DD'면 그대로
+  if (typeof input === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(input)) return input;
+  // 날짜로 파싱해서 date-only ISO로
+  const d = new Date(input);
+  if (Number.isNaN(d.getTime())) return undefined;
+  return d.toISOString().slice(0, 10); // 'YYYY-MM-DD'
+};
+
+const normalizeGender = (input) => {
+  if (input === undefined || input === null || input === '') return undefined;
+  const str = String(input).trim().toLowerCase();
+  // 숫자/문자 케이스 통합
+  if (str === '0' || str === 'm' || str === 'male' || str === '남' || str === '남자') return 'male';
+  if (str === '1' || str === 'f' || str === 'female' || str === '여' || str === '여자') return 'female';
+  if (str === '2' || str === 'other' || str === '기타') return 'other';
+  // 그 외는 문자열 그대로 보내되, 빈 값이면 제외
+  return str || undefined;
+};
+
+
 const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 10000, // 10초 타임아웃으로 무한대기 방지

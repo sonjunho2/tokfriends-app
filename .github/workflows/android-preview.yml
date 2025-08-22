@@ -26,34 +26,38 @@ jobs:
         run: npm i -g eas-cli@latest
 
       - name: Expo login (token)
-        run: eas whoami || eas login --token ${{ secrets.EXPO_TOKEN }}
+        run: eas whoami || npx eas-cli login --token ${{ secrets.EXPO_TOKEN }}
 
-      - name: Build Android (preview)
+      - name: Build Android (preview) & capture URL
+        id: build
         run: |
           set -e
-          # 빌드 + JSON 결과 저장
-          eas build -p android --profile preview --non-interactive --wait --json | tee build.json
+          # 빌드 실행 및 JSON 저장
+          npx eas-cli build --platform android --profile preview --non-interactive --wait --json > build.json
           echo "---- build.json saved ----"
           cat build.json
-
-      - name: Extract APK URL
-        id: parse
-        run: |
-          set -e
-          sudo apt-get update && sudo apt-get install -y jq
-          # 루트가 배열(신규)일 수도, 객체(구버전)일 수도 있어서 둘 다 대응
-          URL=$(jq -r '.[0].artifacts.buildUrl // .[0].artifacts.applicationArchiveUrl // .artifacts.buildUrl // .artifacts.applicationArchiveUrl // empty' build.json)
-          if [ -z "$URL" ]; then
-            echo "❌ Could not find APK URL in build.json"
-            exit 1
-          fi
-          echo "apk_url=$URL" >> $GITHUB_OUTPUT
-          echo "APK_URL: $URL"
+          
+          # Node.js로 URL 추출
+          APK_URL=$(node -e "
+            const fs = require('fs');
+            const data = JSON.parse(fs.readFileSync('build.json', 'utf8'));
+            const build = Array.isArray(data) ? data[0] : data;
+            const url = build?.artifacts?.buildUrl || build?.artifacts?.applicationArchiveUrl || '';
+            if (!url) {
+              console.error('No APK URL found');
+              process.exit(1);
+            }
+            console.log(url);
+          ")
+          
+          echo "apk_url=$APK_URL" >> $GITHUB_OUTPUT
+          echo "✅ APK URL: $APK_URL"
 
       - name: Download APK
         run: |
           set -e
-          curl -L "${{ steps.parse.outputs.apk_url }}" -o ddakchin-preview.apk
+          echo "Downloading APK from: ${{ steps.build.outputs.apk_url }}"
+          curl -L "${{ steps.build.outputs.apk_url }}" -o ddakchin-preview.apk
           ls -lh ddakchin-preview.apk
 
       - name: Upload APK artifact
@@ -61,3 +65,4 @@ jobs:
         with:
           name: ddakchin-preview-apk
           path: ddakchin-preview.apk
+          retention-days: 7

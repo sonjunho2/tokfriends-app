@@ -3,39 +3,43 @@ import React, { useState } from 'react';
 import {
   View,
   Text,
+  TextInput,
   StyleSheet,
   SafeAreaView,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   TouchableOpacity,
   Alert,
-  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import ButtonPrimary from '../../components/ButtonPrimary';
-import Card from '../../components/Card';
 import colors from '../../theme/colors';
-import authStore from '../../store/auth';
+import { useAuth } from '../../context/AuthContext';
 
 export default function LoginScreen({ navigation }) {
+  const { login } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
   const handleLogin = async () => {
-    if (!email || !password) {
+    const e = email.trim().toLowerCase();
+    const p = password.trim();
+
+    if (!e || !p) {
       Alert.alert('알림', '이메일과 비밀번호를 입력해주세요.');
       return;
     }
 
     setLoading(true);
-    const result = await authStore.login({ email, password });
-    setLoading(false);
-
-    if (!result.success) {
-      Alert.alert('로그인 실패', result.error);
+    try {
+      const result = await login(e, p);
+      if (!result.ok) {
+        // 에러는 AuthContext에서 Alert로 처리됨
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -45,10 +49,7 @@ export default function LoginScreen({ navigation }) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.keyboardView}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          showsVerticalScrollIndicator={false}
-        >
+        <View style={styles.content}>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}
@@ -58,40 +59,27 @@ export default function LoginScreen({ navigation }) {
 
           <View style={styles.header}>
             <Text style={styles.title}>다시 만나서{'\n'}반가워요!</Text>
-            <Text style={styles.subtitle}>
-              계정에 로그인하고 친구들과 대화를 시작하세요
-            </Text>
           </View>
 
-          <Card style={styles.formCard}>
+          <View style={styles.form}>
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>이메일</Text>
-              <View style={styles.inputWrapper}>
-                <TextInput
-                  style={styles.input}
-                  placeholder="your@email.com"
-                  placeholderTextColor={colors.textTertiary}
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                />
-                <Ionicons
-                  name="mail-outline"
-                  size={20}
-                  color={colors.textTertiary}
-                  style={styles.inputIcon}
-                />
-              </View>
+              <TextInput
+                style={styles.input}
+                placeholder="이메일"
+                placeholderTextColor={colors.textTertiary}
+                value={email}
+                onChangeText={setEmail}
+                keyboardType="email-address"
+                autoCapitalize="none"
+                autoCorrect={false}
+              />
             </View>
 
             <View style={styles.inputContainer}>
-              <Text style={styles.label}>비밀번호</Text>
-              <View style={styles.inputWrapper}>
+              <View style={styles.passwordWrapper}>
                 <TextInput
-                  style={styles.input}
-                  placeholder="••••••••"
+                  style={[styles.input, styles.passwordInput]}
+                  placeholder="비밀번호"
                   placeholderTextColor={colors.textTertiary}
                   value={password}
                   onChangeText={setPassword}
@@ -100,7 +88,7 @@ export default function LoginScreen({ navigation }) {
                 />
                 <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}
-                  style={styles.inputIcon}
+                  style={styles.eyeIcon}
                 >
                   <Ionicons
                     name={showPassword ? 'eye-outline' : 'eye-off-outline'}
@@ -111,26 +99,23 @@ export default function LoginScreen({ navigation }) {
               </View>
             </View>
 
-            <TouchableOpacity style={styles.forgotPassword}>
-              <Text style={styles.forgotPasswordText}>비밀번호를 잊으셨나요?</Text>
-            </TouchableOpacity>
-
             <ButtonPrimary
               title="로그인"
               onPress={handleLogin}
               loading={loading}
+              disabled={loading}
               size="large"
               style={styles.loginButton}
             />
-          </Card>
+          </View>
 
           <View style={styles.footer}>
-            <Text style={styles.footerText}>아직 계정이 없으신가요?</Text>
+            <Text style={styles.footerText}>계정이 없으신가요?</Text>
             <TouchableOpacity onPress={() => navigation.navigate('Signup')}>
               <Text style={styles.signupLink}>회원가입</Text>
             </TouchableOpacity>
           </View>
-        </ScrollView>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
@@ -144,8 +129,8 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
   },
-  scrollContent: {
-    flexGrow: 1,
+  content: {
+    flex: 1,
     paddingHorizontal: 24,
   },
   backButton: {
@@ -153,62 +138,42 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   header: {
-    marginBottom: 32,
+    marginBottom: 40,
   },
   title: {
     fontSize: 32,
     fontWeight: '700',
     color: colors.text,
     lineHeight: 40,
-    marginBottom: 12,
   },
-  subtitle: {
-    fontSize: 16,
-    color: colors.textSecondary,
-    lineHeight: 24,
-  },
-  formCard: {
-    padding: 24,
-    marginBottom: 24,
+  form: {
+    flex: 1,
   },
   inputContainer: {
-    marginBottom: 20,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: colors.text,
-    marginBottom: 8,
-  },
-  inputWrapper: {
-    position: 'relative',
+    marginBottom: 16,
   },
   input: {
     backgroundColor: colors.backgroundTertiary,
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    paddingRight: 44,
     fontSize: 16,
     color: colors.text,
   },
-  inputIcon: {
+  passwordWrapper: {
+    position: 'relative',
+  },
+  passwordInput: {
+    paddingRight: 48,
+  },
+  eyeIcon: {
     position: 'absolute',
     right: 16,
     top: '50%',
     marginTop: -10,
   },
-  forgotPassword: {
-    alignSelf: 'flex-end',
-    marginBottom: 24,
-  },
-  forgotPasswordText: {
-    fontSize: 14,
-    color: colors.primary,
-    fontWeight: '500',
-  },
   loginButton: {
-    marginTop: 8,
+    marginTop: 24,
   },
   footer: {
     flexDirection: 'row',

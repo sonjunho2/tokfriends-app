@@ -33,13 +33,14 @@ jobs:
       - name: Expo login (token)
         run: eas whoami || eas login --token ${{ secrets.EXPO_TOKEN }}
 
-      # eas.json 없으면 자동 생성
-      - name: Ensure eas.json (preview profile)
+      # ⚠️ eas.json은 레포에 이미 있으므로 절대 덮어쓰지 않음
+      - name: Show app/eas config (debug)
         run: |
-          node -e "const fs=require('fs'); const path='eas.json'; if(!fs.existsSync(path)){ const cfg={cli:{version: '>= 3.20.0'}, build:{ preview:{android:{buildType:'apk', developmentClient:true}}, apk:{android:{buildType:'apk'}}, production:{android:{buildType:'app-bundle'}} }}; fs.writeFileSync(path, JSON.stringify(cfg,null,2)); console.log('eas.json created'); } else { console.log('eas.json exists'); }"
+          echo "== app.json ==" && cat app.json || true
+          echo "== eas.json ==" && cat eas.json || true
 
       - name: Build Android (preview)
-        run: eas build -p android --profile preview --non-interactive --wait
+        run: eas build -p android --profile preview --non-interactive --wait --clear-cache
 
       - name: Download APK
         run: eas build:download --latest --platform android --path ddakchin-preview.apk

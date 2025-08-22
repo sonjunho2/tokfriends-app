@@ -30,7 +30,7 @@ jobs:
           echo "EXPO_TOKEN set? ${{ env.EXPO_TOKEN != '' }}"
 
       - name: Install deps
-        run: npm install
+        run: npm ci || npm install
 
       - name: Install EAS CLI
         run: npm i -g eas-cli@latest
@@ -43,11 +43,28 @@ jobs:
           npx expo config --json || true
           npx expo-doctor || true
 
-      - name: Build Android (preview; clear cache)
-        run: eas build -p android --profile preview --non-interactive --wait --clear-cache
+      # ✅ 빌드 결과를 JSON으로 저장하고 APK URL 추출
+      - name: Build Android (preview; clear cache) -> capture JSON
+        id: build
+        run: |
+          set -e
+          OUT="$(eas build -p android --profile preview --non-interactive --wait --clear-cache --json)"
+          echo "$OUT" > build.json
+          echo "---- build.json ----"
+          cat build.json || true
 
-      - name: Download APK
-        run: eas build:download --latest --platform android --path ddakchin-preview.apk
+          APK_URL=$(node -e "const fs=require('fs');const o=JSON.parse(fs.readFileSync('build.json','utf8'));const b=Array.isArray(o.builds)?o.builds[0]:o;process.stdout.write(b?.artifacts?.applicationArchiveUrl || b?.artifacts?.buildUrl || '')")
+          if [ -z "$APK_URL" ]; then
+            echo '❌ APK URL not found in build.json'
+            exit 1
+          fi
+          echo "apk_url=$APK_URL" >> $GITHUB_OUTPUT
+          echo "APK_URL: $APK_URL"
+
+      - name: Download APK (via URL)
+        run: |
+          curl -fL "${{ steps.build.outputs.apk_url }}" -o ddakchin-preview.apk
+          ls -lh ddakchin-preview.apk
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

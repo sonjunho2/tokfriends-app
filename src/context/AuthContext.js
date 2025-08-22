@@ -6,8 +6,9 @@ import { Alert } from 'react-native';
 import { API_BASE_URL } from '../config/env';
 
 // ---- 내부 설정 -------------------------------------------------
-const TOKEN_KEY = 'auth_token'; // 토큰 저장 키 (앱 전역 통일)
-let currentToken = null;        // 인터셉터에서 쓸 메모리 캐시
+const TOKEN_KEY = 'auth_token';   // 토큰 저장 키
+const USER_KEY  = 'auth_user';    // 로그인/회원가입 응답 user 저장 키
+let currentToken = null;          // 인터셉터에서 쓸 메모리 캐시
 
 // axios 인스턴스 (모든 API 공통)
 const api = axios.create({
@@ -71,53 +72,77 @@ export const AuthProvider = ({ children }) => {
     initializing: true,
   });
 
-  // 부팅 시 토큰 복구 + me 조회
+  // 부팅 시 토큰/유저 복구 (+선택적 새로고침)
   useEffect(() => {
     (async () => {
       try {
-        const stored = await SecureStore.getItemAsync(TOKEN_KEY);
-        if (stored) {
-          currentToken = stored;
-          setState((s) => ({ ...s, token: stored }));
-          // 사용자 정보
-          const me = await api.get('/users/me');
-          setState((s) => ({ ...s, user: me.data }));
+        const [storedToken, storedUserJson] = await Promise.all([
+          SecureStore.getItemAsync(TOKEN_KEY),
+          SecureStore.getItemAsync(USER_KEY),
+        ]);
+
+        if (storedToken) {
+          currentToken = storedToken;
         }
-      } catch (e) {
-        // 토큰 무효 시 초기화
+
+        if (storedToken && storedUserJson) {
+          const storedUser = JSON.parse(storedUserJson);
+          setState({ user: storedUser, token: storedToken, initializing: false });
+
+          // 선택: 서버 최신 상태로 새로고침 (백엔드 라우트: GET /users/:id)
+          if (storedUser?.id) {
+            try {
+              const me = await api.get(`/users/${storedUser.id}`);
+              if (me?.data) {
+                setState((s) => ({ ...s, user: me.data }));
+                await SecureStore.setItemAsync(USER_KEY, JSON.stringify(me.data));
+              }
+            } catch {
+              // 새로고침 실패해도 복구 상태는 유지
+            }
+          }
+          return;
+        }
+
+        // 복구 불가 → 로그인 필요
+        setState({ user: null, token: null, initializing: false });
+      } catch {
         await SecureStore.deleteItemAsync(TOKEN_KEY);
+        await SecureStore.deleteItemAsync(USER_KEY);
         currentToken = null;
         setState({ user: null, token: null, initializing: false });
-        return;
       }
-      setState((s) => ({ ...s, initializing: false }));
     })();
   }, []);
 
-  // 공통: 토큰 저장/적용 후 me 조회
-  const setTokenAndFetchMe = async (token) => {
-    currentToken = token;
-    await SecureStore.setItemAsync(TOKEN_KEY, token);
-    setState((s) => ({ ...s, token }));
-    const me = await api.get('/users/me');
-    setState((s) => ({ ...s, user: me.data }));
+  // 로그인/회원가입 성공 후 공통 저장
+  const saveAuth = async ({ token, user }) => {
+    currentToken = token || null;
+    if (token) await SecureStore.setItemAsync(TOKEN_KEY, token);
+    if (user)  await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
+    setState({ user: user || null, token: token || null, initializing: false });
   };
 
   // 로그인
   const login = async (email, password) => {
     try {
       const res = await api.post('/auth/login/email', { email, password });
-      // 다양한 키명을 대응
+
+      // 다양한 키명 대응
       const token =
-        res.data?.access_token ||
-        res.data?.accessToken ||
         res.data?.token ||
+        res.data?.accessToken ||
+        res.data?.access_token ||
         null;
 
-      if (!token) {
-        throw new Error('로그인 응답에 토큰이 없습니다.');
-      }
-      await setTokenAndFetchMe(token);
+      const user =
+        res.data?.user ||
+        res.data?.profile ||
+        null;
+
+      if (!token) throw new Error('로그인 응답에 토큰이 없습니다.');
+      await saveAuth({ token, user });
+
       return { ok: true };
     } catch (e) {
       Alert.alert('로그인 실패', getErrMsg(e));
@@ -128,7 +153,6 @@ export const AuthProvider = ({ children }) => {
   // 회원가입 → 성공 시 자동 로그인
   const signup = async (data) => {
     try {
-      // 필요한 필드 정규화/선택 포함
       const payload = {
         email: data.email,
         password: data.password,
@@ -137,9 +161,26 @@ export const AuthProvider = ({ children }) => {
         ...(data.name ? { name: String(data.name) } : {}),
       };
 
-      await api.post('/auth/signup/email', payload);
+      const res = await api.post('/auth/signup/email', payload);
 
-      // 자동 로그인
+      // 서버가 가입과 동시에 토큰/유저를 주면 저장
+      const token =
+        res.data?.token ||
+        res.data?.accessToken ||
+        res.data?.access_token ||
+        null;
+
+      const user =
+        res.data?.user ||
+        res.data?.profile ||
+        null;
+
+      if (token && user) {
+        await saveAuth({ token, user });
+        return { ok: true };
+      }
+
+      // 아니면 로그인 한 번 더
       const r = await login(data.email, data.password);
       if (!r.ok) throw new Error(r.error || '자동 로그인 실패');
       return { ok: true };
@@ -153,16 +194,25 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await SecureStore.deleteItemAsync(TOKEN_KEY);
+      await SecureStore.deleteItemAsync(USER_KEY);
     } catch {}
     currentToken = null;
     setState({ user: null, token: null, initializing: false });
   };
 
-  // 내 정보 새로고침
+  // 내 정보 새로고침 (GET /users/:id 사용)
   const refreshMe = async () => {
-    if (!state.token) return;
-    const me = await api.get('/users/me');
-    setState((s) => ({ ...s, user: me.data }));
+    try {
+      const id = state?.user?.id;
+      if (!id) return;
+      const me = await api.get(`/users/${id}`);
+      if (me?.data) {
+        setState((s) => ({ ...s, user: me.data }));
+        await SecureStore.setItemAsync(USER_KEY, JSON.stringify(me.data));
+      }
+    } catch (e) {
+      // 새로고침 실패는 무시
+    }
   };
 
   const value = useMemo(
@@ -175,7 +225,7 @@ export const AuthProvider = ({ children }) => {
       logout,
       refreshMe,
     }),
-    [state, login, signup]
+    [state]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

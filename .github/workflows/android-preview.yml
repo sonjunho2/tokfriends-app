@@ -10,7 +10,6 @@ jobs:
   android-preview:
     runs-on: ubuntu-latest
 
-    # 앱이 레포 루트가 아닐 경우(예: apps/mobile) 여기 경로를 바꿔줘.
     defaults:
       run:
         working-directory: .
@@ -24,6 +23,12 @@ jobs:
         with:
           node-version: 20
 
+      - name: Print env (debug)
+        run: |
+          node -v
+          npm -v
+          echo "EXPO_TOKEN set? ${{ env.EXPO_TOKEN != '' }}"
+
       - name: Install deps
         run: npm install
 
@@ -33,13 +38,12 @@ jobs:
       - name: Expo login (token)
         run: eas whoami || eas login --token ${{ secrets.EXPO_TOKEN }}
 
-      # ⚠️ eas.json은 레포에 이미 있으므로 절대 덮어쓰지 않음
-      - name: Show app/eas config (debug)
+      - name: Show resolved config (non-blocking)
         run: |
-          echo "== app.json ==" && cat app.json || true
-          echo "== eas.json ==" && cat eas.json || true
+          npx expo config --json || true
+          npx expo-doctor || true
 
-      - name: Build Android (preview)
+      - name: Build Android (preview; clear cache)
         run: eas build -p android --profile preview --non-interactive --wait --clear-cache
 
       - name: Download APK

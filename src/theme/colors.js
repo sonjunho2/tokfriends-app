@@ -15,6 +15,7 @@ const colors = {
   textPrimary: '#111827',
   textSecondary: '#6B7280',
   textTertiary: '#9CA3AF',
+  textInverse: '#FFFFFF',  // 추가
 
   // Border
   border: '#E5E7EB',
@@ -25,6 +26,19 @@ const colors = {
   warning: '#F59E0B',
   error: '#EF4444',
   info: '#3B82F6',
+
+  // Accent colors (추가)
+  accentMint: '#10B981',
+  accentPurple: '#8B5CF6',
+  accentOrange: '#F97316',
+
+  // Gradients (추가)
+  gradients: {
+    primary: ['#FF6B6B', '#FF8E8E'],
+    sunset: ['#FF6B6B', '#F97316'],
+    mint: ['#10B981', '#34D399'],
+    purple: ['#8B5CF6', '#A78BFA'],
+  },
 
   // Others
   white: '#FFFFFF',

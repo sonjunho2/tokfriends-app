@@ -33,25 +33,10 @@ jobs:
       - name: Expo login (token)
         run: eas whoami || eas login --token ${{ secrets.EXPO_TOKEN }}
 
+      # ✅ heredoc 없이 안전하게 eas.json 생성/보강
       - name: Ensure eas.json (preview profile)
         run: |
-          if [ ! -f "eas.json" ]; then
-            cat > eas.json <<'JSON'
-            {
-              "cli": { "version": ">= 3.20.0" },
-              "build": {
-                "preview": {
-                  "android": {
-                    "buildType": "apk",
-                    "developmentClient": true
-                  }
-                },
-                "apk": { "android": { "buildType": "apk" } },
-                "production": { "android": { "buildType": "app-bundle" } }
-              }
-            }
-JSON
-          fi
+          node -e "const fs=require('fs'); const path='eas.json'; if(!fs.existsSync(path)){ const cfg={cli:{version: '>= 3.20.0'}, build:{ preview:{android:{buildType:'apk', developmentClient:true}}, apk:{android:{buildType:'apk'}}, production:{android:{buildType:'app-bundle'}} }}; fs.writeFileSync(path, JSON.stringify(cfg,null,2)); console.log('eas.json created'); } else { console.log('eas.json exists'); }"
 
       - name: Build Android (preview)
         run: eas build -p android --profile preview --non-interactive --wait
@@ -60,7 +45,4 @@ JSON
         run: eas build:download --latest --platform android --path ddakchin-preview.apk
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ddakchin-preview-apk
-          path: ddakchin-preview.apk
+        uses: actions/upload-art

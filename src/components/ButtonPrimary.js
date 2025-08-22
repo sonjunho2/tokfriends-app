@@ -5,9 +5,7 @@ import {
   Text,
   StyleSheet,
   ActivityIndicator,
-  View,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import colors from '../theme/colors';
 
 export default function ButtonPrimary({
@@ -16,105 +14,71 @@ export default function ButtonPrimary({
   loading = false,
   disabled = false,
   size = 'medium',
-  variant = 'gradient',
-  icon,
   style,
   textStyle,
 }) {
-  const isDisabled = disabled || loading;
-  
   const sizeStyles = {
-    small: { height: 40, paddingHorizontal: 16, fontSize: 14 },
-    medium: { height: 52, paddingHorizontal: 24, fontSize: 16 },
-    large: { height: 60, paddingHorizontal: 32, fontSize: 18 },
+    small: { button: styles.buttonSmall, text: styles.textSmall },
+    medium: { button: styles.buttonMedium, text: styles.textMedium },
+    large: { button: styles.buttonLarge, text: styles.textLarge },
   };
-  
-  const currentSize = sizeStyles[size];
-  
-  const content = (
-    <>
-      {loading ? (
-        <ActivityIndicator size="small" color={colors.textInverse} />
-      ) : (
-        <View style={styles.contentContainer}>
-          {icon && <View style={styles.iconContainer}>{icon}</View>}
-          <Text style={[
-            styles.text,
-            { fontSize: currentSize.fontSize },
-            textStyle
-          ]}>
-            {title}
-          </Text>
-        </View>
-      )}
-    </>
-  );
-  
-  if (variant === 'gradient' && !isDisabled) {
-    return (
-      <TouchableOpacity
-        onPress={onPress}
-        disabled={isDisabled}
-        activeOpacity={0.8}
-        style={style}
-      >
-        <LinearGradient
-          colors={colors.gradients.primary}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 0 }}
-          style={[
-            styles.button,
-            { height: currentSize.height, paddingHorizontal: currentSize.paddingHorizontal },
-          ]}
-        >
-          {content}
-        </LinearGradient>
-      </TouchableOpacity>
-    );
-  }
-  
+
+  const currentSize = sizeStyles[size] || sizeStyles.medium;
+
   return (
     <TouchableOpacity
       style={[
         styles.button,
-        styles.solidButton,
-        { height: currentSize.height, paddingHorizontal: currentSize.paddingHorizontal },
-        isDisabled && styles.disabled,
-        style
+        currentSize.button,
+        disabled && styles.buttonDisabled,
+        style,
       ]}
       onPress={onPress}
-      disabled={isDisabled}
+      disabled={disabled || loading}
       activeOpacity={0.8}
     >
-      {content}
+      {loading ? (
+        <ActivityIndicator size="small" color="#FFFFFF" />
+      ) : (
+        <Text style={[styles.text, currentSize.text, textStyle]}>{title}</Text>
+      )}
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
   button: {
-    borderRadius: 26,
-    justifyContent: 'center',
-    alignItems: 'center',
-    flexDirection: 'row',
-  },
-  solidButton: {
     backgroundColor: colors.primary,
-  },
-  disabled: {
-    backgroundColor: colors.textTertiary,
-    opacity: 0.5,
-  },
-  contentContainer: {
-    flexDirection: 'row',
+    borderRadius: 12,
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  iconContainer: {
-    marginRight: 8,
+  buttonDisabled: {
+    opacity: 0.6,
+  },
+  buttonSmall: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  buttonMedium: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+  },
+  buttonLarge: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
   },
   text: {
-    color: colors.textInverse,
+    color: '#FFFFFF',
     fontWeight: '600',
-    letterSpacing: 0.5,
+  },
+  textSmall: {
+    fontSize: 14,
+  },
+  textMedium: {
+    fontSize: 16,
+  },
+  textLarge: {
+    fontSize: 18,
   },
 });

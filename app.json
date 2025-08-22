@@ -21,7 +21,7 @@
         "backgroundColor": "#111827"
       },
       "permissions": [
-        "INTERNET"                         
+        "INTERNET",                         
         "CAMERA",
         "READ_MEDIA_IMAGES",
         "READ_MEDIA_VIDEO"
@@ -43,12 +43,8 @@
     ],
     "extra": {
       "apiBaseUrl": "https://tok-friends-api.onrender.com",
-      "eas": { "projectId": "101718db-f90c-4fc8-9b2f-ed06405d9991" }
-      "showTestAuthScreen": true
-      "testScreen": "topics"
+      "eas": { "projectId": "101718db-f90c-4fc8-9b2f-ed06405d9991" },
       "testScreen": "auth"
-      "testScreen": "community"
-
     }
   }
 }

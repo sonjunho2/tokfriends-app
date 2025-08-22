@@ -1,49 +1,65 @@
-// App.js — 테스트 화면 선택 토글 래퍼
-import React from 'react';
-import { SafeAreaView, StatusBar } from 'react-native';
-import Constants from 'expo-constants';
+// App.js
+import 'react-native-gesture-handler';
+import React, { useState, useEffect } from 'react';
+import { View, ActivityIndicator, StyleSheet } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import {
+  useFonts,
+  NotoSansKR_400Regular,
+  NotoSansKR_500Medium,
+  NotoSansKR_700Bold,
+} from '@expo-google-fonts/noto-sans-kr';
 
-// app.json의 extra에서 토글/화면선택 읽기
-const extra =
-  (Constants?.expoConfig && Constants.expoConfig.extra) ||
-  (Constants?.manifest && Constants.manifest.extra) ||
-  {};
-// 우선순위: testScreen 값 → 개별 boolean 토글 → 기본(AppRoot)
-const screenFromString = typeof extra.testScreen === 'string' ? extra.testScreen.toLowerCase() : null;
-const screen =
-  screenFromString ||
-  (extra.showTestAuthScreen ? 'auth' :
-   extra.showTestTopicsScreen ? 'topics' :
-   extra.showTestCommunityScreen ? 'community' : null);
+import Navigation from './navigation';
+import colors from './theme/colors';
+import authStore from './store/auth';
+import { AuthProvider } from './context/AuthContext'; // ✅ 외부 컨텍스트 사용
 
-// 원래 앱
-let AppRoot = () => null;
-try {
-  AppRoot = require('./src/AppRoot').default || require('./src/AppRoot');
-} catch (e) {
-  console.warn('AppRoot not found:', e?.message);
-}
+export default function App() {
+  const [isReady, setIsReady] = useState(false);
+  const [fontsLoaded] = useFonts({
+    NotoSansKR_400Regular,
+    NotoSansKR_500Medium,
+    NotoSansKR_700Bold,
+  });
 
-// 테스트 화면 로더
-function Loader({ name }) {
-  let Comp = null;
-  if (name === 'auth') {
-    Comp = require('./src/screens/TestAuthScreen').default;
-  } else if (name === 'topics') {
-    Comp = require('./src/screens/TestTopicsScreen').default;
-  } else if (name === 'community') {
-    Comp = require('./src/screens/TestCommunityScreen').default;
-  } else {
-    return <AppRoot />;
+  useEffect(() => {
+    (async () => {
+      try {
+        await authStore.init?.();
+      } catch (e) {
+        console.error('App initialization error:', e);
+      } finally {
+        setIsReady(true);
+      }
+    })();
+  }, []);
+
+  if (!fontsLoaded || !isReady) {
+    return (
+      <View style={styles.loadingContainer}>
+        <StatusBar style="dark" backgroundColor={colors.background} />
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
   }
+
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
-      <StatusBar barStyle="dark-content" />
-      <Comp />
-    </SafeAreaView>
+    <View style={styles.container}>
+      <StatusBar style="dark" backgroundColor={colors.backgroundSecondary} translucent={false} />
+      <AuthProvider>
+        <Navigation />
+      </AuthProvider>
+    </View>
   );
 }
 
-export default function App() {
-  return screen ? <Loader name={screen} /> : <AppRoot />;
-}
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: colors.background },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+  },
+});

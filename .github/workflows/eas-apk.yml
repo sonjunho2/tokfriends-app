@@ -1,0 +1,65 @@
+name: Build Android APK (EAS)
+
+on:
+  workflow_dispatch: {}   # Actions 탭에서 수동 실행
+
+env:
+  # 선택: 여기에 EXPO_TOKEN을 주입하면 별도 로그인 커맨드 없이도 동작합니다.
+  # EXPO_TOKEN: ${{ secrets.EAS_TOKEN }}
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    # 모노레포가 아니면 .(루트)
+    # 만약 앱이 하위 폴더(e.g. apps/mobile)면 여기를 바꿔주세요.
+    defaults:
+      run:
+        working-directory: .
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+        # 🔹 package-lock.json이 없어도 성공합니다 (npm ci는 잠시 사용하지 않음)
+
+      - name: Install EAS CLI
+        run: npm i -g eas-cli@latest
+
+      # 방법 A) 위 env에 EXPO_TOKEN을 넣었으면 이 단계 생략 가능
+      - name: Expo login (using token)
+        run: eas whoami || eas login --token ${{ secrets.EAS_TOKEN }}
+
+      # (이미 repo에 eas.json이 있다면 건너뜀)
+      - name: Ensure eas.json exists (noop if exists)
+        run: |
+          if [ ! -f "eas.json" ]; then
+            echo '{
+              "cli": { "version": ">= 3.20.0" },
+              "build": {
+                "apk": { "android": { "buildType": "apk" } },
+                "production": { "android": { "buildType": "app-bundle" } }
+              }
+            }' > eas.json
+          fi
+
+      # 실제 빌드 (완료까지 대기)
+      - name: Build APK
+        run: eas build -p android --profile apk --non-interactive --wait
+
+      # 가장 최근 빌드 다운로드
+      - name: Download APK
+        run: eas build:download --latest --platform android --path ddakchin.apk
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ddakchin-apk
+          path: ddakchin.apk

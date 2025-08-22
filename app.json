@@ -31,7 +31,6 @@
     "extra": {
       "apiBaseUrl": "https://tok-friends-api.onrender.com",
       "eas": { "projectId": "101718db-f90c-4fc8-9b2f-ed06405d9991" },
-      "testScreen": "auth"
     }
   }
 }

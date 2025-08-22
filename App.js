@@ -11,9 +11,9 @@ import {
 } from '@expo-google-fonts/noto-sans-kr';
 
 import Navigation from './src/navigation';
-import colors from './theme/colors';
-import authStore from './store/auth';
-import { AuthProvider } from './context/AuthContext'; // ✅ 외부 컨텍스트 사용
+import colors from './src/theme/colors';
+import authStore from './src/store/auth';
+import { AuthProvider } from './src/context/AuthContext'; // ✅ 외부 컨텍스트 사용
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);

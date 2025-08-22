@@ -19,13 +19,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#111827"
       },
-      "permissions": [
-        "INTERNET",                         
-        "CAMERA",
-        "READ_MEDIA_IMAGES",
-        "READ_MEDIA_VIDEO"
-        
-      ]
+
     },
     "ios": {
       "supportsTablet": true,

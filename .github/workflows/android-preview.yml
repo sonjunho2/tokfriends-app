@@ -1,54 +1,66 @@
-name: Build Android APK (EAS)
+name: Android Preview (EAS)
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: {}
+
+env:
+  EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
 jobs:
-  build-android:
+  android-preview:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
-    env:
-      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+    # 앱이 레포 루트가 아닐 경우(예: apps/mobile) 여기 경로를 바꾸세요.
+    defaults:
+      run:
+        working-directory: .
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Setup Node
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
+      - name: Install deps
+        run: npm install
+
       - name: Install EAS CLI
         run: npm i -g eas-cli@latest
 
-      # Expo 로그인 (EXPO_TOKEN 필요)
-      - name: Auth with Expo (CI)
-        uses: expo/expo-github-action@v8
+      - name: Expo login (token)
+        run: eas whoami || eas login --token ${{ secrets.EXPO_TOKEN }}
+
+      - name: Ensure eas.json (preview profile)
+        run: |
+          if [ ! -f "eas.json" ]; then
+            cat > eas.json <<'JSON'
+            {
+              "cli": { "version": ">= 3.20.0" },
+              "build": {
+                "preview": {
+                  "android": {
+                    "buildType": "apk",
+                    "developmentClient": true
+                  }
+                },
+                "apk": { "android": { "buildType": "apk" } },
+                "production": { "android": { "buildType": "app-bundle" } }
+              }
+            }
+JSON
+          fi
+
+      - name: Build Android (preview)
+        run: eas build -p android --profile preview --non-interactive --wait
+
+      - name: Download APK
+        run: eas build:download --latest --platform android --path ddakchin-preview.apk
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
         with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
-
-      - name: Install deps
-        run: npm ci || npm install
-
-      - name: Ensure eas.json (apk build)
-        run: |
-          node -e "const fs=require('fs');if(!fs.existsSync('eas.json'))fs.writeFileSync('eas.json',JSON.stringify({cli:{version: '>= 13.0.0',appVersionSource:'remote'},build:{preview:{android:{buildType:'apk'}}}},null,2))"
-
-      # 설정 유효성 점검 (여기서 실패하면 바로 원인 파악 가능)
-      - name: Show Expo config
-        run: npx expo config --json
-
-      - name: Build (Android APK) & capture URL
-        id: build
-        run: |
-          set -e
-          OUT=$(eas build --platform android --profile preview --non-interactive --wait --json)
-          echo "$OUT" > build.json
-          APK_URL=$(node -e "const o=require('./build.json');console.log(o.artifacts?.buildUrl || o.artifacts?.applicationArchiveUrl || '')")
-          echo "apk_url=$APK_URL" >> $GITHUB_OUTPUT
-          echo "APK_URL: $APK_URL"
-
-      - name: Show APK URL
-        run: echo "✅ APK_URL = ${{ steps.build.outputs.apk_url }}"
+          name: ddakchin-preview-apk
+          path: ddakchin-preview.apk

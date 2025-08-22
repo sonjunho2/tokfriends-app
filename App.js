@@ -1,109 +1,34 @@
-// App.js
-import 'react-native-gesture-handler';
-import React, { useState, useEffect } from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import * as Font from 'expo-font';
-import * as SecureStore from 'expo-secure-store';
-import { 
- useFonts,
- NotoSansKR_400Regular,
- NotoSansKR_500Medium,
- NotoSansKR_700Bold 
-} from '@expo-google-fonts/noto-sans-kr';
-import Navigation from './src/navigation';
-import authStore from './src/store/auth';
-import colors from './src/theme/colors';
+// App.js (테스트 화면 토글 래퍼)
+import React from 'react';
+import { SafeAreaView, StatusBar } from 'react-native';
+import Constants from 'expo-constants';
+
+// app.json의 extra에서 토글 읽기
+const extra =
+  (Constants?.expoConfig && Constants.expoConfig.extra) ||
+  (Constants?.manifest && Constants.manifest.extra) ||
+  {};
+const showTest = !!extra.showTestAuthScreen;
+
+// 원래 앱 불러오기(방금 백업해둔 파일)
+let AppRoot = () => null;
+try {
+  AppRoot = require('./src/AppRoot').default || require('./src/AppRoot');
+} catch (e) {
+  console.warn('AppRoot not found:', e?.message);
+}
+
+// 테스트 화면 불러오기
+function TestScreenWrapper() {
+  const TestAuthScreen = require('./src/screens/TestAuthScreen').default;
+  return (
+    <SafeAreaView style={{ flex: 1, backgroundColor: 'white' }}>
+      <StatusBar barStyle="dark-content" />
+      <TestAuthScreen />
+    </SafeAreaView>
+  );
+}
 
 export default function App() {
- const [isReady, setIsReady] = useState(false);
- const [fontsLoaded] = useFonts({
-   NotoSansKR_400Regular,
-   NotoSansKR_500Medium,
-   NotoSansKR_700Bold,
- });
-
- useEffect(() => {
-   initializeApp();
- }, []);
-
- const initializeApp = async () => {
-   try {
-     // Auth Store 초기화 (토큰 확인 및 자동 로그인)
-     await authStore.init();
-   } catch (error) {
-     console.error('App initialization error:', error);
-   } finally {
-     setIsReady(true);
-   }
- };
-
- if (!fontsLoaded || !isReady) {
-   return (
-     <View style={styles.loadingContainer}>
-       <StatusBar style="dark" backgroundColor={colors.background} />
-       <ActivityIndicator size="large" color={colors.primary} />
-     </View>
-   );
- }
-
- return (
-   <View style={styles.container}>
-     <StatusBar 
-       style="dark" 
-       backgroundColor={colors.backgroundSecondary}
-       translucent={false}
-     />
-     <AuthProvider>
-       <Navigation />
-     </AuthProvider>
-   </View>
- );
+  return showTest ? <TestScreenWrapper /> : <AppRoot />;
 }
-
-// AuthProvider 컴포넌트
-function AuthProvider({ children }) {
- const [authState, setAuthState] = useState({
-   user: authStore.user,
-   token: authStore.token,
-   loading: authStore.loading,
- });
-
- useEffect(() => {
-   // Auth Store 구독
-   const unsubscribe = authStore.subscribe((state) => {
-     setAuthState(state);
-   });
-
-   return unsubscribe;
- }, []);
-
- return (
-   <AuthContext.Provider value={authState}>
-     {children}
-   </AuthContext.Provider>
- );
-}
-
-// Auth Context 생성
-const AuthContext = React.createContext({
- user: null,
- token: null,
- loading: true,
-});
-
-// Context Hook export
-export const useAuth = () => React.useContext(AuthContext);
-
-const styles = StyleSheet.create({
- container: {
-   flex: 1,
-   backgroundColor: colors.background,
- },
- loadingContainer: {
-   flex: 1,
-   justifyContent: 'center',
-   alignItems: 'center',
-   backgroundColor: colors.background,
- },
-});

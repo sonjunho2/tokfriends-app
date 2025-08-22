@@ -15,13 +15,13 @@
     },
     "android": {
       "package": "com.sonfree.ddakchin",
-      "versionCode": 1,                     // ✅ 추가: 최초 1, 업데이트 때마다 +1
+      "versionCode": 1,                     
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#111827"
       },
       "permissions": [
-        "INTERNET"                          // 기본 인터넷 통신      
+        "INTERNET"                         
         "CAMERA",
         "READ_MEDIA_IMAGES",
         "READ_MEDIA_VIDEO"
@@ -37,7 +37,7 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      ["expo-build-properties", {           // ✅ 빌드 타겟 명시 (안정성↑)
+      ["expo-build-properties", {           
         "android": { "compileSdkVersion": 34, "targetSdkVersion": 34, "minSdkVersion": 24 }
       }]
     ],

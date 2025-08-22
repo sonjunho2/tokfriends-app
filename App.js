@@ -10,7 +10,7 @@ import {
   NotoSansKR_700Bold,
 } from '@expo-google-fonts/noto-sans-kr';
 
-import Navigation from './navigation';
+import Navigation from './src/navigation';
 import colors from './theme/colors';
 import authStore from './store/auth';
 import { AuthProvider } from './context/AuthContext'; // ✅ 외부 컨텍스트 사용

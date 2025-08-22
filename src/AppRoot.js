@@ -11,9 +11,9 @@ import {
  NotoSansKR_500Medium,
  NotoSansKR_700Bold 
 } from '@expo-google-fonts/noto-sans-kr';
-import Navigation from './src/navigation';
-import authStore from './src/store/auth';
-import colors from './src/theme/colors';
+import Navigation from './navigation';
+import authStore from './store/auth';
+import colors from './theme/colors';
 
 export default function App() {
  const [isReady, setIsReady] = useState(false);

@@ -1,4 +1,4 @@
-name: Android Preview (EAS)
+name: Android Preview (APK, Dev)
 
 on:
   workflow_dispatch: {}

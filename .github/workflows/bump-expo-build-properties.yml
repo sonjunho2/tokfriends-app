@@ -1,4 +1,4 @@
-name: Bump expo-build-properties to SDK-expected version
+name: Bump expo & expo-build-properties to SDK-expected versions
 
 on:
   workflow_dispatch: {}
@@ -18,8 +18,16 @@ jobs:
         with:
           node-version: 20
 
-      # expo doctor가 알려준 "expected" 버전으로 설치 (+ lockfile 업데이트)
-      - name: Install SDK-matched version
+      # package.json에 expo 없으면 추가(~53.0.0)
+      - name: Ensure expo dependency (~53)
+        run: |
+          node -e "const fs=require('fs'); const p='./package.json'; const pkg=JSON.parse(fs.readFileSync(p,'utf8')); pkg.dependencies=pkg.dependencies||{}; if(!pkg.dependencies.expo){ pkg.dependencies.expo='~53.0.0'; fs.writeFileSync(p, JSON.stringify(pkg,null,2)); console.log('✅ added expo ~53.0.0'); } else { console.log('ℹ️ expo already:', pkg.dependencies.expo); }"
+
+      - name: Install deps (update lockfile)
+        run: npm install
+
+      # SDK 53에서 expected: expo-build-properties ~0.12.5
+      - name: Install expo-build-properties to expected version
         run: npx expo install expo-build-properties@~0.12.5
 
       - name: Commit lockfile & package.json
@@ -27,5 +35,5 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@users.noreply.github.com"
           git add package.json package-lock.json
-          git commit -m "chore: bump expo-build-properties to ~0.12.5 (match Expo SDK)"
+          git diff --cached --quiet || git commit -m "chore: ensure expo ~53 & expo-build-properties ~0.12.5 (match Expo SDK)"
           git push

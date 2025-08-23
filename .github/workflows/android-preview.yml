@@ -10,6 +10,10 @@ jobs:
   android-preview:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: .
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -19,6 +23,12 @@ jobs:
         with:
           node-version: 20
 
+      - name: Print env (debug)
+        run: |
+          node -v
+          npm -v
+          echo "EXPO_TOKEN set? ${{ env.EXPO_TOKEN != '' }}"
+
       - name: Install deps
         run: npm ci || npm install
 
@@ -26,43 +36,38 @@ jobs:
         run: npm i -g eas-cli@latest
 
       - name: Expo login (token)
-        run: eas whoami || npx eas-cli login --token ${{ secrets.EXPO_TOKEN }}
+        run: eas whoami || eas login --token ${{ secrets.EXPO_TOKEN }}
 
-      - name: Build Android (preview) & capture URL
+      - name: Show resolved config (non-blocking)
+        run: |
+          npx expo config --json || true
+          npx expo-doctor || true
+
+      # ✅ 빌드 결과를 JSON으로 저장하고 APK URL 추출
+      - name: Build Android (preview; clear cache) -> capture JSON
         id: build
         run: |
           set -e
-          # 빌드 실행 및 JSON 저장
-          npx eas-cli build --platform android --profile preview --non-interactive --wait --json > build.json
-          echo "---- build.json saved ----"
-          cat build.json
-          
-          # Node.js로 URL 추출
-          APK_URL=$(node -e "
-            const fs = require('fs');
-            const data = JSON.parse(fs.readFileSync('build.json', 'utf8'));
-            const build = Array.isArray(data) ? data[0] : data;
-            const url = build?.artifacts?.buildUrl || build?.artifacts?.applicationArchiveUrl || '';
-            if (!url) {
-              console.error('No APK URL found');
-              process.exit(1);
-            }
-            console.log(url);
-          ")
-          
-          echo "apk_url=$APK_URL" >> $GITHUB_OUTPUT
-          echo "✅ APK URL: $APK_URL"
+          OUT="$(eas build -p android --profile preview --non-interactive --wait --clear-cache --json)"
+          echo "$OUT" > build.json
+          echo "---- build.json ----"
+          cat build.json || true
 
-      - name: Download APK
+          APK_URL=$(node -e "const fs=require('fs');const o=JSON.parse(fs.readFileSync('build.json','utf8'));const b=Array.isArray(o.builds)?o.builds[0]:o;process.stdout.write(b?.artifacts?.applicationArchiveUrl || b?.artifacts?.buildUrl || '')")
+          if [ -z "$APK_URL" ]; then
+            echo '❌ APK URL not found in build.json'
+            exit 1
+          fi
+          echo "apk_url=$APK_URL" >> $GITHUB_OUTPUT
+          echo "APK_URL: $APK_URL"
+
+      - name: Download APK (via URL)
         run: |
-          set -e
-          echo "Downloading APK from: ${{ steps.build.outputs.apk_url }}"
-          curl -L "${{ steps.build.outputs.apk_url }}" -o ddakchin-preview.apk
+          curl -fL "${{ steps.build.outputs.apk_url }}" -o ddakchin-preview.apk
           ls -lh ddakchin-preview.apk
 
-      - name: Upload APK artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ddakchin-preview-apk
           path: ddakchin-preview.apk
-          retention-days: 7

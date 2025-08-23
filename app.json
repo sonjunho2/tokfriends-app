@@ -18,15 +18,13 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#111827"
-      },
-      "permissions": [],
-      "compileSdkVersion": 34,
-      "targetSdkVersion": 34,
-      "buildToolsVersion": "34.0.0"
+      }
+      /* ⛔ 여기에 compileSdkVersion / targetSdkVersion / buildToolsVersion 넣지 마세요 */
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sonfree.ddakchin"
+      "bundleIdentifier": "com.sonfree.ddakchin",
+      "buildNumber": "1"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -38,11 +36,8 @@
           "android": {
             "compileSdkVersion": 34,
             "targetSdkVersion": 34,
-            "buildToolsVersion": "34.0.0",
-            "kotlinVersion": "1.9.0"
-          },
-          "ios": {
-            "deploymentTarget": "13.4"
+            "minSdkVersion": 24
+            /* "buildToolsVersion": "34.0.0"  // 필요 시 추가, 없어도 됩니다 */
           }
         }
       ]

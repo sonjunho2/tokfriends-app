@@ -1,5 +1,4 @@
 // App.js
-import ErrorBoundary from './src/components/ErrorBoundary';
 import 'react-native-gesture-handler';
 import React, { useState, useEffect } from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
@@ -49,9 +48,7 @@ export default function App() {
     <View style={styles.container}>
       <StatusBar style="dark" backgroundColor={colors.backgroundSecondary} translucent={false} />
       <AuthProvider>
-        <ErrorBoundary>
-         <Navigation />
-        </ErrorBoundary>
+        <Navigation />
       </AuthProvider>
     </View>
   );

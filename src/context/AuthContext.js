@@ -2,9 +2,20 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import * as SecureStore from 'expo-secure-store';
 import { Alert } from 'react-native';
-import http, { setHttpToken, clearHttpToken } from '../api/http';
+import { api } from '../lib/api';        // ✅ 공용 axios
+import { API_BASE_URL } from '../config/env';
 
 const TOKEN_KEY = 'auth_token';
+let currentToken = null;
+
+api.interceptors.request.use((config) => {
+  // 토큰 자동 첨부
+  if (currentToken) {
+    config.headers = config.headers || {};
+    config.headers.Authorization = `Bearer ${currentToken}`;
+  }
+  return config;
+});
 
 const getErrMsg = (e) => {
   const m = e?.response?.data?.message;
@@ -23,9 +34,9 @@ const normalizeDob = (input) => {
 const normalizeGender = (input) => {
   if (input === undefined || input === null || input === '') return undefined;
   const str = String(input).trim().toLowerCase();
-  if (['0', 'm', 'male', '남', '남자'].includes(str)) return 'male';
-  if (['1', 'f', 'female', '여', '여자'].includes(str)) return 'female';
-  if (['2', 'other', '기타'].includes(str)) return 'other';
+  if (['0','m','male','남','남자'].includes(str)) return 'male';
+  if (['1','f','female','여','여자'].includes(str)) return 'female';
+  if (['2','other','기타'].includes(str)) return 'other';
   return str || undefined;
 };
 
@@ -33,8 +44,8 @@ const AuthContext = createContext({
   user: null,
   token: null,
   initializing: true,
-  login: async (_email, _password) => ({ ok: false }),
-  signup: async (_data) => ({ ok: false }),
+  login: async () => {},
+  signup: async () => {},
   logout: async () => {},
   refreshMe: async () => {},
 });
@@ -42,26 +53,22 @@ const AuthContext = createContext({
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-  const [state, setState] = useState({
-    user: null,
-    token: null,
-    initializing: true,
-  });
+  const [state, setState] = useState({ user: null, token: null, initializing: true });
 
-  // 부팅 시: 토큰 복구 + /users/me 확인
   useEffect(() => {
     (async () => {
+      console.log('[BOOT] API_BASE_URL =', API_BASE_URL);
       try {
         const stored = await SecureStore.getItemAsync(TOKEN_KEY);
         if (stored) {
-          setHttpToken(stored);
+          currentToken = stored;
           setState((s) => ({ ...s, token: stored }));
-          const me = await http.get('/users/me');
+          const me = await api.get('/users/me');
           setState((s) => ({ ...s, user: me.data }));
         }
-      } catch {
+      } catch (e) {
         await SecureStore.deleteItemAsync(TOKEN_KEY);
-        clearHttpToken();
+        currentToken = null;
         setState({ user: null, token: null, initializing: false });
         return;
       }
@@ -70,32 +77,23 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const setTokenAndFetchMe = async (token) => {
-    setHttpToken(token);
+    currentToken = token;
     await SecureStore.setItemAsync(TOKEN_KEY, token);
     setState((s) => ({ ...s, token }));
-    const me = await http.get('/users/me');
+    const me = await api.get('/users/me');
     setState((s) => ({ ...s, user: me.data }));
   };
 
   const login = async (email, password) => {
     try {
-      const res = await http.post('/auth/login/email', { email, password });
-      const token =
-        res.data?.access_token ||
-        res.data?.accessToken ||
-        res.data?.token ||
-        null;
-      if (!token) {
-        Alert.alert('로그인 실패', '로그인 응답에 토큰이 없습니다.');
-        return { ok: false, error: 'no_token' };
-      }
+      const res = await api.post('/auth/login/email', { email, password });
+      const token = res.data?.access_token || res.data?.accessToken || res.data?.token || null;
+      if (!token) throw new Error('로그인 응답에 토큰이 없습니다.');
       await setTokenAndFetchMe(token);
       return { ok: true };
     } catch (e) {
-      const msg = getErrMsg(e);
-      console.log('[LOGIN_ERR]', e?.response?.data || e);
-      Alert.alert('로그인 실패', msg);
-      return { ok: false, error: msg };
+      Alert.alert('로그인 실패', getErrMsg(e));
+      return { ok: false, error: getErrMsg(e) };
     }
   };
 
@@ -104,53 +102,39 @@ export const AuthProvider = ({ children }) => {
       const payload = {
         email: data.email,
         password: data.password,
+        ...(data.name ? { name: String(data.name) } : {}),
         ...(normalizeDob(data.dob) ? { dob: normalizeDob(data.dob) } : {}),
         ...(normalizeGender(data.gender) ? { gender: normalizeGender(data.gender) } : {}),
-        ...(data.name ? { name: String(data.name) } : {}),
+        ...(data.displayName ? { displayName: String(data.displayName) } : {}),
       };
-
-      await http.post('/auth/signup/email', payload);
-
-      // 성공 시 자동 로그인 (절대 throw 금지)
+      await api.post('/auth/signup/email', payload);
       const r = await login(data.email, data.password);
-      if (!r.ok) {
-        // 자동 로그인 실패해도 앱이 죽지 않도록 Alert만
-        Alert.alert('자동 로그인 실패', r.error || '다시 로그인해 주세요.');
-        return { ok: true, autoLogin: false };
-      }
-      return { ok: true, autoLogin: true };
+      if (!r.ok) throw new Error(r.error || '자동 로그인 실패');
+      return { ok: true };
     } catch (e) {
-      const msg = getErrMsg(e);
-      console.log('[SIGNUP_ERR]', e?.response?.data || e);
-      Alert.alert('회원가입 실패', msg);
-      return { ok: false, error: msg };
+      Alert.alert('회원가입 실패', getErrMsg(e));
+      return { ok: false, error: getErrMsg(e) };
     }
   };
 
   const logout = async () => {
     try { await SecureStore.deleteItemAsync(TOKEN_KEY); } catch {}
-    clearHttpToken();
+    currentToken = null;
     setState({ user: null, token: null, initializing: false });
   };
 
   const refreshMe = async () => {
     if (!state.token) return;
-    const me = await http.get('/users/me');
+    const me = await api.get('/users/me');
     setState((s) => ({ ...s, user: me.data }));
   };
 
-  const value = useMemo(
-    () => ({
-      user: state.user,
-      token: state.token,
-      initializing: state.initializing,
-      login,
-      signup,
-      logout,
-      refreshMe,
-    }),
-    [state]
-  );
+  const value = useMemo(() => ({
+    user: state.user,
+    token: state.token,
+    initializing: state.initializing,
+    login, signup, logout, refreshMe,
+  }), [state]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

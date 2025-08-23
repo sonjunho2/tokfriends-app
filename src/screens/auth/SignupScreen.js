@@ -17,11 +17,9 @@ import ButtonPrimary from '../../components/ButtonPrimary';
 import Card from '../../components/Card';
 import Tag from '../../components/Tag';
 import colors from '../../theme/colors';
-import { useAuth } from '../../context/AuthContext'; // ✅ 변경: 전역 AuthContext 사용
+import authStore from '../../store/auth';
 
 export default function SignupScreen({ navigation }) {
-  const { signup } = useAuth(); // ✅ 변경: authStore 대신 컨텍스트의 signup 사용
-
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -31,58 +29,34 @@ export default function SignupScreen({ navigation }) {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSignup = async () => {
-    // 입력값 정리
-    const e = email.trim().toLowerCase();
-    const p = password.trim();
-    const n = displayName.trim();
-    const y = birthYear.trim();
-
-    // 기본 검증
-    if (!e || !p || !n || !gender || !y) {
+    if (!email || !password || !displayName || !gender || !birthYear) {
       Alert.alert('알림', '모든 필수 정보를 입력해주세요.');
       return;
     }
-    // 이메일 형식
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) {
-      Alert.alert('알림', '올바른 이메일 형식이 아닙니다.');
-      return;
-    }
-    // 비밀번호
-    if (p.length < 6) {
+
+    if (password.length < 6) {
       Alert.alert('알림', '비밀번호는 6자 이상이어야 합니다.');
       return;
     }
-    // 출생년도
-    const yearNum = parseInt(y, 10);
-    if (Number.isNaN(yearNum) || yearNum < 1900 || yearNum > 2010) {
+
+    const year = parseInt(birthYear);
+    if (isNaN(year) || year < 1900 || year > 2010) {
       Alert.alert('알림', '올바른 출생년도를 입력해주세요.');
       return;
     }
 
     setLoading(true);
-    try {
-      // ✅ AuthContext.signup은 항상 { ok, error?, autoLogin? } 반환 (throw 안 함)
-      const res = await signup({
-        email: e,
-        password: p,
-        name: n,                // ✅ 백엔드/컨텍스트에서 기대하는 키로 전달
-        gender,                 // 'male' | 'female'
-        dob: `${yearNum}-01-01` // YYYY-MM-DD
-      });
+    const result = await authStore.signup({
+      email,
+      password,
+      displayName,
+      gender,
+      dob: `${birthYear}-01-01`,
+    });
+    setLoading(false);
 
-      if (res?.ok) {
-        if (res.autoLogin === false) {
-          Alert.alert('회원가입 완료', '회원가입이 완료되었습니다. 로그인해 주세요.');
-          navigation.replace('Login');
-        } else {
-          // 자동 로그인 성공 시, 루트 네비게이션이 Main으로 전환됨
-          Alert.alert('환영합니다!', '자동 로그인되었습니다.');
-        }
-      } else {
-        Alert.alert('회원가입 실패', res?.error || '요청에 실패했습니다.');
-      }
-    } finally {
-      setLoading(false);
+    if (!result.success) {
+      Alert.alert('회원가입 실패', result.error);
     }
   };
 
@@ -111,7 +85,6 @@ export default function SignupScreen({ navigation }) {
           </View>
 
           <Card style={styles.formCard}>
-            {/* 이메일 */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>이메일</Text>
               <View style={styles.inputWrapper}>
@@ -134,7 +107,6 @@ export default function SignupScreen({ navigation }) {
               </View>
             </View>
 
-            {/* 비밀번호 */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>비밀번호</Text>
               <View style={styles.inputWrapper}>
@@ -160,7 +132,6 @@ export default function SignupScreen({ navigation }) {
               </View>
             </View>
 
-            {/* 닉네임 */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>닉네임</Text>
               <View style={styles.inputWrapper}>
@@ -181,7 +152,6 @@ export default function SignupScreen({ navigation }) {
               </View>
             </View>
 
-            {/* 성별 */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>성별</Text>
               <View style={styles.genderContainer}>
@@ -202,7 +172,6 @@ export default function SignupScreen({ navigation }) {
               </View>
             </View>
 
-            {/* 출생년도 */}
             <View style={styles.inputContainer}>
               <Text style={styles.label}>출생년도</Text>
               <View style={styles.inputWrapper}>
@@ -230,7 +199,6 @@ export default function SignupScreen({ navigation }) {
               loading={loading}
               size="large"
               style={styles.signupButton}
-              disabled={loading} // ✅ 중복 클릭 방지
             />
           </Card>
 
@@ -247,11 +215,24 @@ export default function SignupScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background },
-  keyboardView: { flex: 1 },
-  scrollContent: { flexGrow: 1, paddingHorizontal: 24 },
-  backButton: { marginTop: 16, marginBottom: 24 },
-  header: { marginBottom: 32 },
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+  },
+  backButton: {
+    marginTop: 16,
+    marginBottom: 24,
+  },
+  header: {
+    marginBottom: 32,
+  },
   title: {
     fontSize: 32,
     fontWeight: '700',
@@ -259,11 +240,27 @@ const styles = StyleSheet.create({
     lineHeight: 40,
     marginBottom: 12,
   },
-  subtitle: { fontSize: 16, color: colors.textSecondary, lineHeight: 24 },
-  formCard: { padding: 24, marginBottom: 24 },
-  inputContainer: { marginBottom: 20 },
-  label: { fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 8 },
-  inputWrapper: { position: 'relative' },
+  subtitle: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    lineHeight: 24,
+  },
+  formCard: {
+    padding: 24,
+    marginBottom: 24,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  inputWrapper: {
+    position: 'relative',
+  },
   input: {
     backgroundColor: colors.backgroundTertiary,
     borderRadius: 12,
@@ -273,16 +270,36 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
   },
-  inputIcon: { position: 'absolute', right: 16, top: '50%', marginTop: -10 },
-  genderContainer: { flexDirection: 'row', gap: 12 },
-  genderTag: { flex: 1 },
-  signupButton: { marginTop: 8 },
+  inputIcon: {
+    position: 'absolute',
+    right: 16,
+    top: '50%',
+    marginTop: -10,
+  },
+  genderContainer: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  genderTag: {
+    flex: 1,
+  },
+  signupButton: {
+    marginTop: 8,
+  },
   footer: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 24,
   },
-  footerText: { fontSize: 14, color: colors.textSecondary, marginRight: 8 },
-  loginLink: { fontSize: 14, color: colors.primary, fontWeight: '600' },
+  footerText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    marginRight: 8,
+  },
+  loginLink: {
+    fontSize: 14,
+    color: colors.primary,
+    fontWeight: '600',
+  },
 });

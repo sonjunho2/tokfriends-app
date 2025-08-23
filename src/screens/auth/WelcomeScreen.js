@@ -1,135 +1,152 @@
+// src/screens/auth/WelcomeScreen.js
 import React from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Image,
-  Pressable,
+ View,
+ Text,
+ StyleSheet,
+ SafeAreaView,
+ Dimensions,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import ButtonPrimary from '../../components/ButtonPrimary';
 import colors from '../../theme/colors';
 
+const { width, height } = Dimensions.get('window');
+
 export default function WelcomeScreen({ navigation }) {
-  return (
-    <View style={s.container}>
-      {/* 로고 */}
-      <View style={s.logoWrap}>
-        <Image
-          source={require('../../../assets/logo.png')}
-          style={s.logo}
-          resizeMode="contain"
-        />
-      </View>
-
-      {/* 🔥 슬로건: 크게 + 포인트 컬러 + 중앙 정렬 */}
-      <Text style={s.tagline}>딱 맞는 친구를 찾아보세요</Text>
-
-      {/* 하단 설명 항목들 중앙 정렬 */}
-      <View style={s.features}>
-        <View style={s.featureRow}>
-          <Ionicons name="location" size={20} color={colors.primary} />
-          <Text style={s.featureText}>내 주변 친구 찾기</Text>
-        </View>
-        <View style={s.featureRow}>
-          <Ionicons name="chatbubbles" size={20} color={colors.primary} />
-          <Text style={s.featureText}>실시간 채팅</Text>
-        </View>
-        <View style={s.featureRow}>
-          <Ionicons name="heart" size={20} color={colors.primary} />
-          <Text style={s.featureText}>취향 기반 추천</Text>
-        </View>
-      </View>
-
-      {/* 시작하기 버튼 (기존 로직 그대로 사용) */}
-      <Pressable
-        onPress={() => navigation.replace('Login')}
-        style={s.ctaBtn}
-      >
-        <Text style={s.ctaText}>시작하기</Text>
-      </Pressable>
-
-      <Text style={s.terms}>
-        계속하면 <Text style={s.underline}>이용약관</Text> 및{' '}
-        <Text style={s.underline}>개인정보 처리방침</Text>에 동의하게 됩니다
-      </Text>
-    </View>
-  );
+ return (
+   <LinearGradient
+     colors={[colors.primaryLight + '20', colors.background]}
+     style={styles.container}
+   >
+     <SafeAreaView style={styles.safeArea}>
+       <View style={styles.content}>
+         <View style={styles.topSection}>
+           <View style={styles.iconContainer}>
+             <Ionicons name="heart" size={80} color={colors.primary} />
+           </View>
+           
+           <Text style={styles.title}>딱친</Text>
+           <Text style={styles.subtitle}>딱 맞는 친구를 찾아보세요</Text>
+           
+           <View style={styles.features}>
+             <View style={styles.featureItem}>
+               <Ionicons name="location" size={24} color={colors.primary} />
+               <Text style={styles.featureText}>내 주변 친구 찾기</Text>
+             </View>
+             <View style={styles.featureItem}>
+               <Ionicons name="chatbubbles" size={24} color={colors.accentMint} />
+               <Text style={styles.featureText}>실시간 채팅</Text>
+             </View>
+             <View style={styles.featureItem}>
+               <Ionicons name="sparkles" size={24} color={colors.primary} />
+               <Text style={styles.featureText}>AI 친구 추천</Text>
+             </View>
+           </View>
+         </View>
+         
+         <View style={styles.bottomSection}>
+           <ButtonPrimary
+             title="시작하기"
+             onPress={() => navigation.navigate('Signup')}
+             size="large"
+             style={styles.button}
+           />
+           
+           <ButtonPrimary
+             title="이미 계정이 있어요"
+             onPress={() => navigation.navigate('Login')}
+             size="large"
+             variant="solid"
+             style={[styles.button, styles.secondaryButton]}
+           />
+           
+           <Text style={styles.terms}>
+             계속하면 <Text style={styles.link}>이용약관</Text> 및{' '}
+             <Text style={styles.link}>개인정보 처리방침</Text>에 동의하게 됩니다
+           </Text>
+         </View>
+       </View>
+     </SafeAreaView>
+   </LinearGradient>
+ );
 }
 
-const s = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-    paddingHorizontal: 24,
-    paddingTop: 48,
-    alignItems: 'center',           // 전체 중앙 정렬
-  },
-
-  /* 로고 영역 */
-  logoWrap: {
-    width: 160,
-    height: 160,
-    borderRadius: 80,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.5)',
-  },
-  logo: {
-    width: 120,
-    height: 120,
-  },
-
-  /* 🔥 슬로건(“딱 맞는 친구를 찾아보세요”) */
-  tagline: {
-    marginTop: 16,
-    fontSize: 22,                   // 크게
-    fontWeight: '700',
-    color: colors.primary,          // 포인트 컬러
-    textAlign: 'center',
-  },
-
-  /* 기능 리스트 */
-  features: {
-    marginTop: 20,
-    width: '100%',
-    alignItems: 'center',           // 중앙 정렬
-    gap: 10,
-  },
-  featureRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  featureText: {
-    fontSize: 16,
-    color: colors.textPrimary,
-    textAlign: 'center',
-  },
-
-  /* CTA 버튼 */
-  ctaBtn: {
-    marginTop: 24,
-    width: '100%',
-    height: 56,
-    borderRadius: 14,
-    backgroundColor: colors.primary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  ctaText: {
-    color: 'white',
-    fontSize: 18,
-    fontWeight: '800',
-  },
-
-  /* 약관 안내 */
-  terms: {
-    marginTop: 12,
-    fontSize: 12,
-    color: colors.textTertiary,
-    textAlign: 'center',
-  },
-  underline: {
-    textDecorationLine: 'underline',
-  },
+const styles = StyleSheet.create({
+ container: {
+   flex: 1,
+ },
+ safeArea: {
+   flex: 1,
+ },
+ content: {
+   flex: 1,
+   paddingHorizontal: 24,
+   justifyContent: 'space-between',
+ },
+ topSection: {
+   flex: 1,
+   justifyContent: 'center',
+   alignItems: 'center',
+   paddingTop: height * 0.1,
+ },
+ iconContainer: {
+   width: 120,
+   height: 120,
+   borderRadius: 60,
+   backgroundColor: colors.primary + '10',
+   justifyContent: 'center',
+   alignItems: 'center',
+   marginBottom: 24,
+ },
+ title: {
+   fontSize: 48,
+   fontWeight: '800',
+   color: colors.primary,
+   letterSpacing: -1,
+   marginBottom: 8,
+ },
+ subtitle: {
+   fontSize: 18,
+   color: colors.textSecondary,
+   marginBottom: 40,
+ },
+ features: {
+   width: '100%',
+   paddingHorizontal: 20,
+ },
+ featureItem: {
+   flexDirection: 'row',
+   alignItems: 'center',
+   marginBottom: 20,
+ },
+ featureText: {
+   fontSize: 16,
+   color: colors.text,
+   marginLeft: 16,
+   fontWeight: '500',
+ },
+ bottomSection: {
+   paddingBottom: 30,
+ },
+ button: {
+   marginBottom: 12,
+ },
+ secondaryButton: {
+   backgroundColor: colors.backgroundSecondary,
+   borderWidth: 1,
+   borderColor: colors.border,
+ },
+ terms: {
+   fontSize: 12,
+   color: colors.textTertiary,
+   textAlign: 'center',
+   marginTop: 20,
+   lineHeight: 18,
+ },
+ link: {
+   color: colors.primary,
+   fontWeight: '600',
+ },
 });

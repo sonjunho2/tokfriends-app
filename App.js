@@ -1,6 +1,6 @@
 // App.js
 import 'react-native-gesture-handler';
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import {
@@ -12,30 +12,17 @@ import {
 
 import Navigation from './src/navigation';
 import colors from './src/theme/colors';
-import authStore from './src/store/auth';
-import { AuthProvider } from './src/context/AuthContext'; // ✅ 외부 컨텍스트 사용
+import { AuthProvider } from './src/context/AuthContext';
 
 export default function App() {
-  const [isReady, setIsReady] = useState(false);
   const [fontsLoaded] = useFonts({
     NotoSansKR_400Regular,
     NotoSansKR_500Medium,
     NotoSansKR_700Bold,
   });
 
-  useEffect(() => {
-    (async () => {
-      try {
-        await authStore.init?.();
-      } catch (e) {
-        console.error('App initialization error:', e);
-      } finally {
-        setIsReady(true);
-      }
-    })();
-  }, []);
-
-  if (!fontsLoaded || !isReady) {
+  // ★ 변경: authStore.init() 제거, AuthContext에서 자동 초기화됨
+  if (!fontsLoaded) {
     return (
       <View style={styles.loadingContainer}>
         <StatusBar style="dark" backgroundColor={colors.background} />

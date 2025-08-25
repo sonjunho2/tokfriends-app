@@ -13,13 +13,21 @@ import {
   TextInput,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useAuth } from '../../context/AuthContext';
 import ButtonPrimary from '../../components/ButtonPrimary';
 import Card from '../../components/Card';
 import Tag from '../../components/Tag';
 import colors from '../../theme/colors';
-import authStore from '../../store/auth';
+
+// 이메일 형식 검증
+const isValidEmail = (email) => {
+  const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return re.test(email);
+};
 
 export default function SignupScreen({ navigation }) {
+  const { signup } = useAuth();
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [displayName, setDisplayName] = useState('');
@@ -29,13 +37,19 @@ export default function SignupScreen({ navigation }) {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSignup = async () => {
+    // 입력 검증
     if (!email || !password || !displayName || !gender || !birthYear) {
       Alert.alert('알림', '모든 필수 정보를 입력해주세요.');
       return;
     }
 
-    if (password.length < 6) {
-      Alert.alert('알림', '비밀번호는 6자 이상이어야 합니다.');
+    if (!isValidEmail(email)) {
+      Alert.alert('알림', '올바른 이메일 형식을 입력해주세요.');
+      return;
+    }
+
+    if (password.length < 8) {
+      Alert.alert('알림', '비밀번호는 8자 이상이어야 합니다.');
       return;
     }
 
@@ -45,18 +59,27 @@ export default function SignupScreen({ navigation }) {
       return;
     }
 
-    setLoading(true);
-    const result = await authStore.signup({
-      email,
-      password,
-      displayName,
-      gender,
-      dob: `${birthYear}-01-01`,
-    });
-    setLoading(false);
+    // 중복 클릭 방지
+    if (loading) return;
 
-    if (!result.success) {
-      Alert.alert('회원가입 실패', result.error);
+    setLoading(true);
+    try {
+      const result = await signup({
+        email: email.trim().toLowerCase(),
+        password,
+        displayName: displayName.trim(),
+        gender,
+        dob: `${birthYear}-01-01`,
+      });
+
+      if (!result.ok) {
+        Alert.alert('회원가입 실패', result.error);
+      }
+      // 성공 시 AuthContext에서 자동으로 로그인 상태로 전환됨
+    } catch (e) {
+      Alert.alert('회원가입 실패', '알 수 없는 오류가 발생했습니다.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -97,6 +120,7 @@ export default function SignupScreen({ navigation }) {
                   keyboardType="email-address"
                   autoCapitalize="none"
                   autoCorrect={false}
+                  editable={!loading}
                 />
                 <Ionicons
                   name="mail-outline"
@@ -112,16 +136,18 @@ export default function SignupScreen({ navigation }) {
               <View style={styles.inputWrapper}>
                 <TextInput
                   style={styles.input}
-                  placeholder="6자 이상 입력해주세요"
+                  placeholder="8자 이상 입력해주세요"
                   placeholderTextColor={colors.textTertiary}
                   value={password}
                   onChangeText={setPassword}
                   secureTextEntry={!showPassword}
                   autoCapitalize="none"
+                  editable={!loading}
                 />
                 <TouchableOpacity
                   onPress={() => setShowPassword(!showPassword)}
                   style={styles.inputIcon}
+                  disabled={loading}
                 >
                   <Ionicons
                     name={showPassword ? 'eye-outline' : 'eye-off-outline'}
@@ -142,6 +168,7 @@ export default function SignupScreen({ navigation }) {
                   value={displayName}
                   onChangeText={setDisplayName}
                   maxLength={20}
+                  editable={!loading}
                 />
                 <Ionicons
                   name="person-outline"
@@ -158,14 +185,14 @@ export default function SignupScreen({ navigation }) {
                 <Tag
                   label="남성"
                   selected={gender === 'male'}
-                  onPress={() => setGender('male')}
+                  onPress={() => !loading && setGender('male')}
                   size="medium"
                   style={styles.genderTag}
                 />
                 <Tag
                   label="여성"
                   selected={gender === 'female'}
-                  onPress={() => setGender('female')}
+                  onPress={() => !loading && setGender('female')}
                   size="medium"
                   style={styles.genderTag}
                 />
@@ -183,6 +210,7 @@ export default function SignupScreen({ navigation }) {
                   onChangeText={setBirthYear}
                   keyboardType="number-pad"
                   maxLength={4}
+                  editable={!loading}
                 />
                 <Ionicons
                   name="calendar-outline"
@@ -204,7 +232,10 @@ export default function SignupScreen({ navigation }) {
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>이미 계정이 있으신가요?</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+            <TouchableOpacity 
+              onPress={() => navigation.navigate('Login')}
+              disabled={loading}
+            >
               <Text style={styles.loginLink}>로그인</Text>
             </TouchableOpacity>
           </View>

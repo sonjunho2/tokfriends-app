@@ -79,8 +79,10 @@ export const AuthProvider = ({ children }) => {
         if (stored) {
           currentToken = stored;
           setState((s) => ({ ...s, token: stored }));
-          // 사용자 정보
-          const me = await api.get('/users/me');
+          // ★ 변경: /users/me 대신 토큰에서 userId 추출하여 /users/:id 호출
+          const payload = JSON.parse(atob(stored.split('.')[1]));
+          const userId = payload.sub;
+          const me = await api.get(`/users/${userId}`);
           setState((s) => ({ ...s, user: me.data }));
         }
       } catch (e) {
@@ -99,7 +101,11 @@ export const AuthProvider = ({ children }) => {
     currentToken = token;
     await SecureStore.setItemAsync(TOKEN_KEY, token);
     setState((s) => ({ ...s, token }));
-    const me = await api.get('/users/me');
+    
+    // ★ 변경: 토큰에서 userId 추출
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    const userId = payload.sub;
+    const me = await api.get(`/users/${userId}`);
     setState((s) => ({ ...s, user: me.data }));
   };
 
@@ -107,12 +113,8 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const res = await api.post('/auth/login/email', { email, password });
-      // 다양한 키명을 대응
-      const token =
-        res.data?.access_token ||
-        res.data?.accessToken ||
-        res.data?.token ||
-        null;
+      // ★ 변경: 서버는 token 키로 반환
+      const token = res.data?.token;
 
       if (!token) {
         throw new Error('로그인 응답에 토큰이 없습니다.');
@@ -120,7 +122,6 @@ export const AuthProvider = ({ children }) => {
       await setTokenAndFetchMe(token);
       return { ok: true };
     } catch (e) {
-      Alert.alert('로그인 실패', getErrMsg(e));
       return { ok: false, error: getErrMsg(e) };
     }
   };
@@ -128,13 +129,13 @@ export const AuthProvider = ({ children }) => {
   // 회원가입 → 성공 시 자동 로그인
   const signup = async (data) => {
     try {
-      // 필요한 필드 정규화/선택 포함
+      // ★ 변경: 서버 스키마에 맞게 필드명 수정
       const payload = {
         email: data.email,
         password: data.password,
-        ...(normalizeDob(data.dob) ? { dob: normalizeDob(data.dob) } : {}),
-        ...(normalizeGender(data.gender) ? { gender: normalizeGender(data.gender) } : {}),
-        ...(data.name ? { name: String(data.name) } : {}),
+        dob: normalizeDob(data.dob) || '2000-01-01', // 필수 필드
+        gender: normalizeGender(data.gender) || 'other', // 필수 필드
+        ...(data.displayName ? { displayName: String(data.displayName) } : {}),
       };
 
       await api.post('/auth/signup/email', payload);
@@ -144,7 +145,6 @@ export const AuthProvider = ({ children }) => {
       if (!r.ok) throw new Error(r.error || '자동 로그인 실패');
       return { ok: true };
     } catch (e) {
-      Alert.alert('회원가입 실패', getErrMsg(e));
       return { ok: false, error: getErrMsg(e) };
     }
   };
@@ -161,7 +161,11 @@ export const AuthProvider = ({ children }) => {
   // 내 정보 새로고침
   const refreshMe = async () => {
     if (!state.token) return;
-    const me = await api.get('/users/me');
+    
+    // ★ 변경: 토큰에서 userId 추출
+    const payload = JSON.parse(atob(state.token.split('.')[1]));
+    const userId = payload.sub;
+    const me = await api.get(`/users/${userId}`);
     setState((s) => ({ ...s, user: me.data }));
   };
 

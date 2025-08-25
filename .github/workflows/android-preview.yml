@@ -10,10 +10,6 @@ jobs:
   android-preview:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: .
-
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,7 +39,7 @@ jobs:
           npx expo config --json || true
           npx expo-doctor || true
 
-      # ✅ 빌드 결과를 JSON으로 저장하고 APK URL 추출
+      # ✅ 빌드 + JSON 캡처
       - name: Build Android (preview; clear cache) -> capture JSON
         id: build
         run: |
@@ -53,11 +49,13 @@ jobs:
           echo "---- build.json ----"
           cat build.json || true
 
-          APK_URL=$(node -e "const fs=require('fs');const o=JSON.parse(fs.readFileSync('build.json','utf8'));const b=Array.isArray(o.builds)?o.builds[0]:o;process.stdout.write(b?.artifacts?.applicationArchiveUrl || b?.artifacts?.buildUrl || '')")
-          if [ -z "$APK_URL" ]; then
-            echo '❌ APK URL not found in build.json'
-            exit 1
-          fi
+          # ✅ 최상위 배열/객체/빌드리스트 모든 케이스 안전 처리
+          APK_URL=$(node -e "const fs=require('fs');const raw=fs.readFileSync('build.json','utf8');const o=JSON.parse(raw);
+            const first = Array.isArray(o) ? o[0] : (Array.isArray(o?.builds) ? o.builds[0] : o);
+            const url = first?.artifacts?.applicationArchiveUrl || first?.artifacts?.buildUrl || first?.artifacts?.apkUrl || '';
+            if(!url){process.exit(1)}; process.stdout.write(url);
+          ")
+
           echo "apk_url=$APK_URL" >> $GITHUB_OUTPUT
           echo "APK_URL: $APK_URL"
 
@@ -71,3 +69,4 @@ jobs:
         with:
           name: ddakchin-preview-apk
           path: ddakchin-preview.apk
+          if-no-files-found: error

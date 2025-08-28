@@ -2,7 +2,7 @@
   "expo": {
     "name": "딱친",
     "slug": "ddakchin",
-    "owner": "sonfree",
+    "owner": "sonjunho",
     "scheme": "ddakchin",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -14,7 +14,7 @@
       "backgroundColor": "#ffffff"
     },
     "android": {
-      "package": "com.sonfree.ddakchin",
+      "package": "com.sonjunho.ddakchin",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#111827"
@@ -23,7 +23,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sonfree.ddakchin"
+      "bundleIdentifier": "com.sonjunho.ddakchin"
     },
     "web": {
       "favicon": "./assets/favicon.png"

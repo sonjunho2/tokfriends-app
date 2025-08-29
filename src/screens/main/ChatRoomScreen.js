@@ -1,4 +1,3 @@
-// src/screens/main/ChatRoomScreen.js
 import React, { useState, useRef } from 'react';
 import {
   View,
@@ -15,7 +14,6 @@ import { Ionicons } from '@expo/vector-icons';
 import Avatar from '../../components/Avatar';
 import colors from '../../theme/colors';
 
-// 더미 메시지 데이터
 const INITIAL_MESSAGES = [
   {
     id: '1',
@@ -231,129 +229,128 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: colors.text,
-// src/screens/main/ChatRoomScreen.js (continued)
- },
- onlineStatus: {
-   flexDirection: 'row',
-   alignItems: 'center',
-   marginTop: 2,
- },
- onlineDot: {
-   width: 6,
-   height: 6,
-   borderRadius: 3,
-   backgroundColor: colors.success,
-   marginRight: 4,
- },
- onlineText: {
-   fontSize: 12,
-   color: colors.textSecondary,
- },
- moreButton: {
-   padding: 4,
- },
- chatContainer: {
-   flex: 1,
- },
- messagesList: {
-   paddingHorizontal: 16,
-   paddingVertical: 16,
- },
- messageContainer: {
-   marginBottom: 16,
-   flexDirection: 'row',
- },
- myMessageContainer: {
-   justifyContent: 'flex-end',
- },
- otherMessageContainer: {
-   justifyContent: 'flex-start',
- },
- messageAvatar: {
-   marginRight: 8,
-   marginTop: 4,
- },
- messageContent: {
-   maxWidth: '75%',
- },
- messageBubble: {
-   paddingHorizontal: 16,
-   paddingVertical: 10,
-   borderRadius: 20,
- },
- myMessageBubble: {
-   backgroundColor: colors.primary,
-   borderBottomRightRadius: 4,
- },
- otherMessageBubble: {
-   backgroundColor: colors.backgroundTertiary,
-   borderBottomLeftRadius: 4,
- },
- messageText: {
-   fontSize: 15,
-   lineHeight: 20,
- },
- myMessageText: {
-   color: colors.textInverse,
- },
- otherMessageText: {
-   color: colors.text,
- },
- messageTime: {
-   fontSize: 11,
-   marginTop: 4,
-   paddingHorizontal: 4,
- },
- myMessageTime: {
-   color: colors.textTertiary,
-   textAlign: 'right',
- },
- otherMessageTime: {
-   color: colors.textTertiary,
-   textAlign: 'left',
- },
- inputContainer: {
-   flexDirection: 'row',
-   alignItems: 'flex-end',
-   paddingHorizontal: 12,
-   paddingVertical: 8,
-   backgroundColor: colors.backgroundSecondary,
-   borderTopWidth: 1,
-   borderTopColor: colors.border,
- },
- attachButton: {
-   padding: 4,
-   marginBottom: 4,
- },
- inputWrapper: {
-   flex: 1,
-   flexDirection: 'row',
-   alignItems: 'flex-end',
-   backgroundColor: colors.backgroundTertiary,
-   borderRadius: 24,
-   marginHorizontal: 8,
-   paddingHorizontal: 16,
-   paddingVertical: 8,
-   minHeight: 40,
-   maxHeight: 120,
- },
- textInput: {
-   flex: 1,
-   fontSize: 15,
-   color: colors.text,
-   paddingTop: 0,
-   paddingBottom: 0,
-   maxHeight: 100,
- },
- emojiButton: {
-   padding: 4,
-   marginLeft: 4,
- },
- sendButton: {
-   padding: 8,
-   marginBottom: 4,
- },
- sendButtonDisabled: {
-   opacity: 0.5,
- },
+  },
+  onlineStatus: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 2,
+  },
+  onlineDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: colors.success,
+    marginRight: 4,
+  },
+  onlineText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
+  moreButton: {
+    padding: 4,
+  },
+  chatContainer: {
+    flex: 1,
+  },
+  messagesList: {
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+  },
+  messageContainer: {
+    marginBottom: 16,
+    flexDirection: 'row',
+  },
+  myMessageContainer: {
+    justifyContent: 'flex-end',
+  },
+  otherMessageContainer: {
+    justifyContent: 'flex-start',
+  },
+  messageAvatar: {
+    marginRight: 8,
+    marginTop: 4,
+  },
+  messageContent: {
+    maxWidth: '75%',
+  },
+  messageBubble: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  myMessageBubble: {
+    backgroundColor: colors.primary,
+    borderBottomRightRadius: 4,
+  },
+  otherMessageBubble: {
+    backgroundColor: colors.backgroundTertiary,
+    borderBottomLeftRadius: 4,
+  },
+  messageText: {
+    fontSize: 15,
+    lineHeight: 20,
+  },
+  myMessageText: {
+    color: colors.textInverse,
+  },
+  otherMessageText: {
+    color: colors.text,
+  },
+  messageTime: {
+    fontSize: 11,
+    marginTop: 4,
+    paddingHorizontal: 4,
+  },
+  myMessageTime: {
+    color: colors.textTertiary,
+    textAlign: 'right',
+  },
+  otherMessageTime: {
+    color: colors.textTertiary,
+    textAlign: 'left',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: colors.backgroundSecondary,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  attachButton: {
+    padding: 4,
+    marginBottom: 4,
+  },
+  inputWrapper: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    backgroundColor: colors.backgroundTertiary,
+    borderRadius: 24,
+    marginHorizontal: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    minHeight: 40,
+    maxHeight: 120,
+  },
+  textInput: {
+    flex: 1,
+    fontSize: 15,
+    color: colors.text,
+    paddingTop: 0,
+    paddingBottom: 0,
+    maxHeight: 100,
+  },
+  emojiButton: {
+    padding: 4,
+    marginLeft: 4,
+  },
+  sendButton: {
+    padding: 8,
+    marginBottom: 4,
+  },
+  sendButtonDisabled: {
+    opacity: 0.5,
+  },
 });

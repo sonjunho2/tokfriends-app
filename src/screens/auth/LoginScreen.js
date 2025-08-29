@@ -1,4 +1,3 @@
-// src/screens/auth/LoginScreen.js
 import React, { useState } from 'react';
 import {
   View,
@@ -16,10 +15,10 @@ import { Ionicons } from '@expo/vector-icons';
 import ButtonPrimary from '../../components/ButtonPrimary';
 import Card from '../../components/Card';
 import colors from '../../theme/colors';
-import { useAuth } from '../../context/AuthContext'; // ✅ AuthContext 사용
+import { useAuth } from '../../context/AuthContext';
 
 export default function LoginScreen({ navigation }) {
-  const { login } = useAuth(); // ✅ AuthContext에서 login 함수 가져오기
+  const { login } = useAuth();
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -37,10 +36,9 @@ export default function LoginScreen({ navigation }) {
     try {
       const result = await login(email.trim(), password);
       
-      if (!result.ok) {
+      if (!result.success) {
         Alert.alert('로그인 실패', result.error);
       }
-      // 성공 시 AuthContext에서 자동으로 로그인 상태로 전환됨
     } catch (error) {
       Alert.alert('로그인 실패', '알 수 없는 오류가 발생했습니다.');
     } finally {

@@ -1,152 +1,188 @@
-// src/api/client.js
-import Constants from 'expo-constants';
-import * as SecureStore from 'expo-secure-store';
+import axios from 'axios';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { API_BASE_URL, REQUEST_TIMEOUT_MS, STORAGE_TOKEN_KEY } from '../config/env';
 
-const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl || 
-                    Constants.manifest?.extra?.apiBaseUrl || 
-                    'http://localhost:8000';
+// 단일 axios 인스턴스
+const client = axios.create({
+  baseURL: API_BASE_URL,
+  timeout: REQUEST_TIMEOUT_MS,
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
+});
 
-class ApiClient {
- constructor() {
-   this.baseURL = API_BASE_URL;
- }
+// 토큰 관리
+let currentToken = null;
 
- async getAuthToken() {
-   try {
-     return await SecureStore.getItemAsync('authToken');
-   } catch (error) {
-     console.error('Failed to get auth token:', error);
-     return null;
-   }
- }
+export const setAuthToken = (token) => {
+  currentToken = token;
+  if (token) {
+    client.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  } else {
+    delete client.defaults.headers.common['Authorization'];
+  }
+};
 
- async apiFetch(endpoint, options = {}) {
-   const url = `${this.baseURL}${endpoint}`;
-   const token = await this.getAuthToken();
-   
-   const headers = {
-     'Content-Type': 'application/json',
-     Accept: 'application/json',
-     ...options.headers,
-   };
-   
-   if (token && !options.skipAuth) {
-     headers.Authorization = `Bearer ${token}`;
-   }
-   
-   try {
-     const response = await fetch(url, {
-       ...options,
-       headers,
-       body: options.body ? JSON.stringify(options.body) : undefined,
-     });
-     
-     const data = await response.json();
-     
-     if (!response.ok) {
-       throw {
-         status: response.status,
-         message: data.message || 'Request failed',
-         data,
-       };
-     }
-     
-     return data;
-   } catch (error) {
-     if (error.status === 401) {
-       // Token expired or invalid
-       await SecureStore.deleteItemAsync('authToken');
-       await SecureStore.deleteItemAsync('userId');
-       await SecureStore.deleteItemAsync('email');
-     }
-     throw error;
-   }
- }
+export const getStoredToken = async () => {
+  try {
+    const token = await AsyncStorage.getItem(STORAGE_TOKEN_KEY);
+    return token;
+  } catch (error) {
+    console.error('Failed to get stored token:', error);
+    return null;
+  }
+};
 
- // Auth endpoints
- async signup({ email, password, displayName, gender, dob }) {
-   return this.apiFetch('/auth/signup/email', {
-     method: 'POST',
-     body: { email, password, displayName, gender, dob },
-     skipAuth: true,
-   });
- }
+export const saveToken = async (token) => {
+  try {
+    await AsyncStorage.setItem(STORAGE_TOKEN_KEY, token);
+    setAuthToken(token);
+  } catch (error) {
+    console.error('Failed to save token:', error);
+    throw error;
+  }
+};
 
- async login({ email, password }) {
-   return this.apiFetch('/auth/login/email', {
-     method: 'POST',
-     body: { email, password },
-     skipAuth: true,
-   });
- }
+export const clearToken = async () => {
+  try {
+    await AsyncStorage.removeItem(STORAGE_TOKEN_KEY);
+    setAuthToken(null);
+  } catch (error) {
+    console.error('Failed to clear token:', error);
+  }
+};
 
- // User endpoints
- async getUser(userId) {
-   return this.apiFetch(`/users/${userId}`, {
-     method: 'GET',
-   });
- }
+// 요청 인터셉터: 토큰 자동 주입
+client.interceptors.request.use(
+  async (config) => {
+    if (!currentToken) {
+      const storedToken = await getStoredToken();
+      if (storedToken) {
+        setAuthToken(storedToken);
+      }
+    }
+    
+    console.log(`[HTTP] ${config.method?.toUpperCase()} ${config.url}`);
+    return config;
+  },
+  (error) => {
+    console.error('[HTTP Request Error]', error);
+    return Promise.reject(error);
+  }
+);
 
- async getMe() {
-   const userId = await SecureStore.getItemAsync('userId');
-   if (!userId) throw new Error('No user ID found');
-   return this.getUser(userId);
- }
+// 응답 인터셉터: 401 시 토큰 삭제
+client.interceptors.response.use(
+  (response) => {
+    console.log(`[HTTP Response] ${response.status}`, response.config.url);
+    return response;
+  },
+  async (error) => {
+    if (error.response) {
+      console.error(`[HTTP Error] ${error.response.status}`, error.response.data);
+      
+      // 401 Unauthorized: 토큰 삭제
+      if (error.response.status === 401) {
+        await clearToken();
+        // 네비게이션은 AuthContext에서 처리
+      }
+    } else if (error.request) {
+      console.error('[HTTP Error] No response received');
+    } else {
+      console.error('[HTTP Error]', error.message);
+    }
+    return Promise.reject(error);
+  }
+);
 
- // Topics endpoints
- async getTopics() {
-   return this.apiFetch('/topics', {
-     method: 'GET',
-     skipAuth: true,
-   });
- }
+// API 메서드들
+export const apiClient = {
+  // 헬스체크
+  async health() {
+    const response = await client.get('/health');
+    return response.data;
+  },
 
- async getTopicPosts(topicId, cursor = null, take = 20) {
-   const params = new URLSearchParams();
-   if (cursor) params.append('cursor', cursor);
-   params.append('take', take.toString());
-   
-   return this.apiFetch(`/topics/${topicId}/posts?${params}`, {
-     method: 'GET',
-     skipAuth: true,
-   });
- }
+  // 로그인 (x-www-form-urlencoded)
+  async login(email, password) {
+    const formData = new URLSearchParams();
+    formData.append('email', email);
+    formData.append('password', password);
 
- // Posts endpoints
- async getPosts(params = {}) {
-   const queryParams = new URLSearchParams();
-   if (params.cursor) queryParams.append('cursor', params.cursor);
-   if (params.take) queryParams.append('take', params.take.toString());
-   if (params.topicId) queryParams.append('topicId', params.topicId);
-   
-   const query = queryParams.toString();
-   return this.apiFetch(`/posts${query ? `?${query}` : ''}`, {
-     method: 'GET',
-     skipAuth: true,
-   });
- }
+    const response = await client.post('/auth/login/email', formData, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    });
+    return response.data;
+  },
 
- async createPost({ topicId, content }) {
-   return this.apiFetch('/posts', {
-     method: 'POST',
-     body: { topicId, content },
-   });
- }
+  // 회원가입
+  async signup(userData) {
+    const response = await client.post('/auth/signup/email', userData);
+    return response.data;
+  },
 
- // Community endpoints
- async report({ targetUserId, postId, reason }) {
-   return this.apiFetch('/community/report', {
-     method: 'POST',
-     body: { targetUserId, postId, reason },
-   });
- }
+  // 내 정보 조회
+  async getMe() {
+    const response = await client.get('/users/me');
+    return response.data;
+  },
 
- async block({ blockedUserId }) {
-   return this.apiFetch('/community/block', {
-     method: 'POST',
-     body: { blockedUserId },
-   });
- }
-}
+  // 사용자 정보 조회
+  async getUser(userId) {
+    const response = await client.get(`/users/${userId}`);
+    return response.data;
+  },
 
-export default new ApiClient();
+  // 활성 공지사항
+  async getActiveAnnouncements() {
+    try {
+      const response = await client.get('/announcements/active');
+      return response.data;
+    } catch (error) {
+      // fallback: query parameter 방식
+      const response = await client.get('/announcements?isActive=true');
+      return response.data;
+    }
+  },
+
+  // 토픽 목록
+  async getTopics() {
+    const response = await client.get('/topics');
+    return response.data;
+  },
+
+  // 게시글 목록
+  async getPosts(params = {}) {
+    const response = await client.get('/posts', { params });
+    return response.data;
+  },
+
+  // 토픽별 게시글
+  async getTopicPosts(topicId, params = {}) {
+    const response = await client.get(`/topics/${topicId}/posts`, { params });
+    return response.data;
+  },
+
+  // 게시글 작성
+  async createPost(postData) {
+    const response = await client.post('/posts', postData);
+    return response.data;
+  },
+
+  // 신고
+  async reportUser(reportData) {
+    const response = await client.post('/community/report', reportData);
+    return response.data;
+  },
+
+  // 차단
+  async blockUser(blockData) {
+    const response = await client.post('/community/block', blockData);
+    return response.data;
+  },
+};
+
+export default client;

@@ -1,4 +1,3 @@
-// src/components/Avatar.js
 import React from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
 import colors from '../theme/colors';

@@ -1,49 +1,36 @@
-// tokfriends-app/src/api/posts.js
-import client from './client';
+import { apiClient } from './client';
 
 export const postsApi = {
   async listPosts(params = {}) {
-    const response = await client.get('/posts', {
-      params: {
-        cursor: params.cursor,
-        take: params.take || 20,
-        topicId: params.topicId,
-      },
-    });
-    return response.data;
+    return await apiClient.getPosts(params);
   },
 
   async createPost({ title, content, topicId }) {
-    const response = await client.post('/posts', {
-      title,
-      content,
-      topicId,
-    });
-    return response.data;
+    return await apiClient.createPost({ title, content, topicId });
   },
 
   async getPost(id) {
-    const response = await client.get(`/posts/${id}`);
+    const response = await apiClient.get(`/posts/${id}`);
     return response.data;
   },
 
   async updatePost(id, data) {
-    const response = await client.patch(`/posts/${id}`, data);
+    const response = await apiClient.patch(`/posts/${id}`, data);
     return response.data;
   },
 
   async deletePost(id) {
-    const response = await client.delete(`/posts/${id}`);
+    const response = await apiClient.delete(`/posts/${id}`);
     return response.data;
   },
 
   async likePost(id) {
-    const response = await client.post(`/posts/${id}/like`);
+    const response = await apiClient.post(`/posts/${id}/like`);
     return response.data;
   },
 
   async unlikePost(id) {
-    const response = await client.delete(`/posts/${id}/like`);
+    const response = await apiClient.delete(`/posts/${id}/like`);
     return response.data;
   },
 };

@@ -1,4 +1,3 @@
-// src/screens/main/NearbyScreen.js
 import React, { useState } from 'react';
 import {
   View,
@@ -18,7 +17,6 @@ import Avatar from '../../components/Avatar';
 import Tag from '../../components/Tag';
 import colors from '../../theme/colors';
 
-// 더미 데이터
 const DUMMY_NEARBY = [
   {
     id: '1',
@@ -91,7 +89,6 @@ export default function NearbyScreen({ navigation }) {
   const onRefresh = () => {
     setRefreshing(true);
     setTimeout(() => {
-      // 거리 랜덤하게 변경
       const updated = nearbyUsers.map(user => ({
         ...user,
         distance: Math.floor(Math.random() * 2000) + 100,

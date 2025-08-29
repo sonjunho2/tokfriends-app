@@ -1,4 +1,3 @@
-// src/screens/main/ChatsScreen.js
 import React, { useState } from 'react';
 import {
   View,
@@ -15,7 +14,6 @@ import Avatar from '../../components/Avatar';
 import Tag from '../../components/Tag';
 import colors from '../../theme/colors';
 
-// 더미 채팅 데이터
 const DUMMY_CHATS = [
   {
     id: '1',

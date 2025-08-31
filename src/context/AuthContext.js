@@ -1,3 +1,4 @@
+// src/context/AuthContext.js - 수정된 버전
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Alert } from 'react-native';
 import { apiClient, saveToken, clearToken, getStoredToken } from '../api/client';
@@ -28,26 +29,35 @@ export const AuthProvider = ({ children }) => {
 
   const initAuth = async () => {
     try {
-      // 1. 헬스체크
-      await apiClient.health();
-      console.log('[Auth] Health check passed');
+      // 1. 헬스체크 (선택사항 - 실패해도 계속 진행)
+      try {
+        await apiClient.health();
+        console.log('[Auth] Health check passed');
+      } catch (healthError) {
+        console.log('[Auth] Health check failed, continuing anyway:', healthError.message);
+      }
 
       // 2. 토큰 복구
       const storedToken = await getStoredToken();
       if (storedToken) {
         setState((s) => ({ ...s, token: storedToken }));
         
-        // 3. 내 정보 조회
-        const user = await apiClient.getMe();
-        setState((s) => ({ ...s, user }));
-        console.log('[Auth] Auto login successful');
+        // 3. 내 정보 조회 - /users/me의 실제 응답 형식에 맞춰 처리
+        try {
+          const response = await apiClient.getMe();
+          // 백엔드가 { ok: true, data: { ... } } 형식으로 응답한다면
+          const user = response.ok ? response.data : response;
+          setState((s) => ({ ...s, user }));
+          console.log('[Auth] Auto login successful');
+        } catch (meError) {
+          console.log('[Auth] Failed to get user info:', meError.message);
+          // 사용자 정보 조회 실패 시 토큰 삭제
+          await clearToken();
+          setState((s) => ({ ...s, token: null }));
+        }
       }
     } catch (error) {
       console.log('[Auth] Init failed:', error.message);
-      // 토큰이 무효하면 삭제
-      if (error.response?.status === 401) {
-        await clearToken();
-      }
       setState({ user: null, token: null, initializing: false });
       return;
     }
@@ -58,8 +68,9 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       const response = await apiClient.login(email, password);
-      const token = response.access_token;
-
+      
+      // 백엔드 응답에서 토큰 추출 (여러 형식 대응)
+      const token = response.token || response.access_token;
       if (!token) {
         throw new Error('로그인 응답에 토큰이 없습니다.');
       }
@@ -68,11 +79,18 @@ export const AuthProvider = ({ children }) => {
       setState((s) => ({ ...s, token }));
 
       // 내 정보 조회
-      const user = await apiClient.getMe();
-      setState((s) => ({ ...s, user }));
+      try {
+        const userResponse = await apiClient.getMe();
+        const user = userResponse.ok ? userResponse.data : userResponse;
+        setState((s) => ({ ...s, user }));
+      } catch (meError) {
+        console.log('[Auth] Failed to get user after login:', meError.message);
+        // 로그인은 성공했지만 사용자 정보 조회 실패 - 계속 진행
+      }
 
       return { success: true };
     } catch (error) {
+      console.error('[Auth] Login error:', error);
       const message = error.response?.data?.message || error.message || '로그인에 실패했습니다.';
       return { success: false, error: message };
     }
@@ -98,6 +116,7 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true };
     } catch (error) {
+      console.error('[Auth] Signup error:', error);
       const message = error.response?.data?.message || error.message || '회원가입에 실패했습니다.';
       return { success: false, error: message };
     }
@@ -106,7 +125,9 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await clearToken();
-    } catch {}
+    } catch (error) {
+      console.error('[Auth] Logout error:', error);
+    }
     setState({ user: null, token: null, initializing: false });
   };
 
@@ -114,10 +135,11 @@ export const AuthProvider = ({ children }) => {
     if (!state.token) return;
     
     try {
-      const user = await apiClient.getMe();
+      const response = await apiClient.getMe();
+      const user = response.ok ? response.data : response;
       setState((s) => ({ ...s, user }));
     } catch (error) {
-      console.error('Failed to refresh user:', error);
+      console.error('[Auth] Failed to refresh user:', error);
       if (error.response?.status === 401) {
         await logout();
       }

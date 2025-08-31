@@ -18,7 +18,7 @@ const DUMMY_CHATS = [
   {
     id: '1',
     user: { name: '지은', age: 26 },
-    lastMessage: '네! 주말에 시간 어떠세요? 😊',
+    lastMessage: '네! 주말에 시간 어떠세요?',
     timestamp: '방금 전',
     unread: 2,
     online: true,
@@ -34,7 +34,7 @@ const DUMMY_CHATS = [
   {
     id: '3',
     user: { name: '서연', age: 25 },
-    lastMessage: '사진 너무 예쁘게 나왔네요 👍',
+    lastMessage: '사진 너무 예쁘게 나왔네요',
     timestamp: '1시간 전',
     unread: 5,
     online: false,
@@ -53,14 +53,6 @@ const DUMMY_CHATS = [
     lastMessage: '안녕하세요! 잘 지내시죠?',
     timestamp: '어제',
     unread: 1,
-    online: false,
-  },
-  {
-    id: '6',
-    user: { name: '준서', age: 27 },
-    lastMessage: '프로젝트 잘 마무리 되셨나요?',
-    timestamp: '2일 전',
-    unread: 0,
     online: false,
   },
 ];
@@ -118,7 +110,7 @@ export default function ChatsScreen({ navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <HeaderLogo size="small" />
+        <HeaderLogo size="medium" />
         <TouchableOpacity style={styles.newChatButton}>
           <Ionicons name="create-outline" size={24} color={colors.primary} />
         </TouchableOpacity>
@@ -175,8 +167,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
     backgroundColor: colors.backgroundSecondary,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -186,7 +178,7 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingVertical: 16,
     backgroundColor: colors.backgroundSecondary,
   },
   searchBar: {
@@ -194,20 +186,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.backgroundTertiary,
     borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 16,
     color: colors.text,
-    marginLeft: 8,
+    marginLeft: 12,
   },
   tabContainer: {
     flexDirection: 'row',
     paddingHorizontal: 20,
-    paddingVertical: 12,
-    gap: 8,
+    paddingVertical: 16,
+    gap: 12,
     backgroundColor: colors.background,
   },
   listContent: {
@@ -216,13 +208,13 @@ const styles = StyleSheet.create({
   chatItem: {
     flexDirection: 'row',
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingVertical: 16,
     backgroundColor: colors.backgroundSecondary,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
   avatarContainer: {
-    marginRight: 12,
+    marginRight: 16,
   },
   chatContent: {
     flex: 1,
@@ -235,7 +227,7 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.text,
   },
   timestamp: {
@@ -255,7 +247,7 @@ const styles = StyleSheet.create({
   },
   unreadMessage: {
     color: colors.text,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   unreadBadge: {
     backgroundColor: colors.primary,
@@ -268,7 +260,7 @@ const styles = StyleSheet.create({
   },
   unreadCount: {
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.textInverse,
   },
   emptyContainer: {
@@ -279,7 +271,7 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.textSecondary,
     marginTop: 16,
     marginBottom: 8,

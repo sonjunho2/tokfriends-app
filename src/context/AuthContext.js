@@ -1,7 +1,12 @@
 // src/context/AuthContext.js - 수정된 버전
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Alert } from 'react-native';
-import { apiClient, saveToken, clearToken, getStoredToken } from '../api/client';
+import {
+  apiClient,
+  saveToken,
+  clearToken,
+  getStoredToken,
+  setAuthToken,
+} from '../api/client';
 
 const AuthContext = createContext({
   user: null,

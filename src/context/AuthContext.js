@@ -45,6 +45,8 @@ export const AuthProvider = ({ children }) => {
       // 2. 토큰 복구
       const storedToken = await getStoredToken();
       if (storedToken) {
+           // ensure axios instance sends auth header before making requests
+        setAuthToken(storedToken);
         setState((s) => ({ ...s, token: storedToken }));
         
         // 3. 내 정보 조회 - /users/me의 실제 응답 형식에 맞춰 처리

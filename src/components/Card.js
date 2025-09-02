@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { View, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import React from 'react';
+import { View, StyleSheet, TouchableOpacity } from 'react-native';
 import colors from '../theme/colors';
 
 export default function Card({
@@ -7,31 +7,11 @@ export default function Card({
   onPress,
   padding = 16,
   margin = 0,
-  borderRadius = 12,
+  borderRadius = 16,
   shadow = true,
   style,
   ...props
 }) {
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-
-  const handlePressIn = () => {
-    if (onPress) {
-      Animated.spring(scaleAnim, {
-        toValue: 0.98,
-        useNativeDriver: true,
-      }).start();
-    }
-  };
-
-  const handlePressOut = () => {
-    if (onPress) {
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        useNativeDriver: true,
-      }).start();
-    }
-  };
-
   const cardStyle = [
     styles.card,
     shadow && styles.shadow,
@@ -39,25 +19,20 @@ export default function Card({
       padding,
       margin,
       borderRadius,
-      transform: [{ scale: scaleAnim }],
     },
     style,
   ];
-
+  
   if (onPress) {
     return (
-      <Animated.View style={cardStyle}>
-        <TouchableOpacity
-          style={styles.touchable}
-          onPress={onPress}
-          onPressIn={handlePressIn}
-          onPressOut={handlePressOut}
-          activeOpacity={1}
-          {...props}
-        >
-          {children}
-        </TouchableOpacity>
-      </Animated.View>
+      <TouchableOpacity
+        style={cardStyle}
+        onPress={onPress}
+        activeOpacity={0.95}
+        {...props}
+      >
+        {children}
+      </TouchableOpacity>
     );
   }
   
@@ -78,11 +53,8 @@ const styles = StyleSheet.create({
       width: 0,
       height: 2,
     },
-    shadowOpacity: 1,
+    shadowOpacity: 0.08,
     shadowRadius: 8,
     elevation: 3,
-  },
-  touchable: {
-    flex: 1,
   },
 });

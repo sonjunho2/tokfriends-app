@@ -1,5 +1,5 @@
-import React, { useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import colors from '../theme/colors';
 
 export default function Tag({
@@ -11,12 +11,14 @@ export default function Tag({
   style,
   textStyle,
 }) {
-  const scaleAnim = useRef(new Animated.Value(1)).current;
-  
   const colorMap = {
     primary: {
-      bg: selected ? colors.primary : colors.backgroundTertiary,
-      text: selected ? colors.textInverse : colors.textSecondary,
+      bg: selected ? colors.primary : colors.primaryLight + '20',
+      text: selected ? colors.textInverse : colors.primary,
+    },
+    mint: {
+      bg: selected ? colors.accentMint : colors.accentMint + '20',
+      text: selected ? colors.textInverse : colors.accentMintDark,
     },
     neutral: {
       bg: selected ? colors.text : colors.backgroundTertiary,
@@ -32,66 +34,46 @@ export default function Tag({
   
   const currentColor = colorMap[color] || colorMap.primary;
   const currentSize = sizeMap[size] || sizeMap.small;
-
-  const handlePressIn = () => {
-    if (onPress) {
-      Animated.spring(scaleAnim, {
-        toValue: 0.95,
-        useNativeDriver: true,
-      }).start();
-    }
-  };
-
-  const handlePressOut = () => {
-    if (onPress) {
-      Animated.spring(scaleAnim, {
-        toValue: 1,
-        useNativeDriver: true,
-      }).start();
-    }
-  };
   
   const Component = onPress ? TouchableOpacity : View;
   
   return (
-    <Animated.View style={[{ transform: [{ scale: scaleAnim }] }, style]}>
-      <Component
+    <Component
+      style={[
+        styles.tag,
+        {
+          backgroundColor: currentColor.bg,
+          paddingHorizontal: currentSize.paddingH,
+          paddingVertical: currentSize.paddingV,
+        },
+        style,
+      ]}
+      onPress={onPress}
+      activeOpacity={0.8}
+    >
+      <Text
         style={[
-          styles.tag,
+          styles.text,
           {
-            backgroundColor: currentColor.bg,
-            paddingHorizontal: currentSize.paddingH,
-            paddingVertical: currentSize.paddingV,
+            color: currentColor.text,
+            fontSize: currentSize.fontSize,
           },
+          textStyle,
         ]}
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        activeOpacity={1}
       >
-        <Text
-          style={[
-            styles.text,
-            {
-              color: currentColor.text,
-              fontSize: currentSize.fontSize,
-            },
-            textStyle,
-          ]}
-        >
-          {label}
-        </Text>
-      </Component>
-    </Animated.View>
+        {label}
+      </Text>
+    </Component>
   );
 }
 
 const styles = StyleSheet.create({
   tag: {
-    borderRadius: 16,
+    borderRadius: 100,
     alignSelf: 'flex-start',
   },
   text: {
-    fontWeight: '600',
+    fontWeight: '500',
+    letterSpacing: 0.2,
   },
 });

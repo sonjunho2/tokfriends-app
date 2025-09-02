@@ -7,6 +7,7 @@ export default function Avatar({
   name,
   size = 'medium',
   online = false,
+  showBorder = false,
   style,
 }) {
   const sizeMap = {
@@ -18,7 +19,7 @@ export default function Avatar({
   };
   
   const currentSize = typeof size === 'number' ? size : sizeMap[size] || sizeMap.medium;
-  const dotSize = Math.max(10, currentSize * 0.2);
+  const dotSize = Math.max(12, currentSize * 0.25);
   const fontSize = currentSize * 0.35;
   
   const getInitials = (name) => {
@@ -40,6 +41,7 @@ export default function Avatar({
             height: currentSize,
             borderRadius: currentSize / 2,
           },
+          showBorder && styles.border,
         ]}
       >
         {source ? (
@@ -96,11 +98,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: colors.backgroundTertiary,
   },
+  border: {
+    borderWidth: 2,
+    borderColor: colors.primary,
+  },
   image: {
     resizeMode: 'cover',
   },
   placeholder: {
-    backgroundColor: colors.primary,
+    backgroundColor: colors.primaryLight,
     justifyContent: 'center',
     alignItems: 'center',
   },

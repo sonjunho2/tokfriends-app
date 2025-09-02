@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import axios from 'axios';
 import Constants from 'expo-constants';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl || 'http://localhost:8000';
 

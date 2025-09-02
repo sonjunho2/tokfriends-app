@@ -10,6 +10,7 @@ import {
   Alert,
   FlatList,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import HeaderLogo from '../../components/HeaderLogo';
 import ButtonPrimary from '../../components/ButtonPrimary';
@@ -36,7 +37,7 @@ export default function HomeScreen({ navigation }) {
       const [announcementsData] = await Promise.all([
         apiClient.getActiveAnnouncements(),
       ]);
-      setAnnouncements(Array.isArray(announcementsData?.data) ? announcementsData.data : []);
+      setAnnouncements(Array.isArray(announcementsData) ? announcementsData : []);
     } catch (error) {
       console.error('Failed to load initial data:', error);
     } finally {
@@ -78,7 +79,7 @@ export default function HomeScreen({ navigation }) {
         <Text style={styles.announcementTitle}>{item.title}</Text>
       </View>
       <Text style={styles.announcementContent} numberOfLines={2}>
-        {item.body}
+        {item.content}
       </Text>
       <Text style={styles.announcementDate}>
         {new Date(item.createdAt).toLocaleDateString('ko-KR')}
@@ -112,20 +113,25 @@ export default function HomeScreen({ navigation }) {
           />
         }
       >
-        <Card style={styles.welcomeCard}>
+        <LinearGradient
+          colors={colors.gradients?.sunset || [colors.primary, colors.primaryLight]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.welcomeCard}
+        >
           <View style={styles.welcomeContent}>
             <Text style={styles.welcomeText}>안녕하세요,</Text>
             <Text style={styles.welcomeName}>
-              {user?.displayName || '친구'}님!
+              {user?.displayName || '친구'}님! 👋
             </Text>
             <Text style={styles.welcomeSubtext}>
               오늘도 새로운 친구를 만나보세요
             </Text>
           </View>
           <View style={styles.welcomeIcon}>
-            <Ionicons name="sparkles" size={48} color={colors.primary} />
+            <Ionicons name="sparkles" size={60} color={colors.textInverse || '#ffffff'} />
           </View>
-        </Card>
+        </LinearGradient>
 
         {announcements.length > 0 && (
           <View style={styles.section}>
@@ -166,7 +172,7 @@ export default function HomeScreen({ navigation }) {
             title="내 정보 불러오기"
             onPress={fetchUserData}
             loading={loading}
-            icon={<Ionicons name="refresh" size={18} color={colors.textInverse} />}
+            icon={<Ionicons name="refresh" size={20} color={colors.textInverse || '#ffffff'} />}
             style={styles.fetchButton}
           />
         </Card>
@@ -174,7 +180,7 @@ export default function HomeScreen({ navigation }) {
         {userData && (
           <Card style={styles.dataCard}>
             <View style={styles.dataHeader}>
-              <Ionicons name="code" size={20} color={colors.primary} />
+              <Ionicons name="code" size={20} color={colors.accentMint || colors.primary} />
               <Text style={styles.dataTitle}>서버 응답 데이터</Text>
             </View>
             <ScrollView 
@@ -196,7 +202,7 @@ export default function HomeScreen({ navigation }) {
               style={styles.actionItem}
               onPress={() => navigation.navigate('LiveNow')}
             >
-              <View style={styles.actionIcon}>
+              <View style={[styles.actionIcon, { backgroundColor: colors.primary + '15' }]}>
                 <Ionicons name="pulse" size={28} color={colors.primary} />
               </View>
               <Text style={styles.actionText}>실시간</Text>
@@ -206,8 +212,8 @@ export default function HomeScreen({ navigation }) {
               style={styles.actionItem}
               onPress={() => navigation.navigate('Nearby')}
             >
-              <View style={styles.actionIcon}>
-                <Ionicons name="location" size={28} color={colors.primary} />
+              <View style={[styles.actionIcon, { backgroundColor: (colors.accentMint || colors.primary) + '15' }]}>
+                <Ionicons name="location" size={28} color={colors.accentMint || colors.primary} />
               </View>
               <Text style={styles.actionText}>내주변</Text>
             </TouchableOpacity>
@@ -216,7 +222,7 @@ export default function HomeScreen({ navigation }) {
               style={styles.actionItem}
               onPress={() => navigation.navigate('Recommend')}
             >
-              <View style={styles.actionIcon}>
+              <View style={[styles.actionIcon, { backgroundColor: colors.primary + '15' }]}>
                 <Ionicons name="heart" size={28} color={colors.primary} />
               </View>
               <Text style={styles.actionText}>추천</Text>
@@ -226,8 +232,8 @@ export default function HomeScreen({ navigation }) {
               style={styles.actionItem}
               onPress={() => navigation.navigate('Chats')}
             >
-              <View style={styles.actionIcon}>
-                <Ionicons name="chatbubbles" size={28} color={colors.primary} />
+              <View style={[styles.actionIcon, { backgroundColor: (colors.accentMint || colors.primary) + '15' }]}>
+                <Ionicons name="chatbubbles" size={28} color={colors.accentMint || colors.primary} />
               </View>
               <Text style={styles.actionText}>채팅</Text>
             </TouchableOpacity>
@@ -249,8 +255,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     backgroundColor: colors.backgroundSecondary,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -263,43 +269,44 @@ const styles = StyleSheet.create({
   },
   welcomeCard: {
     marginHorizontal: 20,
-    marginBottom: 24,
+    marginBottom: 20,
+    borderRadius: 24,
     padding: 24,
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: colors.primary + '10',
-    borderWidth: 1,
-    borderColor: colors.primary + '20',
+    alignItems: 'center',
+    minHeight: 140,
   },
   welcomeContent: {
     flex: 1,
   },
   welcomeText: {
     fontSize: 16,
-    color: colors.textSecondary,
+    color: colors.textInverse || '#ffffff',
+    opacity: 0.9,
     marginBottom: 4,
   },
   welcomeName: {
     fontSize: 24,
-    fontWeight: '800',
-    color: colors.text,
+    fontWeight: '700',
+    color: colors.textInverse || '#ffffff',
     marginBottom: 8,
   },
   welcomeSubtext: {
     fontSize: 14,
-    color: colors.textSecondary,
+    color: colors.textInverse || '#ffffff',
+    opacity: 0.8,
   },
-  welcomeIcon: {
+ welcomeIcon: {
     marginLeft: 16,
   },
   section: {
     marginHorizontal: 20,
-    marginBottom: 24,
+    marginBottom: 20,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.text,
     marginBottom: 16,
   },
@@ -310,24 +317,25 @@ const styles = StyleSheet.create({
     width: 280,
     marginRight: 16,
     padding: 16,
+    borderRadius: 16,
   },
   announcementHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   announcementTitle: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.text,
-    marginLeft: 12,
+    marginLeft: 8,
     flex: 1,
   },
   announcementContent: {
     fontSize: 14,
     color: colors.textSecondary,
     lineHeight: 20,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   announcementDate: {
     fontSize: 12,
@@ -335,7 +343,8 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     marginHorizontal: 20,
-    marginBottom: 24,
+    marginBottom: 20,
+    borderRadius: 20,
     padding: 20,
   },
   infoHeader: {
@@ -344,10 +353,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   infoTitle: {
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '600',
     color: colors.text,
-    marginLeft: 12,
+    marginLeft: 8,
   },
   infoRow: {
     flexDirection: 'row',
@@ -363,7 +372,7 @@ const styles = StyleSheet.create({
   },
   infoValue: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: colors.text,
   },
   fetchButton: {
@@ -371,7 +380,8 @@ const styles = StyleSheet.create({
   },
   dataCard: {
     marginHorizontal: 20,
-    marginBottom: 24,
+    marginBottom: 20,
+    borderRadius: 20,
     padding: 20,
   },
   dataHeader: {
@@ -381,9 +391,9 @@ const styles = StyleSheet.create({
   },
   dataTitle: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.text,
-    marginLeft: 8,
+    marginLeft: 6,
   },
   dataScroll: {
     maxHeight: 200,
@@ -395,37 +405,32 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   quickActions: {
-   paddingHorizontal: 20,
-   marginBottom: 20,
- },
- actionGrid: {
-   flexDirection: 'row',
-   flexWrap: 'wrap',
-   justifyContent: 'space-between',
- },
- actionItem: {
-   width: '48%',
-   alignItems: 'center',
-   backgroundColor: colors.backgroundSecondary,
-   padding: 20,
-   borderRadius: 12,
-   marginBottom: 12,
- },
- actionIcon: {
-   width: 64,
-   height: 64,
-   borderRadius: 32,
-   backgroundColor: colors.primary + '15',
-   justifyContent: 'center',
-   alignItems: 'center',
-   marginBottom: 12,
- },
- actionText: {
-   fontSize: 14,
-   fontWeight: '600',
-   color: colors.text,
- },
- bottomSpacing: {
-   height: 20,
- },
+    paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  actionGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 16,
+  },
+  actionItem: {
+    width: '47%',
+    alignItems: 'center',
+  },
+  actionIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  actionText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: colors.text,
+  },
+  bottomSpacing: {
+    height: 20,
+  },
 });

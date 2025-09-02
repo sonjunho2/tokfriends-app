@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   RefreshControl,
   Dimensions,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import HeaderLogo from '../../components/HeaderLogo';
 import Card from '../../components/Card';
@@ -17,7 +18,7 @@ import Tag from '../../components/Tag';
 import colors from '../../theme/colors';
 
 const { width } = Dimensions.get('window');
-const CARD_WIDTH = (width - 64) / 2;
+const CARD_WIDTH = (width - 48) / 2;
 
 const DUMMY_USERS = [
   { id: '1', name: '서연', city: '서울', age: 25, gender: 'female', online: true },
@@ -28,6 +29,8 @@ const DUMMY_USERS = [
   { id: '6', name: '준서', city: '용인', age: 27, gender: 'male', online: true },
   { id: '7', name: '하윤', city: '수원', age: 24, gender: 'female', online: true },
   { id: '8', name: '도윤', city: '안양', age: 29, gender: 'male', online: true },
+  { id: '9', name: '서진', city: '과천', age: 22, gender: 'female', online: true },
+  { id: '10', name: '예준', city: '의왕', age: 31, gender: 'male', online: true },
 ];
 
 export default function LiveNowScreen({ navigation }) {
@@ -47,13 +50,13 @@ export default function LiveNowScreen({ navigation }) {
     <Card
       style={styles.userCard}
       onPress={() => navigation.navigate('ChatRoom', { user: item })}
+      padding={16}
     >
       <View style={styles.onlineIndicator} />
       
       <Avatar
         name={item.name}
-        size={64}
-        online={true}
+        size={80}
         style={styles.avatar}
       />
       
@@ -69,34 +72,37 @@ export default function LiveNowScreen({ navigation }) {
         <Text style={styles.userAge}>{item.age}세</Text>
       </View>
       
-      <Tag 
-        label={item.gender === 'female' ? '여성' : '남성'}
-        size="tiny"
-        selected={false}
-        style={styles.genderTag}
-      />
+      <View style={styles.tagContainer}>
+        <Tag 
+          label={item.gender === 'female' ? '여성' : '남성'}
+          size="tiny"
+          color="neutral"
+        />
+      </View>
     </Card>
   );
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <HeaderLogo size="medium" />
-        <View style={styles.onlineCount}>
-          <View style={styles.onlineDot} />
-          <Text style={styles.onlineText}>{users.length}명 접속중</Text>
+        <HeaderLogo size="small" />
+        <View style={styles.headerRight}>
+          <View style={styles.onlineCount}>
+            <View style={styles.onlineDot} />
+            <Text style={styles.onlineText}>{users.length}명 접속중</Text>
+          </View>
         </View>
       </View>
 
-      <View style={styles.banner}>
-        <Ionicons name="pulse" size={24} color={colors.primary} />
-        <View style={styles.bannerTextContainer}>
-          <Text style={styles.bannerTitle}>지금 접속중인 친구들</Text>
-          <Text style={styles.bannerSubtitle}>
-            실시간으로 대화를 나눌 수 있어요
-          </Text>
-        </View>
-      </View>
+      <LinearGradient
+        colors={[colors.primary + '10', 'transparent']}
+        style={styles.gradientBanner}
+      >
+        <Text style={styles.bannerTitle}>지금 접속중인 친구들</Text>
+        <Text style={styles.bannerSubtitle}>
+          실시간으로 대화를 나눌 수 있어요
+        </Text>
+      </LinearGradient>
 
       <FlatList
         data={users}
@@ -127,11 +133,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
     backgroundColor: colors.backgroundSecondary,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
+  },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   onlineCount: {
     flexDirection: 'row',
@@ -139,7 +149,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.success + '15',
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 16,
+    borderRadius: 100,
   },
   onlineDot: {
     width: 8,
@@ -153,20 +163,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: colors.success,
   },
-  banner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 20,
-    backgroundColor: colors.backgroundSecondary,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  bannerTextContainer: {
-    marginLeft: 12,
+  gradientBanner: {
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
   bannerTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: colors.text,
     marginBottom: 4,
@@ -176,7 +178,7 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
   },
   listContent: {
-    padding: 20,
+    padding: 16,
   },
   row: {
     justifyContent: 'space-between',
@@ -186,15 +188,14 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     alignItems: 'center',
     position: 'relative',
-    padding: 16,
   },
   onlineIndicator: {
     position: 'absolute',
     top: 12,
     right: 12,
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
     backgroundColor: colors.success,
     borderWidth: 2,
     borderColor: colors.backgroundSecondary,
@@ -205,7 +206,7 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.text,
     marginBottom: 4,
   },
@@ -223,9 +224,10 @@ const styles = StyleSheet.create({
   userAge: {
     fontSize: 13,
     color: colors.textSecondary,
-    fontWeight: '600',
+    fontWeight: '500',
   },
-  genderTag: {
-    alignSelf: 'center',
+  tagContainer: {
+    flexDirection: 'row',
+    gap: 4,
   },
 });

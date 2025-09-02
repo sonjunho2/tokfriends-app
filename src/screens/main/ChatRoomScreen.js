@@ -17,7 +17,7 @@ import colors from '../../theme/colors';
 const INITIAL_MESSAGES = [
   {
     id: '1',
-    text: '안녕하세요! 만나서 반가워요',
+    text: '안녕하세요! 만나서 반가워요 😊',
     sender: 'other',
     timestamp: '오후 2:30',
   },
@@ -44,6 +44,12 @@ const INITIAL_MESSAGES = [
     text: '저는 주로 카페 가는 걸 좋아하고, 주말엔 영화 보러 가기도 해요!',
     sender: 'me',
     timestamp: '오후 2:33',
+  },
+  {
+    id: '6',
+    text: '오 저도 카페 투어 좋아해요! 최근에 가본 곳 중에 추천할 만한 곳 있으세요?',
+    sender: 'other',
+    timestamp: '오후 2:34',
   },
 ];
 
@@ -202,7 +208,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingVertical: 12,
     backgroundColor: colors.backgroundSecondary,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
@@ -217,11 +223,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   headerInfo: {
-    marginLeft: 12,
+    marginLeft: 10,
   },
   headerName: {
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.text,
   },
   onlineStatus: {
@@ -270,7 +276,7 @@ const styles = StyleSheet.create({
   messageBubble: {
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 18,
+    borderRadius: 20,
   },
   myMessageBubble: {
     backgroundColor: colors.primary,
@@ -306,8 +312,8 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     backgroundColor: colors.backgroundSecondary,
     borderTopWidth: 1,
     borderTopColor: colors.border,
@@ -322,7 +328,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     backgroundColor: colors.backgroundTertiary,
     borderRadius: 24,
-    marginHorizontal: 12,
+    marginHorizontal: 8,
     paddingHorizontal: 16,
     paddingVertical: 8,
     minHeight: 40,

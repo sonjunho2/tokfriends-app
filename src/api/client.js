@@ -16,11 +16,11 @@ const client = axios.create({
 let currentToken = null;
 
 export const setAuthToken = (token) => {
-  currentToken = token || null;
+  currentToken = token;
   if (token) {
-    client.defaults.headers.common.Authorization = `Bearer ${token}`;
+    client.defaults.headers.common['Authorization'] = `Bearer ${token}`;
   } else {
-    delete client.defaults.headers.common.Authorization;
+    delete client.defaults.headers.common['Authorization'];
   }
 };
 
@@ -62,6 +62,7 @@ client.interceptors.request.use(
         setAuthToken(storedToken);
       }
     }
+    
     console.log(`[HTTP] ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },
@@ -74,20 +75,22 @@ client.interceptors.request.use(
 // 응답 인터셉터: 401 시 토큰 삭제
 client.interceptors.response.use(
   (response) => {
-    console.log(`[HTTP Response] ${response.status} ${response.config?.url}`);
+    console.log(`[HTTP Response] ${response.status}`, response.config.url);
     return response;
   },
   async (error) => {
-    if (error?.response) {
+    if (error.response) {
       console.error(`[HTTP Error] ${error.response.status}`, error.response.data);
+      
+      // 401 Unauthorized: 토큰 삭제
       if (error.response.status === 401) {
         await clearToken();
-        // 네비게이션 전환은 AuthContext/라우팅 가드에서 처리
+        // 네비게이션은 AuthContext에서 처리
       }
-    } else if (error?.request) {
+    } else if (error.request) {
       console.error('[HTTP Error] No response received');
     } else {
-      console.error('[HTTP Error]', error?.message);
+      console.error('[HTTP Error]', error.message);
     }
     return Promise.reject(error);
   }
@@ -97,90 +100,88 @@ client.interceptors.response.use(
 export const apiClient = {
   // 헬스체크
   async health() {
-    const res = await client.get('/health');
-    return res.data;
+    const response = await client.get('/health');
+    return response.data;
   },
 
-  // 로그인 (x-www-form-urlencoded) + 토큰 저장
+  // 로그인 (x-www-form-urlencoded)
   async login(email, password) {
     const formData = new URLSearchParams();
     formData.append('email', email);
     formData.append('password', password);
 
-    const res = await client.post('/auth/login/email', formData, {
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    const response = await client.post('/auth/login/email', formData, {
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
     });
-
-    const token = res?.data?.access_token || res?.data?.token;
-    if (token) {
-      await saveToken(token);
-    }
-    return res.data;
+    return response.data;
   },
 
   // 회원가입
   async signup(userData) {
-    const res = await client.post('/auth/signup/email', userData);
-    return res.data;
+    const response = await client.post('/auth/signup/email', userData);
+    return response.data;
   },
 
   // 내 정보 조회
   async getMe() {
-    const res = await client.get('/users/me');
-    return res.data;
+    const response = await client.get('/users/me');
+    return response.data;
   },
 
-  // 사용자 단건
+  // 사용자 정보 조회
   async getUser(userId) {
-    const res = await client.get(`/users/${userId}`);
-    return res.data;
+    const response = await client.get(`/users/${userId}`);
+    return response.data;
   },
 
   // 활성 공지사항
   async getActiveAnnouncements() {
     try {
-      const res = await client.get('/announcements/active');
-      return res.data;
-    } catch {
-      const res = await client.get('/announcements', { params: { isActive: true } });
-      return res.data;
+      const response = await client.get('/announcements/active');
+      return response.data;
+    } catch (error) {
+      // fallback: query parameter 방식
+      const response = await client.get('/announcements?isActive=true');
+      return response.data;
     }
   },
 
   // 토픽 목록
   async getTopics() {
-    const res = await client.get('/topics');
-    return res.data;
+    const response = await client.get('/topics');
+    return response.data;
   },
 
   // 게시글 목록
   async getPosts(params = {}) {
-    const res = await client.get('/posts', { params });
-    return res.data;
+    const response = await client.get('/posts', { params });
+    return response.data;
   },
 
   // 토픽별 게시글
   async getTopicPosts(topicId, params = {}) {
-    const res = await client.get(`/topics/${topicId}/posts`, { params });
-    return res.data;
+    const response = await client.get(`/topics/${topicId}/posts`, { params });
+    return response.data;
   },
 
   // 게시글 작성
   async createPost(postData) {
-    const res = await client.post('/posts', postData);
-    return res.data;
+    const response = await client.post('/posts', postData);
+    return response.data;
   },
 
   // 신고
   async reportUser(reportData) {
-    const res = await client.post('/community/report', reportData);
-    return res.data;
+    const response = await client.post('/community/report', reportData);
+    return response.data;
   },
 
   // 차단
   async blockUser(blockData) {
-    const res = await client.post('/community/block', blockData);
-    return res.data;
+    const response = await client.post('/community/block', blockData);
+    return response.data;
   },
 };
 

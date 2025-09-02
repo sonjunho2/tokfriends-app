@@ -1,10 +1,10 @@
-import { Platform } from 'react-native';
-import { View, Text, StyleSheet, Platform } from 'react-native';
+// src/screens/main/HomeScreen.js
 import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
+  Platform,
   SafeAreaView,
   ScrollView,
   RefreshControl,
@@ -67,10 +67,7 @@ export default function HomeScreen({ navigation }) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([
-      refreshMe(),
-      loadInitialData(),
-    ]);
+    await Promise.all([refreshMe(), loadInitialData()]);
     setRefreshing(false);
   };
 
@@ -93,14 +90,11 @@ export default function HomeScreen({ navigation }) {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <HeaderLogo size="medium" />
-        <TouchableOpacity 
+        <TouchableOpacity
           onPress={() => navigation.navigate('Profile')}
           style={styles.profileButton}
         >
-          <Avatar
-            name={user?.displayName || user?.email}
-            size="small"
-          />
+          <Avatar name={user?.displayName || user?.email} size="small" />
         </TouchableOpacity>
       </View>
 
@@ -126,9 +120,7 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.welcomeName}>
               {user?.displayName || '친구'}님! 👋
             </Text>
-            <Text style={styles.welcomeSubtext}>
-              오늘도 새로운 친구를 만나보세요
-            </Text>
+            <Text style={styles.welcomeSubtext}>오늘도 새로운 친구를 만나보세요</Text>
           </View>
           <View style={styles.welcomeIcon}>
             <Ionicons name="sparkles" size={60} color={colors.textInverse || '#ffffff'} />
@@ -141,7 +133,7 @@ export default function HomeScreen({ navigation }) {
             <FlatList
               data={announcements}
               renderItem={renderAnnouncement}
-              keyExtractor={(item) => item.id.toString()}
+              keyExtractor={(item) => String(item.id)}
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.announcementsList}
@@ -154,17 +146,17 @@ export default function HomeScreen({ navigation }) {
             <Ionicons name="person-circle" size={24} color={colors.primary} />
             <Text style={styles.infoTitle}>내 계정 정보</Text>
           </View>
-          
+
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>이메일</Text>
             <Text style={styles.infoValue}>{user?.email || '-'}</Text>
           </View>
-          
+
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>닉네임</Text>
             <Text style={styles.infoValue}>{user?.displayName || '-'}</Text>
           </View>
-          
+
           <View style={styles.infoRow}>
             <Text style={styles.infoLabel}>계정 ID</Text>
             <Text style={styles.infoValue}>{user?.id || '-'}</Text>
@@ -185,14 +177,8 @@ export default function HomeScreen({ navigation }) {
               <Ionicons name="code" size={20} color={colors.accentMint || colors.primary} />
               <Text style={styles.dataTitle}>서버 응답 데이터</Text>
             </View>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false}
-              style={styles.dataScroll}
-            >
-              <Text style={styles.dataContent}>
-                {JSON.stringify(userData, null, 2)}
-              </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dataScroll}>
+              <Text style={styles.dataContent}>{JSON.stringify(userData, null, 2)}</Text>
             </ScrollView>
           </Card>
         )}
@@ -200,41 +186,39 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.quickActions}>
           <Text style={styles.sectionTitle}>빠른 메뉴</Text>
           <View style={styles.actionGrid}>
-            <TouchableOpacity 
-              style={styles.actionItem}
-              onPress={() => navigation.navigate('LiveNow')}
-            >
+            <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('LiveNow')}>
               <View style={[styles.actionIcon, { backgroundColor: colors.primary + '15' }]}>
                 <Ionicons name="pulse" size={28} color={colors.primary} />
               </View>
               <Text style={styles.actionText}>실시간</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.actionItem}
-              onPress={() => navigation.navigate('Nearby')}
-            >
-              <View style={[styles.actionIcon, { backgroundColor: (colors.accentMint || colors.primary) + '15' }]}>
+
+            <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('Nearby')}>
+              <View
+                style={[
+                  styles.actionIcon,
+                  { backgroundColor: (colors.accentMint || colors.primary) + '15' },
+                ]}
+              >
                 <Ionicons name="location" size={28} color={colors.accentMint || colors.primary} />
               </View>
               <Text style={styles.actionText}>내주변</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.actionItem}
-              onPress={() => navigation.navigate('Recommend')}
-            >
+
+            <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('Recommend')}>
               <View style={[styles.actionIcon, { backgroundColor: colors.primary + '15' }]}>
                 <Ionicons name="heart" size={28} color={colors.primary} />
               </View>
               <Text style={styles.actionText}>추천</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={styles.actionItem}
-              onPress={() => navigation.navigate('Chats')}
-            >
-              <View style={[styles.actionIcon, { backgroundColor: (colors.accentMint || colors.primary) + '15' }]}>
+
+            <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('Chats')}>
+              <View
+                style={[
+                  styles.actionIcon,
+                  { backgroundColor: (colors.accentMint || colors.primary) + '15' },
+                ]}
+              >
                 <Ionicons name="chatbubbles" size={28} color={colors.accentMint || colors.primary} />
               </View>
               <Text style={styles.actionText}>채팅</Text>
@@ -299,7 +283,7 @@ const styles = StyleSheet.create({
     color: colors.textInverse || '#ffffff',
     opacity: 0.8,
   },
- welcomeIcon: {
+  welcomeIcon: {
     marginLeft: 16,
   },
   section: {

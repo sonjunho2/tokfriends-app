@@ -27,13 +27,13 @@ export default function WelcomeScreen({ navigation }) {
              <Ionicons name="heart" size={80} color={colors.primary} />
            </View>
            
-           <Text style={styles.title}>딱친</Text>
+           <Text style={styles.title}>톡친 만들기</Text>
            <Text style={styles.subtitle}>딱 맞는 친구를 찾아보세요</Text>
            
            <View style={styles.features}>
              <View style={styles.featureItem}>
                <Ionicons name="location" size={24} color={colors.primary} />
-               <Text style={styles.featureText}>내 주변 친구 찾기</Text>
+               <Text style={styles.featureText}>내주변 친구찾기</Text>
              </View>
              <View style={styles.featureItem}>
                <Ionicons name="chatbubbles" size={24} color={colors.accentMint} />
@@ -41,7 +41,7 @@ export default function WelcomeScreen({ navigation }) {
              </View>
              <View style={styles.featureItem}>
                <Ionicons name="sparkles" size={24} color={colors.primary} />
-               <Text style={styles.featureText}>AI 친구 추천</Text>
+               <Text style={styles.featureText}>추천 친구</Text>
              </View>
            </View>
          </View>

@@ -1,33 +1,36 @@
 export const colors = {
-  // 메인 색상 (보라 계열)
-  primary: '#B455FF',
-  primaryDark: '#9A3FE4',
-  primaryLight: '#C266FF',
+  primary: '#FF4B6E',
+  primaryDark: '#E63A5C',
+  primaryLight: '#FF8FA3',
+  accentMint: '#12D9C5',
+  accentMintDark: '#0FB8A8',
   
-  // 배경 색상 (따뜻한 화이트)
-  background: '#F8F8F8',
+  background: '#F7F8FA',
   backgroundSecondary: '#FFFFFF',
-  backgroundTertiary: '#F5F5F5',
+  backgroundTertiary: '#F3F4F6',
   
-  // 텍스트 색상
-  text: '#333333',
-  textSecondary: '#666666',
-  textTertiary: '#999999',
+  text: '#111827',
+  textSecondary: '#6B7280',
+  textTertiary: '#9CA3AF',
   textInverse: '#FFFFFF',
   
-  // 테두리 및 라인
-  border: '#E5E5E5',
-  borderLight: '#F0F0F0',
+  border: '#E5E7EB',
+  borderLight: '#F3F4F6',
   
-  // 상태 색상
   success: '#10B981',
   warning: '#F59E0B',
   error: '#EF4444',
   info: '#3B82F6',
   
-  // 그림자
-  shadowColor: 'rgba(0, 0, 0, 0.1)',
-  shadowLight: 'rgba(0, 0, 0, 0.05)',
+  overlay: 'rgba(0, 0, 0, 0.5)',
+  shadowColor: '#000000',
+  
+  gradients: {
+    primary: ['#FF4B6E', '#E63A5C'],
+   mint: ['#12D9C5', '#0FB8A8'],
+   sunset: ['#FF4B6E', '#FF8FA3'],
+   vibrant: ['#FF4B6E', '#12D9C5'],
+ }
 };
 
 export default colors;

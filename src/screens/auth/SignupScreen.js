@@ -1,3 +1,4 @@
+// src/screens/auth/SignupScreen.js
 import React, { useState } from 'react';
 import {
   View,
@@ -18,6 +19,7 @@ import Card from '../../components/Card';
 import Tag from '../../components/Tag';
 import colors from '../../theme/colors';
 
+// 이메일 형식 검증
 const isValidEmail = (email) => {
   const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return re.test(email);
@@ -35,6 +37,7 @@ export default function SignupScreen({ navigation }) {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSignup = async () => {
+    // 입력 검증
     if (!email || !password || !displayName || !gender || !birthYear) {
       Alert.alert('알림', '모든 필수 정보를 입력해주세요.');
       return;
@@ -56,6 +59,7 @@ export default function SignupScreen({ navigation }) {
       return;
     }
 
+    // 중복 클릭 방지
     if (loading) return;
 
     setLoading(true);
@@ -68,9 +72,10 @@ export default function SignupScreen({ navigation }) {
         dob: `${birthYear}-01-01`,
       });
 
-      if (!result.success) {
+      if (!result.ok) {
         Alert.alert('회원가입 실패', result.error);
       }
+      // 성공 시 AuthContext에서 자동으로 로그인 상태로 전환됨
     } catch (e) {
       Alert.alert('회원가입 실패', '알 수 없는 오류가 발생했습니다.');
     } finally {
@@ -254,37 +259,33 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginTop: 16,
-    marginBottom: 32,
-    padding: 8,
+    marginBottom: 24,
   },
   header: {
-    marginBottom: 40,
-    alignItems: 'center',
+    marginBottom: 32,
   },
   title: {
     fontSize: 32,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.text,
     lineHeight: 40,
-    marginBottom: 16,
-    textAlign: 'center',
+    marginBottom: 12,
   },
   subtitle: {
     fontSize: 16,
     color: colors.textSecondary,
     lineHeight: 24,
-    textAlign: 'center',
   },
   formCard: {
     padding: 24,
-    marginBottom: 32,
+    marginBottom: 24,
   },
   inputContainer: {
     marginBottom: 20,
   },
   label: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.text,
     marginBottom: 8,
   },
@@ -299,8 +300,6 @@ const styles = StyleSheet.create({
     paddingRight: 44,
     fontSize: 16,
     color: colors.text,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   inputIcon: {
     position: 'absolute',

@@ -99,7 +99,7 @@ export default function LoginScreen({ navigation }) {
               <View style={styles.inputWrapper}>
                 <TextInput
                   style={styles.input}
-                  placeholder="비밀번호를 입력하세요"
+                  placeholder="••••••••"
                   placeholderTextColor={colors.textTertiary}
                   value={password}
                   onChangeText={setPassword}
@@ -163,37 +163,33 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginTop: 16,
-    marginBottom: 32,
-    padding: 8,
+    marginBottom: 24,
   },
   header: {
-    marginBottom: 40,
-    alignItems: 'center',
+    marginBottom: 32,
   },
   title: {
     fontSize: 32,
-    fontWeight: '800',
+    fontWeight: '700',
     color: colors.text,
     lineHeight: 40,
-    marginBottom: 16,
-    textAlign: 'center',
+    marginBottom: 12,
   },
   subtitle: {
     fontSize: 16,
     color: colors.textSecondary,
     lineHeight: 24,
-    textAlign: 'center',
   },
   formCard: {
     padding: 24,
-    marginBottom: 32,
+    marginBottom: 24,
   },
   inputContainer: {
     marginBottom: 20,
   },
   label: {
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '600',
     color: colors.text,
     marginBottom: 8,
   },
@@ -208,8 +204,6 @@ const styles = StyleSheet.create({
     paddingRight: 44,
     fontSize: 16,
     color: colors.text,
-    borderWidth: 1,
-    borderColor: colors.border,
   },
   inputIcon: {
     position: 'absolute',
@@ -220,12 +214,11 @@ const styles = StyleSheet.create({
   forgotPassword: {
     alignSelf: 'flex-end',
     marginBottom: 24,
-    padding: 4,
   },
   forgotPasswordText: {
     fontSize: 14,
     color: colors.primary,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   loginButton: {
     marginTop: 8,

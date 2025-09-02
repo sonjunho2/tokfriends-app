@@ -25,8 +25,10 @@ jobs:
           npm -v
           echo "EXPO_TOKEN set? ${{ env.EXPO_TOKEN != '' }}"
 
+      # ⬇️ 여기 변경: npm ci 제거, install만 사용
       - name: Install deps
-        run: npm ci || npm install
+        run: |
+          npm install --no-audit --fund=false
 
       - name: Install EAS CLI
         run: npm i -g eas-cli@latest
@@ -42,6 +44,7 @@ jobs:
       # ✅ 빌드 + JSON 캡처
       - name: Build Android (preview; clear cache) -> capture JSON
         id: build
+        shell: bash
         run: |
           set -e
           OUT="$(eas build -p android --profile preview --non-interactive --wait --clear-cache --json)"

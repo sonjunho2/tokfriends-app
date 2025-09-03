@@ -4,29 +4,27 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import colors from '../../theme/colors';
 
-const HAS_ACCOUNT_KEY = 'HAS_ACCOUNT'; // 회원가입/로그인 완료 플래그
+const HAS_ACCOUNT_KEY = 'HAS_ACCOUNT';
 
 export default function WelcomeScreen({ navigation }) {
   useEffect(() => {
-    // 이미 회원이면 자동으로 로그인 화면으로
     (async () => {
       try {
         const has = await AsyncStorage.getItem(HAS_ACCOUNT_KEY);
         if (has === '1') {
           navigation.replace('Login');
         }
-      } catch (e) {
-        // 무시하고 버튼으로 진행
-      }
+      } catch {}
     })();
   }, [navigation]);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>mj톡에 오신 걸 환영해요!</Text>
+      <Text style={styles.title}>근처톡에 오신 걸 환영해요!</Text>
       <Text style={styles.sub}>새로운 친구, 지금 바로 시작해볼까요?</Text>
 
-      <TouchableOpacity style={[styles.btn, styles.primary]} onPress={() => navigation.navigate('Agreement')}>
+      {/* 시작하기 → Signup */}
+      <TouchableOpacity style={[styles.btn, styles.primary]} onPress={() => navigation.navigate('Signup')}>
         <Text style={styles.primaryTxt}>시작하기</Text>
       </TouchableOpacity>
 

@@ -10,7 +10,7 @@ export default function NicknameScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>근처톡에서{'\n'}어떤 닉네임을 사용할까요?</Text>
+      <Text style={styles.title}>MJ톡에서{'\n'}어떤 닉네임을 사용할까요?</Text>
 
       <InputOutlined
         value={name}

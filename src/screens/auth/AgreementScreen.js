@@ -1,3 +1,4 @@
+// src/screens/auth/AgreementScreen.js
 import React, { useMemo, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import colors from '../../theme/colors';
@@ -9,7 +10,7 @@ const TERMS = [
   { key: 'location', label: '(필수) 위치기반서비스' },
 ];
 
-export default function AgreementScreen({ navigation }) {
+export default function AgreementScreen({ navigation, route }) {
   const initialState = useMemo(() => ({ privacy:false, tos:false, location:false }), []);
   const [checked, setChecked] = useState(initialState);
   const all = checked.privacy && checked.tos && checked.location;
@@ -21,13 +22,14 @@ export default function AgreementScreen({ navigation }) {
   const toggleOne = (k) => setChecked(s => ({ ...s, [k]: !s[k] }));
 
   const handleAgree = () => {
-    if (!all) return Alert.alert('안내','필수 항목에 모두 동의해 주세요.');
-    navigation.navigate('Age'); // ✅ 다음 단계
+    if (!all) return Alert.alert('안내', '필수 항목에 모두 동의해 주세요.');
+    // 다음으로 params 그대로 전달
+    navigation.navigate('Age', { ...route?.params, agreed: true });
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>MJ톡 이용을 위해{'\n'}약관 내용에 동의가 필요해요.</Text>
+      <Text style={styles.title}>근처톡 이용을 위해{'\n'}약관 내용에 동의가 필요해요.</Text>
 
       <TouchableOpacity style={styles.all} onPress={toggleAll} activeOpacity={0.9}>
         <Text style={styles.allTxt}>네, 모두 동의합니다</Text>

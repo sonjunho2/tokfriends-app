@@ -1,105 +1,115 @@
-// tokfriends-app/src/navigation/RootNavigator.js
+// src/navigation/RootNavigator.js
 import React from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
+import colors from '../theme/colors';
 
+// ===== Auth Screens =====
+import WelcomeScreen from '../screens/auth/WelcomeScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
 import SignupScreen from '../screens/auth/SignupScreen';
-import FeedScreen from '../screens/FeedScreen';
-import TopicsScreen from '../screens/TopicsScreen';
+
+// ===== Main Screens =====
+import HomeScreen from '../screens/main/HomeScreen';
+import LiveNowScreen from '../screens/main/LiveNowScreen';
+import NearbyScreen from '../screens/main/NearbyScreen';
+import RecommendScreen from '../screens/main/RecommendScreen';
+import ChatsScreen from '../screens/main/ChatsScreen';
+import ChatRoomScreen from '../screens/main/ChatRoomScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-const AuthStack = () => {
- return (
-   <Stack.Navigator
-     screenOptions={{
-       headerStyle: { backgroundColor: '#111827' },
-       headerTintColor: '#fff',
-       headerTitleStyle: { fontFamily: 'NotoSansKR_500Medium' },
-     }}
-   >
-     <Stack.Screen 
-       name="Login" 
-       component={LoginScreen} 
-       options={{ title: '로그인' }}
-     />
-     <Stack.Screen 
-       name="Signup" 
-       component={SignupScreen} 
-       options={{ title: '회원가입' }}
-     />
-   </Stack.Navigator>
- );
-};
+/** 비로그인 플로우 */
+function AuthFlow() {
+  return (
+    <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="Welcome" component={WelcomeScreen} />
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Signup" component={SignupScreen} />
+    </Stack.Navigator>
+  );
+}
 
-const MainTabs = () => {
- return (
-   <Tab.Navigator
-     screenOptions={({ route }) => ({
-       tabBarIcon: ({ focused, color, size }) => {
-         let iconName;
-         if (route.name === 'Feed') {
-           iconName = focused ? 'home' : 'home-outline';
-         } else if (route.name === 'Topics') {
-           iconName = focused ? 'chatbubbles' : 'chatbubbles-outline';
-         } else if (route.name === 'Profile') {
-           iconName = focused ? 'person' : 'person-outline';
-         }
-         return <Ionicons name={iconName} size={size} color={color} />;
-       },
-       tabBarActiveTintColor: '#10B981',
-       tabBarInactiveTintColor: '#9CA3AF',
-       tabBarStyle: {
-         backgroundColor: '#111827',
-         borderTopColor: '#1F2937',
-       },
-       tabBarLabelStyle: {
-         fontFamily: 'NotoSansKR_400Regular',
-       },
-       headerStyle: {
-         backgroundColor: '#111827',
-       },
-       headerTintColor: '#fff',
-       headerTitleStyle: {
-         fontFamily: 'NotoSansKR_500Medium',
-       },
-     })}
-   >
-     <Tab.Screen 
-       name="Feed" 
-       component={FeedScreen} 
-       options={{ title: '피드' }}
-     />
-     <Tab.Screen 
-       name="Topics" 
-       component={TopicsScreen} 
-       options={{ title: '토픽' }}
-     />
-     <Tab.Screen 
-       name="Profile" 
-       component={ProfileScreen} 
-       options={{ title: '프로필' }}
-     />
-   </Tab.Navigator>
- );
-};
+/** 하단 탭 */
+function MainTabs() {
+  return (
+    <Tab.Navigator
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarIcon: ({ focused, color, size }) => {
+          let icon = 'ellipse';
+          if (route.name === 'Home') icon = focused ? 'home' : 'home-outline';
+          else if (route.name === 'LiveNow') icon = focused ? 'pulse' : 'pulse-outline';
+          else if (route.name === 'Nearby') icon = focused ? 'location' : 'location-outline';
+          else if (route.name === 'Recommend') icon = focused ? 'heart' : 'heart-outline';
+          else if (route.name === 'Chats') icon = focused ? 'chatbubbles' : 'chatbubbles-outline';
+          return <Ionicons name={icon} size={size} color={color} />;
+        },
+        tabBarActiveTintColor: colors.primary,
+        tabBarInactiveTintColor: colors.textTertiary,
+        tabBarStyle: {
+          backgroundColor: colors.backgroundSecondary,
+          borderTopColor: colors.border,
+          borderTopWidth: 1,
+          paddingBottom: 5,
+          paddingTop: 5,
+          height: 60,
+        },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '500' },
+      })}
+    >
+      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: '홈' }} />
+      <Tab.Screen name="LiveNow" component={LiveNowScreen} options={{ tabBarLabel: '실시간' }} />
+      <Tab.Screen name="Nearby" component={NearbyScreen} options={{ tabBarLabel: '내주변' }} />
+      <Tab.Screen name="Recommend" component={RecommendScreen} options={{ tabBarLabel: '추천' }} />
+      <Tab.Screen name="Chats" component={ChatsScreen} options={{ tabBarLabel: '채팅' }} />
+    </Tab.Navigator>
+  );
+}
 
+/** 로그인 후 스택(상세, 모달 등 포함) */
+function AppFlow() {
+  return (
+    <Stack.Navigator initialRouteName="MainTabs" screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="MainTabs" component={MainTabs} />
+      <Stack.Screen
+        name="ChatRoom"
+        component={ChatRoomScreen}
+        options={{ animation: 'slide_from_bottom' }}
+      />
+      <Stack.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{ animation: 'slide_from_right' }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+/** 루트: 로그인 여부로 분기 */
 export default function RootNavigator() {
- const { token, initializing } = useAuth();
+  const { user, initializing } = useAuth();
 
- if (initializing) {
-   return (
-     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#111827' }}>
-       <ActivityIndicator size="large" color="#10B981" />
-     </View>
-   );
- }
+  if (initializing) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: colors.background,
+        }}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+  }
 
- return token ? <MainTabs /> : <AuthStack />;
+  const isSignedIn = !!user && (!!user.id || !!user.token);
+  return isSignedIn ? <AppFlow /> : <AuthFlow />;
 }

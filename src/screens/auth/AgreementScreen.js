@@ -24,7 +24,8 @@ export default function AgreementScreen({ navigation, route }) {
   const handleAgree = () => {
     if (!all) return Alert.alert('안내', '필수 항목에 모두 동의해 주세요.');
     // 다음으로 params 그대로 전달
-    navigation.navigate('Age', { ...route?.params, agreed: true });
+  navigation.navigate('Age', { email, password });
+
   };
 
   return (

@@ -9,8 +9,11 @@ export default function GenderScreen({ navigation, route }) {
   const isValid = !!gender;
 
   const next = () => {
-    navigation.navigate('Location', { ...route?.params, gender });
-  };
+   navigation.navigate('Location', {
+  ...route.params,  // email, password, birthYear, nickname
+  gender: selectedGender,
+});
+
 
   return (
     <View style={styles.container}>

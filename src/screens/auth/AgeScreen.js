@@ -23,8 +23,12 @@ export default function AgeScreen({ navigation, route }) {
     }
     // 백엔드 dob(YYYY-MM-DD)에 맞춰 변환
     const dob = `${y}-01-01`;
-    navigation.navigate('Nickname', { ...route?.params, dob });
-  };
+   navigation.navigate('Nickname', {
+  email: route.params.email,
+  password: route.params.password,
+  birthYear: selectedYear,
+});
+
 
   const disabled = year.length !== 4;
 

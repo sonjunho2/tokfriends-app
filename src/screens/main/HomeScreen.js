@@ -1,5 +1,5 @@
 // src/screens/main/HomeScreen.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -29,36 +29,44 @@ export default function HomeScreen({ navigation }) {
   const [userData, setUserData] = useState(null);
   const [announcements, setAnnouncements] = useState([]);
 
+  // gradient 컬러 안전 기본값
+  const GRADIENT =
+    colors?.gradients?.sunset ??
+    [colors?.primary || '#F36C93', colors?.primaryLight || '#FFD2DE'];
+
   useEffect(() => {
     loadInitialData();
   }, []);
 
-  const loadInitialData = async () => {
+  const loadInitialData = useCallback(async () => {
     try {
       setLoading(true);
-      const [announcementsData] = await Promise.all([
-        apiClient.getActiveAnnouncements(),
-      ]);
-      setAnnouncements(Array.isArray(announcementsData) ? announcementsData : []);
-    } catch (error) {
-      console.error('Failed to load initial data:', error);
+      const res = await apiClient
+        .getActiveAnnouncements()
+        .catch(() => []);
+      // 배열 보장
+      setAnnouncements(Array.isArray(res) ? res : []);
+    } catch (e) {
+      // 콘솔만 남기고 UI는 조용히 유지
+      console.warn('[Home] loadInitialData error:', e?.message || e);
+      setAnnouncements([]);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   const fetchUserData = async () => {
     if (!user?.id) {
       Alert.alert('알림', '로그인 정보가 없습니다.');
       return;
     }
-
-    setLoading(true);
     try {
+      setLoading(true);
       const data = await apiClient.getMe();
-      setUserData(data);
+      setUserData(data || {});
       Alert.alert('성공', '사용자 정보를 불러왔습니다.');
     } catch (error) {
+      console.warn('[Home] getMe error:', error?.message || error);
       Alert.alert('오류', '정보를 불러올 수 없습니다.');
     } finally {
       setLoading(false);
@@ -67,32 +75,41 @@ export default function HomeScreen({ navigation }) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([refreshMe(), loadInitialData()]);
-    setRefreshing(false);
+    try {
+      await Promise.all([refreshMe?.(), loadInitialData()]);
+    } finally {
+      setRefreshing(false);
+    }
   };
 
   const renderAnnouncement = ({ item }) => (
     <Card style={styles.announcementCard}>
       <View style={styles.announcementHeader}>
         <Ionicons name="megaphone" size={20} color={colors.primary} />
-        <Text style={styles.announcementTitle}>{item.title}</Text>
+        <Text style={styles.announcementTitle} numberOfLines={1}>
+          {item?.title ?? '공지'}
+        </Text>
       </View>
       <Text style={styles.announcementContent} numberOfLines={2}>
-        {item.content}
+        {item?.content ?? ''}
       </Text>
       <Text style={styles.announcementDate}>
-        {new Date(item.createdAt).toLocaleDateString('ko-KR')}
+        {item?.createdAt
+          ? new Date(item.createdAt).toLocaleDateString('ko-KR')
+          : ''}
       </Text>
     </Card>
   );
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* 헤더 */}
       <View style={styles.header}>
         <HeaderLogo size="medium" />
         <TouchableOpacity
           onPress={() => navigation.navigate('Profile')}
           style={styles.profileButton}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         >
           <Avatar name={user?.displayName || user?.email} size="small" />
         </TouchableOpacity>
@@ -109,8 +126,9 @@ export default function HomeScreen({ navigation }) {
           />
         }
       >
+        {/* 환영 카드 */}
         <LinearGradient
-          colors={colors.gradients?.sunset || [colors.primary, colors.primaryLight]}
+          colors={GRADIENT}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.welcomeCard}
@@ -120,20 +138,29 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.welcomeName}>
               {user?.displayName || '친구'}님! 👋
             </Text>
-            <Text style={styles.welcomeSubtext}>오늘도 새로운 친구를 만나보세요</Text>
+            <Text style={styles.welcomeSubtext}>
+              오늘도 새로운 친구를 만나보세요
+            </Text>
           </View>
           <View style={styles.welcomeIcon}>
-            <Ionicons name="sparkles" size={60} color={colors.textInverse || '#ffffff'} />
+            <Ionicons
+              name="sparkles"
+              size={60}
+              color={colors.textInverse || '#ffffff'}
+            />
           </View>
         </LinearGradient>
 
+        {/* 공지사항 */}
         {announcements.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>공지사항</Text>
             <FlatList
               data={announcements}
               renderItem={renderAnnouncement}
-              keyExtractor={(item) => String(item.id)}
+              keyExtractor={(item, idx) =>
+                item?.id != null ? String(item.id) : `a-${idx}`
+              }
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.announcementsList}
@@ -141,6 +168,7 @@ export default function HomeScreen({ navigation }) {
           </View>
         )}
 
+        {/* 내 계정 정보 */}
         <Card style={styles.infoCard}>
           <View style={styles.infoHeader}>
             <Ionicons name="person-circle" size={24} color={colors.primary} />
@@ -166,60 +194,116 @@ export default function HomeScreen({ navigation }) {
             title="내 정보 불러오기"
             onPress={fetchUserData}
             loading={loading}
-            icon={<Ionicons name="refresh" size={20} color={colors.textInverse || '#ffffff'} />}
+            icon={
+              <Ionicons
+                name="refresh"
+                size={20}
+                color={colors.textInverse || '#ffffff'}
+              />
+            }
             style={styles.fetchButton}
           />
         </Card>
 
+        {/* 서버 응답 데이터 미리보기 */}
         {userData && (
           <Card style={styles.dataCard}>
             <View style={styles.dataHeader}>
-              <Ionicons name="code" size={20} color={colors.accentMint || colors.primary} />
+              <Ionicons
+                name="code"
+                size={20}
+                color={colors.accentMint || colors.primary}
+              />
               <Text style={styles.dataTitle}>서버 응답 데이터</Text>
             </View>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.dataScroll}>
-              <Text style={styles.dataContent}>{JSON.stringify(userData, null, 2)}</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={styles.dataScroll}
+            >
+              <Text style={styles.dataContent}>
+                {JSON.stringify(userData, null, 2)}
+              </Text>
             </ScrollView>
           </Card>
         )}
 
+        {/* 빠른 메뉴 */}
         <View style={styles.quickActions}>
           <Text style={styles.sectionTitle}>빠른 메뉴</Text>
           <View style={styles.actionGrid}>
-            <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('LiveNow')}>
-              <View style={[styles.actionIcon, { backgroundColor: colors.primary + '15' }]}>
+            <TouchableOpacity
+              style={styles.actionItem}
+              onPress={() => navigation.navigate('LiveNow')}
+            >
+              <View
+                style={[
+                  styles.actionIcon,
+                  { backgroundColor: (colors.primary || '#F36C93') + '15' },
+                ]}
+              >
                 <Ionicons name="pulse" size={28} color={colors.primary} />
               </View>
               <Text style={styles.actionText}>실시간</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('Nearby')}>
+            <TouchableOpacity
+              style={styles.actionItem}
+              onPress={() => navigation.navigate('Nearby')}
+            >
               <View
                 style={[
                   styles.actionIcon,
-                  { backgroundColor: (colors.accentMint || colors.primary) + '15' },
+                  {
+                    backgroundColor:
+                      (colors.accentMint || colors.primary || '#44D1A6') +
+                      '15',
+                  },
                 ]}
               >
-                <Ionicons name="location" size={28} color={colors.accentMint || colors.primary} />
+                <Ionicons
+                  name="location"
+                  size={28}
+                  color={colors.accentMint || colors.primary}
+                />
               </View>
               <Text style={styles.actionText}>내주변</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('Recommend')}>
-              <View style={[styles.actionIcon, { backgroundColor: colors.primary + '15' }]}>
+            <TouchableOpacity
+              style={styles.actionItem}
+              onPress={() => navigation.navigate('Recommend')}
+            >
+              <View
+                style={[
+                  styles.actionIcon,
+                  { backgroundColor: (colors.primary || '#F36C93') + '15' },
+                ]}
+              >
                 <Ionicons name="heart" size={28} color={colors.primary} />
               </View>
               <Text style={styles.actionText}>추천</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.actionItem} onPress={() => navigation.navigate('Chats')}>
+            <TouchableOpacity
+              style={styles.actionItem}
+              onPress={() => navigation.navigate('Chats')}
+            >
               <View
                 style={[
                   styles.actionIcon,
-                  { backgroundColor: (colors.accentMint || colors.primary) + '15' },
+                  {
+                    backgroundColor:
+                      (colors.accentMint || colors.primary || '#44D1A6') +
+                      '15',
+                  },
                 ]}
               >
-                <Ionicons name="chatbubbles" size={28} color={colors.accentMint || colors.primary} />
+                <Ionicons
+                  name="chatbubbles"
+                  size={28}
+                  color={colors.accentMint || colors.primary}
+                />
               </View>
               <Text style={styles.actionText}>채팅</Text>
             </TouchableOpacity>

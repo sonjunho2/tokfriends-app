@@ -1,217 +1,189 @@
-// src/screens/auth/ProfileSetupScreen.js
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   SafeAreaView,
-  ScrollView,
   TouchableOpacity,
-  Image,
   Alert,
-  TextInput,
+  Image,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
+
 import ButtonPrimary from '../../components/ButtonPrimary';
 import Card from '../../components/Card';
 import colors from '../../theme/colors';
+
+import { apiClient } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 
 /**
- * 이 화면으로 들어올 때 이전 단계에서 아래 params를 넘겨주세요.
- * route.params = {
- *   email,          // Signup 화면에서 입력
- *   password,       // Signup 화면에서 입력
- *   displayName,    // Nickname 단계
- *   gender,         // Gender 단계 (male/female/other)
- *   dob,            // Age 단계에서 만든 YYYY-MM-DD (연도->날짜 변환)
- *   region,         // Location 단계 (선택한 거주지 문자열)
- * }
+ * route.params 로 이전 단계에서 모아둔 값들을 받습니다.
+ *  - email, password, birthYear, nickname, gender, region, bio(선택)
  */
 export default function ProfileSetupScreen({ route, navigation }) {
-  const { signup } = useAuth();
+  const { login } = useAuth();
 
-  const base = route?.params || {};
-  const [aboutMe, setAboutMe] = useState('');
-  const [photoUri, setPhotoUri] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const {
+    email,
+    password,
+    birthYear,    // AgeScreen에서 선택한 출생년도 (연도)
+    nickname,
+    gender,
+    region,       // LocationScreen 결과(문자열 또는 코드)
+    bio = '',     // 자기소개(선택)
+  } = route.params || {};
 
-  const canSubmit = useMemo(() => {
-    // 필수: email / password / displayName / gender / dob
-    return Boolean(
-      base?.email &&
-        base?.password &&
-        base?.displayName &&
-        base?.gender &&
-        base?.dob
-    );
-  }, [base]);
+  const [imageUri, setImageUri] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const pickImage = async () => {
     try {
       const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('권한 필요', '사진 라이브러리 접근 권한이 필요합니다.');
+        Alert.alert('권한 필요', '사진을 선택하려면 갤러리 접근 권한이 필요합니다.');
         return;
       }
       const res = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
         quality: 0.8,
-        selectionLimit: 1,
       });
       if (!res.canceled && res.assets?.[0]?.uri) {
-        setPhotoUri(res.assets[0].uri);
+        setImageUri(res.assets[0].uri);
       }
     } catch (e) {
-      Alert.alert('오류', '사진을 선택할 수 없습니다.');
+      Alert.alert('오류', '사진 선택 중 문제가 발생했습니다.');
     }
   };
 
   const onSubmit = async () => {
-    if (!canSubmit) {
-      Alert.alert('필수 정보 누락', '이메일/비밀번호/닉네임/성별/출생년도는 필수입니다.');
+    // 필수값 확인
+    if (!email || !password || !nickname || !birthYear || !gender) {
+      Alert.alert('알림', '필수 정보가 누락되었습니다. 처음부터 다시 진행해주세요.');
       return;
     }
 
-    setLoading(true);
+    setSubmitting(true);
     try {
-      // 1) 가입은 "텍스트 필드만" 전송 (이미지는 가입 후 별도 업로드로 분리)
-      const payload = {
-        email: base.email,
-        password: base.password,
-        displayName: base.displayName,
-        gender: base.gender,
-        dob: base.dob,           // YYYY-MM-DD
-        region: base.region || null,
-        // aboutMe는 서버 스키마에 따라 선택적으로 보내세요.
-        // 현재 백엔드 스펙을 모르면 제외해도 무방.
-        // aboutMe,
-      };
+      // 1) 가입 (백엔드는 /auth/signup/email 사용)
+      await apiClient.signup({
+        email,
+        password,
+        displayName: nickname,
+        gender: gender || 'other',
+        dob: `${birthYear}-01-01`, // 연도만 받았으므로 1월1일로 변환
+        region: region || null,
+        bio,
+      });
 
-      const result = await signup(payload);
-      if (!result.success) {
-        throw new Error(result.error || '가입에 실패했습니다.');
+      // 2) (선택) 아바타 업로드 — 미선택이면 그냥 건너뜀
+      // 서버에 아바타 업로드 엔드포인트가 없다면 이 블록은 생략하세요.
+      // 아래는 예시입니다. 엔드포인트가 다르면 주석 처리하세요.
+      /*
+      if (imageUri) {
+        const form = new FormData();
+        form.append('file', {
+          uri: imageUri,
+          name: 'avatar.jpg',
+          type: 'image/jpeg',
+        });
+        await apiClient.uploadAvatar(form); // <-- 필요 시 client에 구현
+      }
+      */
+
+      // 3) 자동 로그인 후 홈 이동
+      const res = await login(email, password);
+      if (!res.success) {
+        throw new Error(res.error || '자동 로그인에 실패했습니다.');
       }
 
-      // 2) (선택) 프로필 이미지 업로드 – 백엔드 엔드포인트 확정되면 아래 로직 활성화
-      // if (photoUri) {
-      //   const form = new FormData();
-      //   form.append('file', {
-      //     uri: photoUri,
-      //     name: 'avatar.jpg',
-      //     type: 'image/jpeg',
-      //   });
-      //   await apiClient.uploadAvatar(form); // <- 서버에 맞는 API 추가 필요
-      // }
-
-      // 3) 메인으로 리셋 이동
+      // 4) 네비게이션 reset → 홈 탭
       navigation.reset({
         index: 0,
-        routes: [{ name: 'MainTabs' }], // navigation/index.js에서 등록한 이름과 동일해야 함
+        routes: [{ name: 'MainTabs' }],
       });
-    } catch (e) {
-      Alert.alert('가입 처리 실패', e?.message || '서버와 통신에 실패했습니다.');
+    } catch (error) {
+      const msg =
+        error?.response?.data?.message ||
+        error?.message ||
+        '가입 처리 실패';
+      Alert.alert('가입 처리 실패', msg);
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <Text style={styles.title}>마지막이에요!{'\n'}간단한 프로필을 완성해주세요.</Text>
+      <View style={styles.headerWrap}>
+        <Text style={styles.header}>간단한 프로필을 완성해주세요.</Text>
+      </View>
 
-        <View style={styles.avatarBox}>
-          <TouchableOpacity onPress={pickImage} activeOpacity={0.8} style={styles.avatarBtn}>
-            {photoUri ? (
-              <Image source={{ uri: photoUri }} style={styles.avatarImg} />
-            ) : (
-              <View style={styles.avatarPlaceholder}>
-                <Ionicons name="person" size={36} color={colors.textTertiary} />
-              </View>
-            )}
-          </TouchableOpacity>
-          <TouchableOpacity onPress={pickImage} style={styles.photoAdd}>
-            <Text style={styles.photoAddText}>사진 등록</Text>
-          </TouchableOpacity>
-          <Text style={styles.photoHint}>{photoUri ? '1/1 장' : '0/1 장'}</Text>
-        </View>
+      <Card style={styles.card}>
+        <TouchableOpacity style={styles.avatarWrap} onPress={pickImage} activeOpacity={0.8}>
+          {imageUri ? (
+            <Image source={{ uri: imageUri }} style={styles.avatar} />
+          ) : (
+            <View style={styles.avatarPlaceholder}>
+              <Ionicons name="person" size={40} color={colors.textTertiary} />
+            </View>
+          )}
+          <View style={styles.addBadge}>
+            <Text style={styles.addBadgeText}>사진 등록</Text>
+          </View>
+          <Text style={styles.countHint}>0/1 장</Text>
+        </TouchableOpacity>
 
-        <Card style={styles.card}>
-          <Text style={styles.label}>자기소개</Text>
-          <TextInput
-            style={styles.textArea}
-            placeholder="간단한 자기소개를 작성해 주세요."
-            placeholderTextColor={colors.textTertiary}
-            value={aboutMe}
-            onChangeText={setAboutMe}
-            maxLength={100}
-            multiline
-          />
-          <Text style={styles.counter}>{aboutMe.length}/100 글자</Text>
-        </Card>
+        {/* 자기소개는 선택 사항이므로 별도 입력 필드가 있다면 route.params.bio로 이미 전달됨 */}
+      </Card>
 
+      <View style={styles.footer}>
         <ButtonPrimary
           title="가입하기"
           onPress={onSubmit}
-          loading={loading}
-          disabled={!canSubmit || loading}
+          loading={submitting}
           size="large"
-          style={{ marginTop: 12 }}
         />
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  content: { padding: 24 },
-  title: {
-    fontSize: 24,
+  headerWrap: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 8 },
+  header: {
+    textAlign: 'center',
+    fontSize: 18,
     fontWeight: '700',
     color: colors.text,
-    lineHeight: 32,
-    marginBottom: 22,
-    textAlign: 'center',
   },
-  avatarBox: { alignItems: 'center', marginBottom: 16 },
-  avatarBtn: {
-    width: 120,
-    height: 120,
-    borderRadius: 24,
-    overflow: 'hidden',
-    backgroundColor: colors.backgroundTertiary,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarImg: { width: '100%', height: '100%' },
+  card: { marginHorizontal: 24, paddingVertical: 24, alignItems: 'center' },
+
+  avatarWrap: { alignItems: 'center' },
   avatarPlaceholder: {
-    width: '100%',
-    height: '100%',
-    alignItems: 'center',
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: colors.backgroundTertiary,
     justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.borderLight,
   },
-  photoAdd: {
-    marginTop: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+  avatar: { width: 96, height: 96, borderRadius: 48, resizeMode: 'cover' },
+  addBadge: {
+    marginTop: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
     borderWidth: 1,
     borderColor: colors.primary,
   },
-  photoAddText: { color: colors.primary, fontWeight: '600' },
-  photoHint: { marginTop: 6, color: colors.textTertiary },
-  card: { padding: 16, marginTop: 12 },
-  label: { fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 8 },
-  textArea: {
-    minHeight: 120,
-    borderRadius: 12,
-    backgroundColor: colors.backgroundTertiary,
-    padding: 12,
-    color: colors.text,
-    textAlignVertical: 'top',
-  },
-  counter: { alignSelf: 'flex-end', marginTop: 6, color: colors.textTertiary },
+  addBadgeText: { color: colors.primary, fontWeight: '600' },
+  countHint: { marginTop: 6, fontSize: 12, color: colors.textTertiary },
+
+  footer: { marginTop: 'auto', padding: 24 },
 });

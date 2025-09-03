@@ -1,152 +1,217 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Alert, Platform } from 'react-native';
+// src/screens/auth/ProfileSetupScreen.js
+import React, { useState, useMemo } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  Alert,
+  TextInput,
+} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import colors from '../../theme/colors';
-import InputOutlined from '../../components/InputOutlined';
+import { Ionicons } from '@expo/vector-icons';
 import ButtonPrimary from '../../components/ButtonPrimary';
-import { markHasAccount } from '../../utils/accountFlag';
+import Card from '../../components/Card';
+import colors from '../../theme/colors';
 import { useAuth } from '../../context/AuthContext';
-import { apiClient } from '../../api/client';
 
-// ✅ 사진 미등록 시 사용할 기본 아바타 이미지(URL)
-// (원하면 프로젝트 상수 파일로 빼도 됩니다)
-const DEFAULT_AVATAR_URL =
-  'https://placehold.co/512x512/png?text=Avatar';
+/**
+ * 이 화면으로 들어올 때 이전 단계에서 아래 params를 넘겨주세요.
+ * route.params = {
+ *   email,          // Signup 화면에서 입력
+ *   password,       // Signup 화면에서 입력
+ *   displayName,    // Nickname 단계
+ *   gender,         // Gender 단계 (male/female/other)
+ *   dob,            // Age 단계에서 만든 YYYY-MM-DD (연도->날짜 변환)
+ *   region,         // Location 단계 (선택한 거주지 문자열)
+ * }
+ */
+export default function ProfileSetupScreen({ route, navigation }) {
+  const { signup } = useAuth();
 
-export default function ProfileSetupScreen({ navigation, route }) {
-  const { setUser, login } = useAuth?.() || {};
-  const [photo, setPhoto] = useState(null); // ✅ 단일 이미지만 허용
-  const [bio, setBio] = useState('');
+  const base = route?.params || {};
+  const [aboutMe, setAboutMe] = useState('');
+  const [photoUri, setPhotoUri] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const askPermission = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('권한 필요', '사진을 선택하려면 사진 라이브러리 접근 권한이 필요합니다.');
-      return false;
+  const canSubmit = useMemo(() => {
+    // 필수: email / password / displayName / gender / dob
+    return Boolean(
+      base?.email &&
+        base?.password &&
+        base?.displayName &&
+        base?.gender &&
+        base?.dob
+    );
+  }, [base]);
+
+  const pickImage = async () => {
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('권한 필요', '사진 라이브러리 접근 권한이 필요합니다.');
+        return;
+      }
+      const res = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8,
+        selectionLimit: 1,
+      });
+      if (!res.canceled && res.assets?.[0]?.uri) {
+        setPhotoUri(res.assets[0].uri);
+      }
+    } catch (e) {
+      Alert.alert('오류', '사진을 선택할 수 없습니다.');
     }
-    return true;
   };
 
-  const pick = async () => {
-    if (!(await askPermission())) return;
-
-    const res = await ImagePicker.launchImageLibraryAsync({
-      allowsMultipleSelection: false,  // ✅ 1장만
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,             // 선택 시 간단 편집 허용(정사각 비율 권장)
-      aspect: [1, 1],
-      quality: 0.85,
-    });
-
-    if (!res.canceled) {
-      const chosen = (res.assets && res.assets[0]) ? res.assets[0] : res;
-      setPhoto({ uri: chosen.uri });
+  const onSubmit = async () => {
+    if (!canSubmit) {
+      Alert.alert('필수 정보 누락', '이메일/비밀번호/닉네임/성별/출생년도는 필수입니다.');
+      return;
     }
-  };
-
-  /** 가입 완료 → 홈(MainTabs) 진입 보장 */
-  const handleComplete = async () => {
-    if (loading) return;
 
     setLoading(true);
     try {
-      // 1) 이전 단계 파라미터 + 프로필 입력 정리
-      const base = route?.params || {}; // { email, password, age, gender, location, nickname ... }
+      // 1) 가입은 "텍스트 필드만" 전송 (이미지는 가입 후 별도 업로드로 분리)
       const payload = {
-        ...base,
-        bio: bio || '',
-        // 서버에서 URL 기반 아바타를 지원한다면 avatarUrl로 기본값 전달
-        avatarUrl: photo?.uri ? undefined : DEFAULT_AVATAR_URL,
-        // 서버가 multipart 업로드를 받거나 추후 업로드 파이프라인이라면 photos로도 함께 전달
-        photos: photo?.uri ? [{ uri: photo.uri }] : [],
-        // 필요 시 클라이언트 타입 힌트(선택)
-        _client: { platform: Platform.OS, version: 'profile-setup@1.0' },
+        email: base.email,
+        password: base.password,
+        displayName: base.displayName,
+        gender: base.gender,
+        dob: base.dob,           // YYYY-MM-DD
+        region: base.region || null,
+        // aboutMe는 서버 스키마에 따라 선택적으로 보내세요.
+        // 현재 백엔드 스펙을 모르면 제외해도 무방.
+        // aboutMe,
       };
 
-      // 2) 가입 요청
-      const resp = await apiClient.signup(payload);
-
-      // 3) 가입 플래그 기록 (Welcome이 Login으로 자동 이동하도록)
-      await markHasAccount();
-
-      // 4) 토큰/유저가 응답에 있으면 즉시 세션 세팅 → 홈 자동 전환
-      if (resp?.token && resp?.user && typeof setUser === 'function') {
-        setUser({ ...resp.user, token: resp.token }, resp.token);
-        return; // RootNavigator가 user 감지 → AppFlow(MainTabs)
+      const result = await signup(payload);
+      if (!result.success) {
+        throw new Error(result.error || '가입에 실패했습니다.');
       }
 
-      // 5) 응답에 토큰이 없으면 자동 로그인 시도 (이전 단계에서 받은 email/password 이용)
-      const email = (base?.email || '').trim();
-      const password = base?.password || '';
-      if (email && password && typeof login === 'function') {
-        const lr = await login(email, password);
-        if (lr?.success) {
-          return; // 홈 자동 진입
-        }
-        throw new Error(lr?.error || '자동 로그인에 실패했습니다.');
-      }
+      // 2) (선택) 프로필 이미지 업로드 – 백엔드 엔드포인트 확정되면 아래 로직 활성화
+      // if (photoUri) {
+      //   const form = new FormData();
+      //   form.append('file', {
+      //     uri: photoUri,
+      //     name: 'avatar.jpg',
+      //     type: 'image/jpeg',
+      //   });
+      //   await apiClient.uploadAvatar(form); // <- 서버에 맞는 API 추가 필요
+      // }
 
-      // 6) 최후: 세션이 없으면 로그인 화면으로 안내
-      navigation.replace('Login');
+      // 3) 메인으로 리셋 이동
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'MainTabs' }], // navigation/index.js에서 등록한 이름과 동일해야 함
+      });
     } catch (e) {
-      console.warn('[ProfileSetup] complete error:', e?.message || e);
-      Alert.alert('가입 처리 실패', e?.message || '잠시 후 다시 시도해주세요.');
-      try {
-        navigation.replace('Login');
-      } catch {}
+      Alert.alert('가입 처리 실패', e?.message || '서버와 통신에 실패했습니다.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>마지막이에요!{'\n'}간단한 프로필을 완성해주세요.</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <Text style={styles.title}>마지막이에요!{'\n'}간단한 프로필을 완성해주세요.</Text>
 
-      {/* 아바타 미리보기 (있으면 선택한 사진, 없으면 기본 이미지 표시) */}
-      <TouchableOpacity onPress={pick} style={styles.avatarWrap} activeOpacity={0.9}>
-        {photo?.uri ? (
-          <Image source={{ uri: photo.uri }} style={styles.avatar} />
-        ) : (
-          <Image source={{ uri: DEFAULT_AVATAR_URL }} style={styles.avatar} />
-        )}
-      </TouchableOpacity>
+        <View style={styles.avatarBox}>
+          <TouchableOpacity onPress={pickImage} activeOpacity={0.8} style={styles.avatarBtn}>
+            {photoUri ? (
+              <Image source={{ uri: photoUri }} style={styles.avatarImg} />
+            ) : (
+              <View style={styles.avatarPlaceholder}>
+                <Ionicons name="person" size={36} color={colors.textTertiary} />
+              </View>
+            )}
+          </TouchableOpacity>
+          <TouchableOpacity onPress={pickImage} style={styles.photoAdd}>
+            <Text style={styles.photoAddText}>사진 등록</Text>
+          </TouchableOpacity>
+          <Text style={styles.photoHint}>{photoUri ? '1/1 장' : '0/1 장'}</Text>
+        </View>
 
-      <TouchableOpacity onPress={pick} style={styles.photoBtn} activeOpacity={0.9}>
-        <Text style={styles.photoBtnTxt}>{photo?.uri ? '다시 선택' : '사진 선택'}</Text>
-      </TouchableOpacity>
+        <Card style={styles.card}>
+          <Text style={styles.label}>자기소개</Text>
+          <TextInput
+            style={styles.textArea}
+            placeholder="간단한 자기소개를 작성해 주세요."
+            placeholderTextColor={colors.textTertiary}
+            value={aboutMe}
+            onChangeText={setAboutMe}
+            maxLength={100}
+            multiline
+          />
+          <Text style={styles.counter}>{aboutMe.length}/100 글자</Text>
+        </Card>
 
-      <InputOutlined
-        value={bio}
-        onChangeText={setBio}
-        placeholder="자기소개를 간단히 작성해 주세요"
-        multiline
-        style={{ marginTop: 16 }}
-      />
-
-      <View style={styles.bottom}>
         <ButtonPrimary
-          title={loading ? '처리 중...' : '시작하기'}
-          onPress={handleComplete}
-          // ✅ 사진이 없어도 진행 가능 (disabled 제거)
-          disabled={loading}
+          title="가입하기"
+          onPress={onSubmit}
+          loading={loading}
+          disabled={!canSubmit || loading}
+          size="large"
+          style={{ marginTop: 12 }}
         />
-        <Text style={styles.helper}>
-          프로필 사진은 나중에도 변경할 수 있어요.
-        </Text>
-      </View>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container:{ flex:1, backgroundColor:colors.background, paddingTop:40, paddingHorizontal:24 },
-  title:{ fontSize:26, fontWeight:'800', textAlign:'center', color:colors.text, marginBottom:24 },
-  avatarWrap:{ alignSelf:'center' },
-  avatar:{ width:160, height:160, borderRadius:24, backgroundColor:'#EDF0F3' },
-  photoBtn:{ marginTop:14, alignSelf:'center', paddingVertical:10, paddingHorizontal:20, borderRadius:24, borderWidth:2, borderColor:colors.primary },
-  photoBtnTxt:{ color:colors.primary, fontWeight:'800', fontSize:16 },
-  helper:{ marginTop:8, fontSize:12, color:colors.textSecondary, textAlign:'center' },
-  bottom:{ marginTop:'auto', paddingVertical:16 },
+  container: { flex: 1, backgroundColor: colors.background },
+  content: { padding: 24 },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    lineHeight: 32,
+    marginBottom: 22,
+    textAlign: 'center',
+  },
+  avatarBox: { alignItems: 'center', marginBottom: 16 },
+  avatarBtn: {
+    width: 120,
+    height: 120,
+    borderRadius: 24,
+    overflow: 'hidden',
+    backgroundColor: colors.backgroundTertiary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarImg: { width: '100%', height: '100%' },
+  avatarPlaceholder: {
+    width: '100%',
+    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  photoAdd: {
+    marginTop: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  photoAddText: { color: colors.primary, fontWeight: '600' },
+  photoHint: { marginTop: 6, color: colors.textTertiary },
+  card: { padding: 16, marginTop: 12 },
+  label: { fontSize: 14, fontWeight: '600', color: colors.text, marginBottom: 8 },
+  textArea: {
+    minHeight: 120,
+    borderRadius: 12,
+    backgroundColor: colors.backgroundTertiary,
+    padding: 12,
+    color: colors.text,
+    textAlignVertical: 'top',
+  },
+  counter: { alignSelf: 'flex-end', marginTop: 6, color: colors.textTertiary },
 });

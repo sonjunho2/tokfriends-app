@@ -10,8 +10,10 @@ export default function NicknameScreen({ navigation, route }) {
   const isValid = name.trim().length >= 2;
 
   const next = () => {
-    navigation.navigate('Gender', { ...route?.params, displayName: name.trim() });
-  };
+ navigation.navigate('Gender', {
+  ...route.params,  // email, password, birthYear
+  nickname,
+});
 
   return (
     <View style={styles.container}>

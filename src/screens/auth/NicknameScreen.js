@@ -22,7 +22,7 @@ export default function NicknameScreen({ navigation, route }) {
         <InputOutlined
           value={name}
           onChangeText={setName}
-          placeholder="예: 근처톡사용자"
+          placeholder="예: MJ톡사용자"
           maxLength={14}
           autoCapitalize="none"
           style={styles.input}

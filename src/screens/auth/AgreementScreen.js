@@ -29,7 +29,7 @@ export default function AgreementScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>근처톡 이용을 위해{'\n'}약관 내용에 동의가 필요해요.</Text>
+      <Text style={styles.title}>MJ톡 이용을 위해{'\n'}약관 내용에 동의가 필요해요.</Text>
 
       <TouchableOpacity style={styles.all} onPress={toggleAll} activeOpacity={0.9}>
         <Text style={styles.allTxt}>네, 모두 동의합니다</Text>

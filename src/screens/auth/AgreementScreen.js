@@ -49,7 +49,7 @@ export default function AgreementScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>
-        근처톡 이용을 위해{'\n'}약관 내용에 동의가 필요해요.
+        MJ톡 이용을 위해{'\n'}약관 내용에 동의가 필요해요.
       </Text>
 
       {/* 전체 동의 */}

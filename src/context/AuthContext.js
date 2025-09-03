@@ -1,11 +1,13 @@
+// src/context/AuthContext.js
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Alert } from 'react-native';
 import { apiClient, saveToken, clearToken, getStoredToken } from '../api/client';
 
 const AuthContext = createContext({
   user: null,
   token: null,
   initializing: true,
+  // exposed methods
+  setUser: (_user, _token) => {},
   login: async (_email, _password) => {},
   signup: async (_data) => {},
   logout: async () => {},
@@ -21,59 +23,64 @@ export const AuthProvider = ({ children }) => {
     initializing: true,
   });
 
-  // 부팅 시 토큰 복구 + 헬스체크 + me 조회
   useEffect(() => {
     initAuth();
   }, []);
 
   const initAuth = async () => {
     try {
-      // 1. 헬스체크
-      await apiClient.health();
-      console.log('[Auth] Health check passed');
+      // 1) 헬스체크 (실패해도 앱을 막지 않음)
+      try {
+        await apiClient.health();
+        // console.log('[Auth] Health check passed');
+      } catch (e) {
+        // console.warn('[Auth] Health check failed:', e?.message || e);
+      }
 
-      // 2. 토큰 복구
+      // 2) 토큰 복구
       const storedToken = await getStoredToken();
       if (storedToken) {
         setState((s) => ({ ...s, token: storedToken }));
-        
-        // 3. 내 정보 조회
+        // 3) 유저 조회
         const user = await apiClient.getMe();
         setState((s) => ({ ...s, user }));
-        console.log('[Auth] Auto login successful');
       }
     } catch (error) {
-      console.log('[Auth] Init failed:', error.message);
-      // 토큰이 무효하면 삭제
-      if (error.response?.status === 401) {
+      // console.warn('[Auth] Init failed:', error?.message || error);
+      if (error?.response?.status === 401) {
         await clearToken();
       }
       setState({ user: null, token: null, initializing: false });
       return;
     }
-    
     setState((s) => ({ ...s, initializing: false }));
+  };
+
+  /** ✅ 외부에서 직접 세션을 세팅할 수 있게 제공 (ProfileSetup 등에서 사용) */
+  const setUser = async (user, token) => {
+    try {
+      if (token) {
+        await saveToken(token);
+      }
+    } catch {}
+    setState((s) => ({ ...s, user: user || null, token: token || s.token }));
   };
 
   const login = async (email, password) => {
     try {
-      const response = await apiClient.login(email, password);
-      const token = response.access_token;
-
-      if (!token) {
-        throw new Error('로그인 응답에 토큰이 없습니다.');
-      }
+      const res = await apiClient.login(email, password);
+      const token = res?.access_token;
+      if (!token) throw new Error('로그인 응답에 토큰이 없습니다.');
 
       await saveToken(token);
       setState((s) => ({ ...s, token }));
 
-      // 내 정보 조회
       const user = await apiClient.getMe();
       setState((s) => ({ ...s, user }));
 
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || error.message || '로그인에 실패했습니다.';
+      const message = error?.response?.data?.message || error?.message || '로그인에 실패했습니다.';
       return { success: false, error: message };
     }
   };
@@ -90,7 +97,7 @@ export const AuthProvider = ({ children }) => {
 
       await apiClient.signup(payload);
 
-      // 자동 로그인
+      // 가입 직후 자동 로그인
       const loginResult = await login(data.email, data.password);
       if (!loginResult.success) {
         throw new Error(loginResult.error || '자동 로그인 실패');
@@ -98,7 +105,7 @@ export const AuthProvider = ({ children }) => {
 
       return { success: true };
     } catch (error) {
-      const message = error.response?.data?.message || error.message || '회원가입에 실패했습니다.';
+      const message = error?.response?.data?.message || error?.message || '회원가입에 실패했습니다.';
       return { success: false, error: message };
     }
   };
@@ -112,13 +119,11 @@ export const AuthProvider = ({ children }) => {
 
   const refreshMe = async () => {
     if (!state.token) return;
-    
     try {
       const user = await apiClient.getMe();
       setState((s) => ({ ...s, user }));
     } catch (error) {
-      console.error('Failed to refresh user:', error);
-      if (error.response?.status === 401) {
+      if (error?.response?.status === 401) {
         await logout();
       }
     }
@@ -128,6 +133,7 @@ export const AuthProvider = ({ children }) => {
     user: state.user,
     token: state.token,
     initializing: state.initializing,
+    setUser,     // ✅ 노출
     login,
     signup,
     logout,

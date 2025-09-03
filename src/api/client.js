@@ -1,8 +1,9 @@
+// src/api/client.js
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL, REQUEST_TIMEOUT_MS, STORAGE_TOKEN_KEY } from '../config/env';
 
-// 단일 axios 인스턴스
+// ─── axios instance ─────────────────────────────────────────────────────────────
 const client = axios.create({
   baseURL: API_BASE_URL,
   timeout: REQUEST_TIMEOUT_MS,
@@ -12,24 +13,23 @@ const client = axios.create({
   },
 });
 
-// 토큰 관리
+// ─── token helpers ──────────────────────────────────────────────────────────────
 let currentToken = null;
 
 export const setAuthToken = (token) => {
   currentToken = token;
   if (token) {
-    client.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    client.defaults.headers.common.Authorization = `Bearer ${token}`;
   } else {
-    delete client.defaults.headers.common['Authorization'];
+    delete client.defaults.headers.common.Authorization;
   }
 };
 
 export const getStoredToken = async () => {
   try {
-    const token = await AsyncStorage.getItem(STORAGE_TOKEN_KEY);
-    return token;
-  } catch (error) {
-    console.error('Failed to get stored token:', error);
+    return await AsyncStorage.getItem(STORAGE_TOKEN_KEY);
+  } catch (e) {
+    console.error('Failed to get stored token:', e);
     return null;
   }
 };
@@ -38,9 +38,9 @@ export const saveToken = async (token) => {
   try {
     await AsyncStorage.setItem(STORAGE_TOKEN_KEY, token);
     setAuthToken(token);
-  } catch (error) {
-    console.error('Failed to save token:', error);
-    throw error;
+  } catch (e) {
+    console.error('Failed to save token:', e);
+    throw e;
   }
 };
 
@@ -48,140 +48,201 @@ export const clearToken = async () => {
   try {
     await AsyncStorage.removeItem(STORAGE_TOKEN_KEY);
     setAuthToken(null);
-  } catch (error) {
-    console.error('Failed to clear token:', error);
+  } catch (e) {
+    console.error('Failed to clear token:', e);
   }
 };
 
-// 요청 인터셉터: 토큰 자동 주입
+// ─── interceptors ───────────────────────────────────────────────────────────────
 client.interceptors.request.use(
   async (config) => {
     if (!currentToken) {
       const storedToken = await getStoredToken();
-      if (storedToken) {
-        setAuthToken(storedToken);
-      }
+      if (storedToken) setAuthToken(storedToken);
     }
-    
-    console.log(`[HTTP] ${config.method?.toUpperCase()} ${config.url}`);
+    // console.log(`[HTTP] ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },
-  (error) => {
-    console.error('[HTTP Request Error]', error);
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
-// 응답 인터셉터: 401 시 토큰 삭제
 client.interceptors.response.use(
-  (response) => {
-    console.log(`[HTTP Response] ${response.status}`, response.config.url);
-    return response;
-  },
+  (res) => res,
   async (error) => {
-    if (error.response) {
-      console.error(`[HTTP Error] ${error.response.status}`, error.response.data);
-      
-      // 401 Unauthorized: 토큰 삭제
-      if (error.response.status === 401) {
-        await clearToken();
-        // 네비게이션은 AuthContext에서 처리
-      }
-    } else if (error.request) {
-      console.error('[HTTP Error] No response received');
-    } else {
-      console.error('[HTTP Error]', error.message);
+    if (error?.response?.status === 401) {
+      await clearToken();
     }
     return Promise.reject(error);
   }
 );
 
-// API 메서드들
+// ─── error normalizer ───────────────────────────────────────────────────────────
+const normalizeError = (err) => {
+  const msg =
+    err?.response?.data?.message ||
+    err?.response?.data?.error ||
+    err?.message ||
+    '요청 처리 중 오류가 발생했습니다.';
+  const e = new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
+  e.status = err?.response?.status;
+  return e;
+};
+
+// ─── API methods ────────────────────────────────────────────────────────────────
 export const apiClient = {
-  // 헬스체크
+  // 헬스
   async health() {
-    const response = await client.get('/health');
-    return response.data;
+    try {
+      const { data } = await client.get('/health');
+      return data;
+    } catch (e) {
+      throw normalizeError(e);
+    }
   },
 
-  // 로그인 (x-www-form-urlencoded)
+  // 로그인: JSON → (실패) form-urlencoded, 경로는 /auth/login/email → (404일 때) /auth/login
   async login(email, password) {
-    const formData = new URLSearchParams();
-    formData.append('email', email);
-    formData.append('password', password);
+    const jsonBody = {
+      email: String(email || '').trim().toLowerCase(),
+      password: String(password || ''),
+    };
 
-    const response = await client.post('/auth/login/email', formData, {
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-      },
-    });
-    return response.data;
+    // 1) JSON, /auth/login/email
+    try {
+      const { data } = await client.post('/auth/login/email', jsonBody, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      return data;
+    } catch (err1) {
+      const status1 = err1?.response?.status;
+
+      // 2) JSON, /auth/login (경로 폴백)
+      if (status1 === 404) {
+        try {
+          const { data } = await client.post('/auth/login', jsonBody, {
+            headers: { 'Content-Type': 'application/json' },
+          });
+          return data;
+        } catch (err2) {
+          // 3) form-urlencoded, /auth/login/email (콘텐츠 타입 이슈 폴백)
+          try {
+            const form = new URLSearchParams();
+            form.append('email', jsonBody.email);
+            form.append('password', jsonBody.password);
+            const { data } = await client.post('/auth/login/email', form, {
+              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            });
+            return data;
+          } catch (err3) {
+            throw normalizeError(err3);
+          }
+        }
+      }
+
+      // 3) form-urlencoded, /auth/login/email
+      try {
+        const form = new URLSearchParams();
+        form.append('email', jsonBody.email);
+        form.append('password', jsonBody.password);
+        const { data } = await client.post('/auth/login/email', form, {
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        });
+        return data;
+      } catch (err4) {
+        throw normalizeError(err4);
+      }
+    }
   },
 
-  // 회원가입
+  // 회원가입: /auth/signup/email → (404/400) /auth/signup
   async signup(userData) {
-    const response = await client.post('/auth/signup/email', userData);
-    return response.data;
+    const body = {
+      email: String(userData?.email || '').trim().toLowerCase(),
+      password: String(userData?.password || ''),
+      displayName: String(userData?.displayName || '').trim(),
+      gender: userData?.gender || 'other',
+      dob: userData?.dob || '2000-01-01', // YYYY-MM-DD
+    };
+
+    // 1) /auth/signup/email
+    try {
+      const { data } = await client.post('/auth/signup/email', body, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      return data;
+    } catch (err1) {
+      const status1 = err1?.response?.status;
+
+      // 2) /auth/signup (경로 폴백)
+      if (status1 === 404 || status1 === 400) {
+        try {
+          const { data } = await client.post('/auth/signup', body, {
+            headers: { 'Content-Type': 'application/json' },
+          });
+          return data;
+        } catch (err2) {
+          throw normalizeError(err2);
+        }
+      }
+      throw normalizeError(err1);
+    }
   },
 
-  // 내 정보 조회
+  // 내 정보
   async getMe() {
-    const response = await client.get('/users/me');
-    return response.data;
+    try {
+      const { data } = await client.get('/users/me');
+      return data;
+    } catch (e) {
+      throw normalizeError(e);
+    }
   },
 
-  // 사용자 정보 조회
+  // 사용자
   async getUser(userId) {
-    const response = await client.get(`/users/${userId}`);
-    return response.data;
+    try {
+      const { data } = await client.get(`/users/${userId}`);
+      return data;
+    } catch (e) {
+      throw normalizeError(e);
+    }
   },
 
-  // 활성 공지사항
+  // 공지
   async getActiveAnnouncements() {
     try {
-      const response = await client.get('/announcements/active');
-      return response.data;
-    } catch (error) {
-      // fallback: query parameter 방식
-      const response = await client.get('/announcements?isActive=true');
-      return response.data;
+      const { data } = await client.get('/announcements/active');
+      return data;
+    } catch {
+      const { data } = await client.get('/announcements', { params: { isActive: true } });
+      return data;
     }
   },
 
-  // 토픽 목록
+  // (아래는 기존 그대로)
   async getTopics() {
-    const response = await client.get('/topics');
-    return response.data;
+    const { data } = await client.get('/topics');
+    return data;
   },
-
-  // 게시글 목록
   async getPosts(params = {}) {
-    const response = await client.get('/posts', { params });
-    return response.data;
+    const { data } = await client.get('/posts', { params });
+    return data;
   },
-
-  // 토픽별 게시글
   async getTopicPosts(topicId, params = {}) {
-    const response = await client.get(`/topics/${topicId}/posts`, { params });
-    return response.data;
+    const { data } = await client.get(`/topics/${topicId}/posts`, { params });
+    return data;
   },
-
-  // 게시글 작성
   async createPost(postData) {
-    const response = await client.post('/posts', postData);
-    return response.data;
+    const { data } = await client.post('/posts', postData);
+    return data;
   },
-
-  // 신고
   async reportUser(reportData) {
-    const response = await client.post('/community/report', reportData);
-    return response.data;
+    const { data } = await client.post('/community/report', reportData);
+    return data;
   },
-
-  // 차단
   async blockUser(blockData) {
-    const response = await client.post('/community/block', blockData);
-    return response.data;
+    const { data } = await client.post('/community/block', blockData);
+    return data;
   },
 };
 

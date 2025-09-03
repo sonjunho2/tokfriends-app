@@ -11,28 +11,15 @@ export default function NicknameScreen({ navigation }) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>MJ톡에서{'\n'}어떤 닉네임을 사용할까요?</Text>
-
-      <InputOutlined
-        value={name}
-        onChangeText={setName}
-        placeholder="닉네임 입력"
-        maxLength={14}
-        style={{ marginTop: 28 }}
-      />
-
+      <InputOutlined value={name} onChangeText={setName} placeholder="닉네임 입력" maxLength={14} style={{ marginTop:28 }} />
       <View style={styles.bottom}>
-        <ButtonPrimary
-          title="다음"
-          disabled={!isValid}
-          onPress={() => navigation.navigate('Gender')}
-        />
+        <ButtonPrimary title="다음" onPress={() => navigation.navigate('Gender')} disabled={!isValid} />
       </View>
     </View>
   );
 }
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: colors.background, paddingTop: 56, paddingHorizontal: 24 },
-  title: { fontSize: 26, fontWeight: '800', color: colors.text, textAlign: 'center' },
-  bottom: { marginTop: 'auto', paddingVertical: 16 },
+  container:{ flex:1, backgroundColor: colors.background, paddingTop:56, paddingHorizontal:24 },
+  title:{ fontSize:26, fontWeight:'800', color: colors.text, textAlign:'center' },
+  bottom:{ marginTop:'auto', paddingVertical:16 },
 });

@@ -1,8 +1,7 @@
 // App.js
 import 'react-native-gesture-handler';
 import React from 'react';
-import { View, ActivityIndicator, StyleSheet } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
+import { View, ActivityIndicator, StyleSheet, StatusBar } from 'react-native';
 import {
   useFonts,
   NotoSansKR_400Regular,
@@ -21,11 +20,10 @@ export default function App() {
     NotoSansKR_700Bold,
   });
 
-  // ★ 변경: authStore.init() 제거, AuthContext에서 자동 초기화됨
   if (!fontsLoaded) {
     return (
       <View style={styles.loadingContainer}>
-        <StatusBar style="dark" backgroundColor={colors.background} />
+        <StatusBar barStyle="dark-content" backgroundColor={colors.background} />
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
@@ -33,7 +31,7 @@ export default function App() {
 
   return (
     <View style={styles.container}>
-      <StatusBar style="dark" backgroundColor={colors.backgroundSecondary} translucent={false} />
+      <StatusBar barStyle="dark-content" backgroundColor={colors.backgroundSecondary} />
       <AuthProvider>
         <Navigation />
       </AuthProvider>

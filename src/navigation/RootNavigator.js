@@ -9,10 +9,8 @@ import colors from '../theme/colors';
 
 // ===== Auth Screens =====
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
+import SignupScreen from '../screens/auth/SignupScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
-// SignupScreen 제거 (원하면 파일도 삭제 가능)
-
-// ===== Signup Flow Screens =====
 import AgreementScreen from '../screens/auth/AgreementScreen';
 import AgeScreen from '../screens/auth/AgeScreen';
 import NicknameScreen from '../screens/auth/NicknameScreen';
@@ -32,13 +30,12 @@ import ProfileScreen from '../screens/main/ProfileScreen';
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
-/** 비로그인 플로우 */
 function AuthFlow() {
   return (
     <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
+      <Stack.Screen name="Signup" component={SignupScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
-      {/* 새 가입 플로우 */}
       <Stack.Screen name="Agreement" component={AgreementScreen} />
       <Stack.Screen name="Age" component={AgeScreen} />
       <Stack.Screen name="Nickname" component={NicknameScreen} />
@@ -49,7 +46,6 @@ function AuthFlow() {
   );
 }
 
-/** 하단 탭 */
 function MainTabs() {
   return (
     <Tab.Navigator
@@ -86,7 +82,6 @@ function MainTabs() {
   );
 }
 
-/** 로그인 후 스택 */
 function AppFlow() {
   return (
     <Stack.Navigator initialRouteName="MainTabs" screenOptions={{ headerShown: false }}>
@@ -97,7 +92,6 @@ function AppFlow() {
   );
 }
 
-/** 루트: 로그인 여부로 분기 */
 export default function RootNavigator() {
   const { user, initializing } = useAuth();
 

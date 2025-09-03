@@ -20,7 +20,7 @@ export default function WelcomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>근처톡에 오신 걸 환영해요!</Text>
+      <Text style={styles.title}>MJ톡에 오신 걸 환영해요!</Text>
       <Text style={styles.sub}>새로운 친구, 지금 바로 시작해볼까요?</Text>
 
       {/* 시작하기 → Signup */}

@@ -10,7 +10,15 @@ import colors from '../theme/colors';
 // ===== Auth Screens =====
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
-import SignupScreen from '../screens/auth/SignupScreen';
+// SignupScreen 제거 (원하면 파일도 삭제 가능)
+
+// ===== Signup Flow Screens =====
+import AgreementScreen from '../screens/auth/AgreementScreen';
+import AgeScreen from '../screens/auth/AgeScreen';
+import NicknameScreen from '../screens/auth/NicknameScreen';
+import GenderScreen from '../screens/auth/GenderScreen';
+import LocationScreen from '../screens/auth/LocationScreen';
+import ProfileSetupScreen from '../screens/auth/ProfileSetupScreen';
 
 // ===== Main Screens =====
 import HomeScreen from '../screens/main/HomeScreen';
@@ -30,7 +38,13 @@ function AuthFlow() {
     <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Signup" component={SignupScreen} />
+      {/* 새 가입 플로우 */}
+      <Stack.Screen name="Agreement" component={AgreementScreen} />
+      <Stack.Screen name="Age" component={AgeScreen} />
+      <Stack.Screen name="Nickname" component={NicknameScreen} />
+      <Stack.Screen name="Gender" component={GenderScreen} />
+      <Stack.Screen name="Location" component={LocationScreen} />
+      <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
     </Stack.Navigator>
   );
 }
@@ -72,21 +86,13 @@ function MainTabs() {
   );
 }
 
-/** 로그인 후 스택(상세, 모달 등 포함) */
+/** 로그인 후 스택 */
 function AppFlow() {
   return (
     <Stack.Navigator initialRouteName="MainTabs" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MainTabs" component={MainTabs} />
-      <Stack.Screen
-        name="ChatRoom"
-        component={ChatRoomScreen}
-        options={{ animation: 'slide_from_bottom' }}
-      />
-      <Stack.Screen
-        name="Profile"
-        component={ProfileScreen}
-        options={{ animation: 'slide_from_right' }}
-      />
+      <Stack.Screen name="ChatRoom" component={ChatRoomScreen} options={{ animation: 'slide_from_bottom' }} />
+      <Stack.Screen name="Profile" component={ProfileScreen} options={{ animation: 'slide_from_right' }} />
     </Stack.Navigator>
   );
 }
@@ -97,14 +103,7 @@ export default function RootNavigator() {
 
   if (initializing) {
     return (
-      <View
-        style={{
-          flex: 1,
-          alignItems: 'center',
-          justifyContent: 'center',
-          backgroundColor: colors.background,
-        }}
-      >
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.background }}>
         <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );

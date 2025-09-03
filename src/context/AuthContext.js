@@ -6,10 +6,9 @@ const AuthContext = createContext({
   user: null,
   token: null,
   initializing: true,
-  // exposed methods
-  setUser: (_user, _token) => {},
-  login: async (_email, _password) => {},
-  signup: async (_data) => {},
+  setUser: () => {},
+  login: async () => ({ success: false }),
+  signup: async () => ({ success: false }),
   logout: async () => {},
   refreshMe: async () => {},
 });
@@ -17,51 +16,30 @@ const AuthContext = createContext({
 export const useAuth = () => useContext(AuthContext);
 
 export const AuthProvider = ({ children }) => {
-  const [state, setState] = useState({
-    user: null,
-    token: null,
-    initializing: true,
-  });
+  const [state, setState] = useState({ user: null, token: null, initializing: true });
 
   useEffect(() => {
-    initAuth();
+    (async () => {
+      try {
+        try { await apiClient.health(); } catch {}
+        const stored = await getStoredToken();
+        if (stored) {
+          setState((s) => ({ ...s, token: stored }));
+          const me = await apiClient.getMe();
+          setState((s) => ({ ...s, user: me }));
+        }
+      } catch (e) {
+        await clearToken();
+        setState({ user: null, token: null, initializing: false });
+        return;
+      }
+      setState((s) => ({ ...s, initializing: false }));
+    })();
   }, []);
 
-  const initAuth = async () => {
-    try {
-      // 1) 헬스체크 (실패해도 앱을 막지 않음)
-      try {
-        await apiClient.health();
-        // console.log('[Auth] Health check passed');
-      } catch (e) {
-        // console.warn('[Auth] Health check failed:', e?.message || e);
-      }
-
-      // 2) 토큰 복구
-      const storedToken = await getStoredToken();
-      if (storedToken) {
-        setState((s) => ({ ...s, token: storedToken }));
-        // 3) 유저 조회
-        const user = await apiClient.getMe();
-        setState((s) => ({ ...s, user }));
-      }
-    } catch (error) {
-      // console.warn('[Auth] Init failed:', error?.message || error);
-      if (error?.response?.status === 401) {
-        await clearToken();
-      }
-      setState({ user: null, token: null, initializing: false });
-      return;
-    }
-    setState((s) => ({ ...s, initializing: false }));
-  };
-
-  /** ✅ 외부에서 직접 세션을 세팅할 수 있게 제공 (ProfileSetup 등에서 사용) */
   const setUser = async (user, token) => {
     try {
-      if (token) {
-        await saveToken(token);
-      }
+      if (token) await saveToken(token);
     } catch {}
     setState((s) => ({ ...s, user: user || null, token: token || s.token }));
   };
@@ -70,18 +48,14 @@ export const AuthProvider = ({ children }) => {
     try {
       const res = await apiClient.login(email, password);
       const token = res?.access_token;
-      if (!token) throw new Error('로그인 응답에 토큰이 없습니다.');
-
+      if (!token) throw new Error('토큰 응답이 비어 있습니다.');
       await saveToken(token);
       setState((s) => ({ ...s, token }));
-
-      const user = await apiClient.getMe();
-      setState((s) => ({ ...s, user }));
-
+      const me = await apiClient.getMe();
+      setState((s) => ({ ...s, user: me }));
       return { success: true };
-    } catch (error) {
-      const message = error?.response?.data?.message || error?.message || '로그인에 실패했습니다.';
-      return { success: false, error: message };
+    } catch (e) {
+      return { success: false, error: e?.message || '아이디 또는 비밀번호를 확인해 주세요.' };
     }
   };
 
@@ -94,51 +68,44 @@ export const AuthProvider = ({ children }) => {
         gender: data.gender || 'other',
         dob: data.dob || '2000-01-01',
       };
-
       await apiClient.signup(payload);
-
-      // 가입 직후 자동 로그인
-      const loginResult = await login(data.email, data.password);
-      if (!loginResult.success) {
-        throw new Error(loginResult.error || '자동 로그인 실패');
-      }
-
+      const r = await login(payload.email, payload.password);
+      if (!r.success) throw new Error(r.error || '자동 로그인 실패');
       return { success: true };
-    } catch (error) {
-      const message = error?.response?.data?.message || error?.message || '회원가입에 실패했습니다.';
-      return { success: false, error: message };
+    } catch (e) {
+      return { success: false, error: e?.message || '회원가입에 실패했습니다.' };
     }
   };
 
   const logout = async () => {
-    try {
-      await clearToken();
-    } catch {}
+    try { await clearToken(); } catch {}
     setState({ user: null, token: null, initializing: false });
   };
 
   const refreshMe = async () => {
     if (!state.token) return;
     try {
-      const user = await apiClient.getMe();
-      setState((s) => ({ ...s, user }));
-    } catch (error) {
-      if (error?.response?.status === 401) {
-        await logout();
-      }
+      const me = await apiClient.getMe();
+      setState((s) => ({ ...s, user: me }));
+    } catch {
+      await logout();
     }
   };
 
-  const value = {
-    user: state.user,
-    token: state.token,
-    initializing: state.initializing,
-    setUser,     // ✅ 노출
-    login,
-    signup,
-    logout,
-    refreshMe,
-  };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider
+      value={{
+        user: state.user,
+        token: state.token,
+        initializing: state.initializing,
+        setUser,
+        login,
+        signup,
+        logout,
+        refreshMe,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
 };

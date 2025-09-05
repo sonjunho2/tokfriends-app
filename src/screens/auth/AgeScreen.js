@@ -1,66 +1,115 @@
 // src/screens/auth/AgeScreen.js
-import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
-import colors from '../../theme/colors';
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
+  TextInput,
+  TouchableOpacity,
+} from 'react-native';
+import Card from '../../components/Card';
 import ButtonPrimary from '../../components/ButtonPrimary';
-import InputOutlined from '../../components/InputOutlined';
+import colors from '../../theme/colors';
 
 export default function AgeScreen({ navigation, route }) {
-  const yearNow = useMemo(() => new Date().getFullYear(), []);
-  const [year, setYear] = useState('');
+  const [birthYear, setBirthYear] = useState('');
 
-  const onChange = (t) => {
-    const onlyNum = t.replace(/[^0-9]/g, '').slice(0, 4);
-    setYear(onlyNum);
+  const onNext = () => {
+    const y = parseInt(birthYear, 10);
+    const thisYear = new Date().getFullYear();
+    if (!y || y < 1900 || y > thisYear) {
+      alert('올바른 출생연도를 입력해주세요. 예) 1995');
+      return;
+    }
+    // 다음 화면으로 필요한 값만 넘김
+    navigation.navigate('Nickname', {
+      ...((route?.params || {})),
+      birthYear: y,
+      dob: `${y}-01-01`,
+    });
   };
 
-  const next = () => {
-    const y = parseInt(year, 10);
-    const minYear = yearNow - 80; // 최대 80세
-    const maxYear = yearNow - 18; // 최소 18세
-    if (!y || y < minYear || y > maxYear) {
-      return Alert.alert('안내', `출생연도를 정확히 입력해주세요. (${minYear} ~ ${maxYear})`);
-    }
-    // 백엔드 dob(YYYY-MM-DD)에 맞춰 변환
-    const dob = `${y}-01-01`;
-   navigation.navigate('Nickname', {
-  email: route.params.email,
-  password: route.params.password,
-  birthYear: selectedYear,
-});
-
-
-  const disabled = year.length !== 4;
-
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>출생연도를 입력해 주세요</Text>
-      <Text style={styles.sub}>만 18세 이상만 가입할 수 있어요</Text>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={{ flex: 1 }}
+      >
+        <View style={styles.body}>
+          <Text style={styles.title}>나이가 어떻게 되시나요?</Text>
 
-      <View style={styles.form}>
-        <InputOutlined
-          value={year}
-          onChangeText={onChange}
-          placeholder="예: 1995"
-          keyboardType="number-pad"
-          maxLength={4}
-          style={styles.input}
-          inputStyle={{ textAlign: 'center', fontSize: 18 }}
-        />
-      </View>
+          <Card style={styles.card}>
+            <TextInput
+              style={styles.input}
+              value={birthYear}
+              onChangeText={setBirthYear}
+              keyboardType="number-pad"
+              placeholder="출생연도 4자리 (예: 1995)"
+              placeholderTextColor={colors.textTertiary}
+              maxLength={4}
+            />
+          </Card>
 
-      <View style={styles.bottom}>
-        <ButtonPrimary title="다음" onPress={next} disabled={disabled} />
-      </View>
-    </View>
+          <View style={styles.bottom}>
+            <ButtonPrimary
+              title="다음"
+              onPress={onNext}
+              size="large"
+            />
+            <TouchableOpacity
+              style={{ marginTop: 12, alignSelf: 'center' }}
+              onPress={() => navigation.goBack()}
+            >
+              <Text style={styles.linkText}>이전으로</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container:{ flex:1, backgroundColor: colors.background, paddingTop:56, paddingHorizontal:24 },
-  title:{ fontSize:26, fontWeight:'800', color: colors.text, textAlign:'center' },
-  sub:{ marginTop:8, fontSize:13, color: colors.textSecondary, textAlign:'center' },
-  form:{ marginTop:28, alignItems:'center' },
-  input:{ width:'100%' },
-  bottom:{ marginTop:'auto', paddingVertical:16 },
+  container: { flex: 1, backgroundColor: colors.background },
+  body: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 48,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: '700',
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 32,
+  },
+  card: {
+    width: '100%',
+    padding: 16,
+    alignItems: 'center',
+  },
+  input: {
+    width: '100%',
+    backgroundColor: colors.backgroundTertiary,
+    borderRadius: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    fontSize: 18,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  bottom: {
+    marginTop: 'auto',
+    paddingVertical: 16,
+    width: '100%',
+  },
+  linkText: {
+    color: colors.textSecondary,
+    fontSize: 14,
+  },
 });

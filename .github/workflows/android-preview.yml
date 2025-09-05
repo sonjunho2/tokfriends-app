@@ -18,7 +18,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
       - name: Print env (debug)
         run: |
@@ -26,24 +25,23 @@ jobs:
           npm -v
           echo "EXPO_TOKEN set? ${{ env.EXPO_TOKEN != '' }}"
 
-      # ⬇️ deps 설치: lock 파일 없어도 안전한 경로
+      # npm ci 대신 install만 사용 (EUSAGE 방지)
       - name: Install deps
         run: |
-          npm install --no-audit --no-fund
+          npm install --no-audit --fund=false
 
       - name: Install EAS CLI
         run: npm i -g eas-cli@latest
 
       - name: Expo login (token)
-        run: |
-          eas whoami || eas login --token "${{ secrets.EXPO_TOKEN }}"
+        run: eas whoami || eas login --token ${{ secrets.EXPO_TOKEN }}
 
       - name: Show resolved config (non-blocking)
         run: |
           npx expo config --json || true
           npx expo-doctor || true
 
-      # ✅ 빌드 + JSON 캡처
+      # Build + JSON 캡처
       - name: Build Android (preview; clear cache) -> capture JSON
         id: build
         shell: bash
@@ -53,13 +51,11 @@ jobs:
           echo "$OUT" > build.json
           echo "---- build.json ----"
           cat build.json || true
-
-          # ✅ 최상위 배열/객체/빌드리스트 모든 케이스 안전 처리
           APK_URL=$(node -e "const fs=require('fs');const raw=fs.readFileSync('build.json','utf8');const o=JSON.parse(raw);
             const first = Array.isArray(o) ? o[0] : (Array.isArray(o?.builds) ? o.builds[0] : o);
             const url = first?.artifacts?.applicationArchiveUrl || first?.artifacts?.buildUrl || first?.artifacts?.apkUrl || '';
-            if(!url){process.exit(1)}; process.stdout.write(url);")
-
+            if(!url){process.exit(1)}; process.stdout.write(url);
+          ")
           echo "apk_url=$APK_URL" >> $GITHUB_OUTPUT
           echo "APK_URL: $APK_URL"
 

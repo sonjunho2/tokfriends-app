@@ -2,17 +2,16 @@
   "expo": {
     "name": "딱친",
     "slug": "ddakchin",
-    "owner": "sonjunho",
     "scheme": "ddakchin",
     "version": "1.0.0",
     "orientation": "portrait",
-    "assetBundlePatterns": ["**/*"],
     "icon": "./assets/logo.png",
     "splash": {
       "image": "./assets/logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "assetBundlePatterns": ["**/*"],
     "android": {
       "package": "com.sonjunho.ddakchin",
       "adaptiveIcon": {
@@ -28,9 +27,12 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "plugins": ["./app.plugin.js"],
     "extra": {
+      "eas": {
+        "projectId": "eb3c1b74-5c41-4ce0-9574-d0d3eb932d72"
+      },
       "apiBaseUrl": "https://tok-friends-api.onrender.com",
-      "eas": { "projectId": "eb3c1b74-5c41-4ce0-9574-d0d3eb932d72" },
       "testScreen": "auth"
     }
   }

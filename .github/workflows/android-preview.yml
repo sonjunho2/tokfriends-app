@@ -18,6 +18,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+          cache: 'npm'
 
       - name: Print env (debug)
         run: |
@@ -25,16 +26,17 @@ jobs:
           npm -v
           echo "EXPO_TOKEN set? ${{ env.EXPO_TOKEN != '' }}"
 
-      # ⬇️ 여기 변경: npm ci 제거, install만 사용
+      # ⬇️ deps 설치: lock 파일 없어도 안전한 경로
       - name: Install deps
         run: |
-          npm install --no-audit --fund=false
+          npm install --no-audit --no-fund
 
       - name: Install EAS CLI
         run: npm i -g eas-cli@latest
 
       - name: Expo login (token)
-        run: eas whoami || eas login --token ${{ secrets.EXPO_TOKEN }}
+        run: |
+          eas whoami || eas login --token "${{ secrets.EXPO_TOKEN }}"
 
       - name: Show resolved config (non-blocking)
         run: |
@@ -56,8 +58,7 @@ jobs:
           APK_URL=$(node -e "const fs=require('fs');const raw=fs.readFileSync('build.json','utf8');const o=JSON.parse(raw);
             const first = Array.isArray(o) ? o[0] : (Array.isArray(o?.builds) ? o.builds[0] : o);
             const url = first?.artifacts?.applicationArchiveUrl || first?.artifacts?.buildUrl || first?.artifacts?.apkUrl || '';
-            if(!url){process.exit(1)}; process.stdout.write(url);
-          ")
+            if(!url){process.exit(1)}; process.stdout.write(url);")
 
           echo "apk_url=$APK_URL" >> $GITHUB_OUTPUT
           echo "APK_URL: $APK_URL"

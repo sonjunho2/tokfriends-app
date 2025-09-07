@@ -2,7 +2,7 @@
 // Expo는 이 파일을 최우선으로 읽습니다. (app.json은 사용하지 않음)
 export default ({ config }) => ({
   // 앱 기본 정보
-  name: '딱친',
+  name: 'ddakchin',
   slug: 'ddakchin',
   scheme: 'ddakchin',
   version: '1.0.0',

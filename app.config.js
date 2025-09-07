@@ -40,19 +40,23 @@ export default ({ config }) => ({
   },
 
   // 플러그인
-  plugins: [
-    './app.plugin.js',
-    [
-      'expo-build-properties',
-      {
-        android: {
-          // ✅ Gradle/AGP/Kotlin 버전 고정으로 "Key 1.9.24 is missing in the map" 오류 회피
-          gradlePluginVersion: '8.5.2',
-          kotlinVersion: '2.0.0'
-        }
+ plugins: [
+  './app.plugin.js',
+  [
+    'expo-build-properties',
+    {
+      android: {
+        gradlePluginVersion: '8.5.2',
+        kotlinVersion: '2.0.0',
+        compileSdkVersion: 34,
+        targetSdkVersion: 34,
+        minSdkVersion: 24,
+        // ✅ 문제되는 속성 비활성화
+        enableBundleCompression: false
       }
-    ]
-  ],
+    }
+  ]
+],
 
   // EAS/런타임 변수
   extra: {

@@ -51,8 +51,7 @@ export default ({ config }) => ({
         compileSdkVersion: 34,
         targetSdkVersion: 34,
         minSdkVersion: 24,
-        // ✅ 문제되는 속성 비활성화
-        enableBundleCompression: false
+
       }
     }
   ]

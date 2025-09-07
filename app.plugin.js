@@ -2,24 +2,20 @@
 /** @type {import('@expo/config-plugins').ConfigPlugin} */
 const { withAppBuildGradle } = require('@expo/config-plugins');
 
-// 어떤 형태든 enableBundleCompression 토큰을 제거
-const stripEnableBundleCompression = (src) => {
-  // 1) 단독 라인/할당/무할당(true/false) 모두 제거
-  let out = src.replace(
-    /^[\t ]*enableBundleCompression(?:\s*=?\s*(?:true|false))?\s*[\r]?\n/gm,
+/**
+ * 1) react { ... } 블록 전체 제거 (enableBundleCompression 등 구식 옵션 포함될 수 있음)
+ * 2) 잔여 enableBundleCompression 토큰이 남아있어도 모두 제거
+ *    - 목적: Expo/RN 기본값 사용 → Gradle 구문 오류 방지
+ */
+const cleanseGradle = (src) => {
+  // react { ... } 블록 전체 제거 (non-greedy)
+  let out = src.replace(/^[ \t]*react\s*\{[\s\S]*?\}\s*\n?/gm, '');
+
+  // enableBundleCompression 토큰 흔적 전부 제거(라인/인라인/주석 등)
+  out = out.replace(
+    /enableBundleCompression(?:\s*=?\s*(?:true|false))?/g,
     ''
   );
-
-  // 2) react { ... } 블록 내부에 섞여있는 경우도 제거
-  out = out.replace(/react\s*\{([\s\S]*?)\}/gm, (m) => {
-    return m.replace(
-      /^[\t ]*enableBundleCompression(?:\s*=?\s*(?:true|false))?\s*[\r]?\n/gm,
-      ''
-    );
-  });
-
-  // 3) 남아있는 토큰(주석 옆 등)까지 광역 치환
-  out = out.replace(/enableBundleCompression(?:\s*=?\s*(?:true|false))?/g, '');
 
   return out;
 };
@@ -27,7 +23,7 @@ const stripEnableBundleCompression = (src) => {
 const plugin = (config) => {
   return withAppBuildGradle(config, (cfg) => {
     if (cfg.modResults && typeof cfg.modResults.contents === 'string') {
-      cfg.modResults.contents = stripEnableBundleCompression(cfg.modResults.contents);
+      cfg.modResults.contents = cleanseGradle(cfg.modResults.contents);
     }
     return cfg;
   });

@@ -41,21 +41,19 @@ export default ({ config }) => ({
 
   // 플러그인
  plugins: [
-  './app.plugin.js',
-  [
-    'expo-build-properties',
-    {
-      android: {
-        gradlePluginVersion: '8.5.2',
-        kotlinVersion: '2.0.0',
-        compileSdkVersion: 34,
-        targetSdkVersion: 34,
-        minSdkVersion: 24,
-
+    [
+      'expo-build-properties',
+      {
+        android: {
+          gradlePluginVersion: '8.5.2',
+          kotlinVersion: '2.0.0',
+          compileSdkVersion: 34,
+          targetSdkVersion: 34,
+          minSdkVersion: 24
+        }
       }
-    }
-  ]
-],
+    ]
+  ],
 
   // EAS/런타임 변수
   extra: {

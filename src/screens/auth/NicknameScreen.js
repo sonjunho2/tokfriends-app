@@ -10,10 +10,11 @@ export default function NicknameScreen({ navigation, route }) {
   const isValid = name.trim().length >= 2;
 
   const next = () => {
- navigation.navigate('Gender', {
-  ...route.params,  // email, password, birthYear
-  nickname,
-});
+    navigation.navigate('Gender', {
+      ...route.params, // email, password, birthYear
+      nickname: name,
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -39,10 +40,25 @@ export default function NicknameScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container:{ flex:1, backgroundColor: colors.background, paddingTop:56, paddingHorizontal:24 },
-  title:{ fontSize:26, fontWeight:'800', color: colors.text, textAlign:'center' },
-  sub:{ marginTop:8, fontSize:13, color: colors.textSecondary, textAlign:'center' },
-  form:{ marginTop:28 },
-  input:{ width:'100%' },
-  bottom:{ marginTop:'auto', paddingVertical:16 },
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+    paddingTop: 56,
+    paddingHorizontal: 24,
+  },
+  title: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: colors.text,
+    textAlign: 'center',
+  },
+  sub: {
+    marginTop: 8,
+    fontSize: 13,
+    color: colors.textSecondary,
+    textAlign: 'center',
+  },
+  form: { marginTop: 28 },
+  input: { width: '100%' },
+  bottom: { marginTop: 'auto', paddingVertical: 16 },
 });

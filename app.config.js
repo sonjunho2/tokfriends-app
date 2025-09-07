@@ -2,7 +2,7 @@
 // Expo는 이 파일을 최우선으로 읽습니다. (app.json은 사용하지 않음)
 export default ({ config }) => ({
   // 앱 기본 정보
-  name: 'ddakchin',
+  name: 'Ddakchin',                  // ✅ 영문 고정
   slug: 'ddakchin',
   scheme: 'ddakchin',
   version: '1.0.0',
@@ -39,8 +39,20 @@ export default ({ config }) => ({
     favicon: './assets/favicon.png',
   },
 
-  // 플러그인: 루트의 app.plugin.js (없으면 위에서 만든 no-op 파일 유지)
-  plugins: ['./app.plugin.js'],
+  // 플러그인
+  plugins: [
+    './app.plugin.js',
+    [
+      'expo-build-properties',
+      {
+        android: {
+          // ✅ Gradle/AGP/Kotlin 버전 고정으로 "Key 1.9.24 is missing in the map" 오류 회피
+          gradlePluginVersion: '8.5.2',
+          kotlinVersion: '2.0.0'
+        }
+      }
+    ]
+  ],
 
   // EAS/런타임 변수
   extra: {

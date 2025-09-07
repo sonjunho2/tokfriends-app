@@ -8,12 +8,13 @@ const AREAS = ['서울','인천','경기','강원','경상','부산','울산','�
 
 export default function LocationScreen({ navigation, route }) {
   const [area, setArea] = useState(null);
+
   const next = () => {
     navigation.navigate('ProfileSetup', {
-  ...route.params,   // email, password, birthYear, nickname, gender
-  region: selectedRegion,
-});
-
+      ...route.params,   // email, password, birthYear, nickname, gender
+      region: area,
+    });
+  };
 
   return (
     <View style={styles.container}>

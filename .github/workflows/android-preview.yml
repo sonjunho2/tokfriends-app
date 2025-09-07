@@ -19,54 +19,22 @@ jobs:
         with:
           node-version: 20
 
-      - name: Print env (debug)
-        run: |
-          node -v
-          npm -v
-          echo "EXPO_TOKEN set? ${{ env.EXPO_TOKEN != '' }}"
-
-      # npm ci 대신 install만 사용 (EUSAGE 방지)
       - name: Install deps
-        run: |
-          npm install --no-audit --fund=false
+        run: npm install --no-audit --no-fund --legacy-peer-deps
 
       - name: Install EAS CLI
         run: npm i -g eas-cli@latest
 
-      - name: Expo login (token)
+      - name: Verify Expo login
         run: eas whoami || eas login --token ${{ secrets.EXPO_TOKEN }}
 
-      - name: Show resolved config (non-blocking)
+      - name: Show config
         run: |
           npx expo config --json || true
           npx expo-doctor || true
 
-      # Build + JSON 캡처
-      - name: Build Android (preview; clear cache) -> capture JSON
-        id: build
-        shell: bash
-        run: |
-          set -e
-          OUT="$(eas build -p android --profile preview --non-interactive --wait --clear-cache --json)"
-          echo "$OUT" > build.json
-          echo "---- build.json ----"
-          cat build.json || true
-          APK_URL=$(node -e "const fs=require('fs');const raw=fs.readFileSync('build.json','utf8');const o=JSON.parse(raw);
-            const first = Array.isArray(o) ? o[0] : (Array.isArray(o?.builds) ? o.builds[0] : o);
-            const url = first?.artifacts?.applicationArchiveUrl || first?.artifacts?.buildUrl || first?.artifacts?.apkUrl || '';
-            if(!url){process.exit(1)}; process.stdout.write(url);
-          ")
-          echo "apk_url=$APK_URL" >> $GITHUB_OUTPUT
-          echo "APK_URL: $APK_URL"
+      - name: Build Android APK (preview)
+        run: eas build -p android --profile preview --non-interactive --wait --clear-cache
 
-      - name: Download APK (via URL)
-        run: |
-          curl -fL "${{ steps.build.outputs.apk_url }}" -o ddakchin-preview.apk
-          ls -lh ddakchin-preview.apk
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ddakchin-preview-apk
-          path: ddakchin-preview.apk
-          if-no-files-found: error
+      - name: Show latest finished build
+        run: eas build:list --status finished --limit 1 --non-interactive --json || true

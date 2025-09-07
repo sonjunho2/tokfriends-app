@@ -9,11 +9,11 @@ export default function GenderScreen({ navigation, route }) {
   const isValid = !!gender;
 
   const next = () => {
-   navigation.navigate('Location', {
-  ...route.params,  // email, password, birthYear, nickname
-  gender: selectedGender,
-});
-
+    navigation.navigate('Location', {
+      ...route.params, // email, password, birthYear, nickname
+      gender,
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -40,12 +40,12 @@ export default function GenderScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container:{ flex:1, backgroundColor: colors.background, paddingTop:56, paddingHorizontal:24 },
-  title:{ fontSize:26, fontWeight:'800', color: colors.text, textAlign:'center', marginBottom:16 },
-  row:{ flexDirection:'row', gap:16 },
-  cell:{ flex:1, backgroundColor:'#fff', borderWidth:2, borderColor: colors.border, borderRadius:16, paddingVertical:18, alignItems:'center' },
-  sel:{ borderColor: colors.primary, backgroundColor: (colors.primaryLight || '#FFD2DE') },
-  cellTxt:{ fontWeight:'700', color: colors.text },
-  selTxt:{ color: colors.primary },
-  bottom:{ marginTop:'auto', paddingVertical:16 },
+  container: { flex: 1, backgroundColor: colors.background, paddingTop: 56, paddingHorizontal: 24 },
+  title: { fontSize: 26, fontWeight: '800', color: colors.text, textAlign: 'center', marginBottom: 16 },
+  row: { flexDirection: 'row', gap: 16 },
+  cell: { flex: 1, backgroundColor: '#fff', borderWidth: 2, borderColor: colors.border, borderRadius: 16, paddingVertical: 18, alignItems: 'center' },
+  sel: { borderColor: colors.primary, backgroundColor: (colors.primaryLight || '#FFD2DE') },
+  cellTxt: { fontWeight: '700', color: colors.text },
+  selTxt: { color: colors.primary },
+  bottom: { marginTop: 'auto', paddingVertical: 16 },
 });

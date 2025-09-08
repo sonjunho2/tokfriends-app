@@ -1,3 +1,4 @@
+// src/components/Avatar.js
 import React from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
 import colors from '../theme/colors';
@@ -17,11 +18,11 @@ export default function Avatar({
     large: 80,
     xlarge: 120,
   };
-  
+
   const currentSize = typeof size === 'number' ? size : sizeMap[size] || sizeMap.medium;
   const dotSize = Math.max(12, currentSize * 0.25);
   const fontSize = currentSize * 0.35;
-  
+
   const getInitials = (name) => {
     if (!name) return '?';
     const parts = name.trim().split(' ');
@@ -30,7 +31,7 @@ export default function Avatar({
     }
     return name.substring(0, 2).toUpperCase();
   };
-  
+
   return (
     <View style={[{ width: currentSize, height: currentSize }, style]}>
       <View
@@ -39,7 +40,7 @@ export default function Avatar({
           {
             width: currentSize,
             height: currentSize,
-            borderRadius: currentSize / 2,
+            borderRadius: 12, // ✅ 원형 대신 사각 라운드
           },
           showBorder && styles.border,
         ]}
@@ -52,7 +53,7 @@ export default function Avatar({
               {
                 width: currentSize,
                 height: currentSize,
-                borderRadius: currentSize / 2,
+                borderRadius: 12, // ✅ 동일 적용
               },
             ]}
           />
@@ -63,7 +64,7 @@ export default function Avatar({
               {
                 width: currentSize,
                 height: currentSize,
-                borderRadius: currentSize / 2,
+                borderRadius: 12, // ✅ 동일 적용
               },
             ]}
           >
@@ -73,7 +74,7 @@ export default function Avatar({
           </View>
         )}
       </View>
-      
+
       {online && (
         <View
           style={[

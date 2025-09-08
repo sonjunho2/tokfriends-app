@@ -11,7 +11,8 @@ const TERMS = [
 ];
 
 export default function AgreementScreen({ navigation, route }) {
-  const initialState = useMemo(() => ({ privacy:false, tos:false, location:false }), []);
+  const { email, password } = route?.params || {};
+  const initialState = useMemo(() => ({ privacy: false, tos: false, location: false }), []);
   const [checked, setChecked] = useState(initialState);
   const all = checked.privacy && checked.tos && checked.location;
 
@@ -19,13 +20,12 @@ export default function AgreementScreen({ navigation, route }) {
     const next = !all;
     setChecked({ privacy: next, tos: next, location: next });
   };
-  const toggleOne = (k) => setChecked(s => ({ ...s, [k]: !s[k] }));
+  const toggleOne = (k) => setChecked((s) => ({ ...s, [k]: !s[k] }));
 
   const handleAgree = () => {
     if (!all) return Alert.alert('안내', '필수 항목에 모두 동의해 주세요.');
-    // 다음으로 params 그대로 전달
-  navigation.navigate('Age', { email, password });
-
+    if (!email || !password) return Alert.alert('오류', '이메일/비밀번호 정보가 없습니다. 처음부터 다시 진행해 주세요.');
+    navigation.navigate('Age', { ...route.params });
   };
 
   return (
@@ -37,7 +37,7 @@ export default function AgreementScreen({ navigation, route }) {
         <Text style={[styles.check, all && styles.checkOn]}>✓</Text>
       </TouchableOpacity>
 
-      {TERMS.map(t => {
+      {TERMS.map((t) => {
         const on = !!checked[t.key];
         return (
           <TouchableOpacity key={t.key} style={styles.row} onPress={() => toggleOne(t.key)} activeOpacity={0.9}>
@@ -56,18 +56,48 @@ export default function AgreementScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container:{ flex:1, backgroundColor: colors.background || '#F7F8FA', paddingTop:40, paddingHorizontal:16 },
-  title:{ fontSize:26, fontWeight:'800', color: colors.text || '#111827', textAlign:'center', marginBottom:18 },
-  all:{ backgroundColor:'#fff', borderRadius:16, padding:18, borderWidth:2, borderColor: colors.border || '#E4E7EC',
-    flexDirection:'row', justifyContent:'space-between', alignItems:'center', marginBottom:14 },
-  allTxt:{ fontSize:18, fontWeight:'800', color: colors.text || '#111827' },
-  row:{ backgroundColor:'#fff', borderRadius:16, padding:18, borderWidth:2, borderColor: colors.border || '#E4E7EC',
-    flexDirection:'row', justifyContent:'space-between', alignItems:'center', marginBottom:12 },
-  rowTxt:{ fontSize:16, fontWeight:'700', color: colors.text || '#111827' },
-  check:{ width:28, height:28, borderRadius:14, borderWidth:2, borderColor: colors.border || '#E4E7EC',
-    textAlign:'center', textAlignVertical:'center', color:'transparent' },
-  checkOn:{ borderColor: colors.primary || '#F36C93', backgroundColor: (colors.primaryLight || '#FFD2DE'),
-    color: colors.primary || '#F36C93', fontWeight:'900' },
-  bottom:{ marginTop:'auto', paddingVertical:16 },
-  helper:{ marginTop:8, fontSize:12, color: colors.textSecondary || '#6B7280', textAlign:'center' },
+  container: { flex: 1, backgroundColor: colors.background || '#F7F8FA', paddingTop: 40, paddingHorizontal: 16 },
+  title: { fontSize: 26, fontWeight: '800', color: colors.text || '#111827', textAlign: 'center', marginBottom: 18 },
+  all: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 2,
+    borderColor: colors.border || '#E4E7EC',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 14,
+  },
+  allTxt: { fontSize: 18, fontWeight: '800', color: colors.text || '#111827' },
+  row: {
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: 2,
+    borderColor: colors.border || '#E4E7EC',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  rowTxt: { fontSize: 16, fontWeight: '700', color: colors.text || '#111827' },
+  check: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 2,
+    borderColor: colors.border || '#E4E7EC',
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    color: 'transparent',
+  },
+  checkOn: {
+    borderColor: colors.primary || '#F36C93',
+    backgroundColor: colors.primaryLight || '#FFD2DE',
+    color: colors.primary || '#F36C93',
+    fontWeight: '900',
+  },
+  bottom: { marginTop: 'auto', paddingVertical: 16 },
+  helper: { marginTop: 8, fontSize: 12, color: colors.textSecondary || '#6B7280', textAlign: 'center' },
 });

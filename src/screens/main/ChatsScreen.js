@@ -1,164 +1,201 @@
-import React, { useState } from 'react';
+// src/screens/main/ChatsScreen.js
+import React, { useMemo, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   SafeAreaView,
-  FlatList,
   TouchableOpacity,
-  TextInput,
+  FlatList,
+  RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import HeaderLogo from '../../components/HeaderLogo';
-import Avatar from '../../components/Avatar';
-import Tag from '../../components/Tag';
 import colors from '../../theme/colors';
+import Card from '../../components/Card';
+import Avatar from '../../components/Avatar';
 
-const DUMMY_CHATS = [
+// ──────────────────────────────────────────────────────────────
+// 상단 알약 필터 (탐색/HOT추천과 같은 느낌)
+// ──────────────────────────────────────────────────────────────
+const FILTERS = ['전체', '읽지 않음', '신규', '즐겨찾기'];
+
+// 샘플 대화방 데이터 (API 연결 전까지 UI 확인용)
+const MOCK = [
   {
-    id: '1',
-    user: { name: '지은', age: 26 },
-    lastMessage: '네! 주말에 시간 어떠세요? 😊',
-    timestamp: '방금 전',
-    unread: 2,
+    id: 'c1',
+    name: '여행을좋아하는수아',
+    last: '주말에 시간 괜찮으세요?',
+    time: '4분',
+    region: '서울',
+    dist: 7,
+    unread: 3,
+    pinned: true,
     online: true,
   },
   {
-    id: '2',
-    user: { name: '민준', age: 28 },
-    lastMessage: '운동 끝났어요! 오늘 진짜 힘들었네요',
-    timestamp: '10분 전',
+    id: 'c2',
+    name: '수별윤',
+    last: '사진 고마워요 :)',
+    time: '1시간',
+    region: '대전',
+    dist: 132,
     unread: 0,
-    online: true,
-  },
-  {
-    id: '3',
-    user: { name: '서연', age: 25 },
-    lastMessage: '사진 너무 예쁘게 나왔네요 👍',
-    timestamp: '1시간 전',
-    unread: 5,
+    pinned: false,
     online: false,
   },
   {
-    id: '4',
-    user: { name: '현우', age: 30 },
-    lastMessage: '다음에 같이 영화 보러 가요',
-    timestamp: '3시간 전',
-    unread: 0,
-    online: false,
-  },
-  {
-    id: '5',
-    user: { name: '수아', age: 24 },
-    lastMessage: '안녕하세요! 잘 지내시죠?',
-    timestamp: '어제',
+    id: 'c3',
+    name: '같이노후를살아요',
+    last: '네네 확인했습니다',
+    time: '어제',
+    region: '부산',
+    dist: 270,
     unread: 1,
-    online: false,
+    pinned: false,
+    online: true,
   },
   {
-    id: '6',
-    user: { name: '준서', age: 27 },
-    lastMessage: '프로젝트 잘 마무리 되셨나요?',
-    timestamp: '2일 전',
+    id: 'c4',
+    name: '포에버파워',
+    last: '헬스 같이 하실래요?',
+    time: '2일',
+    region: '경기',
+    dist: 22,
     unread: 0,
+    pinned: false,
     online: false,
   },
 ];
 
 export default function ChatsScreen({ navigation }) {
-  const [chats, setChats] = useState(DUMMY_CHATS);
-  const [searchText, setSearchText] = useState('');
+  const [active, setActive] = useState('전체');
+  const [refreshing, setRefreshing] = useState(false);
 
-  const filteredChats = chats.filter(chat =>
-    chat.user.name.toLowerCase().includes(searchText.toLowerCase())
-  );
+  const data = useMemo(() => {
+    switch (active) {
+      case '읽지 않음':
+        return MOCK.filter((m) => m.unread > 0);
+      case '신규':
+        // 예시: '어제' 또는 '4분' 같이 최근건으로 간주
+        return MOCK.filter((m) => ['4분', '1시간', '어제'].includes(m.time));
+      case '즐겨찾기':
+        return MOCK.filter((m) => m.pinned);
+      default:
+        return MOCK;
+    }
+  }, [active]);
 
-  const renderChat = ({ item }) => (
-    <TouchableOpacity
-      style={styles.chatItem}
-      onPress={() => navigation.navigate('ChatRoom', { 
-        user: item.user,
-        chatId: item.id 
-      })}
-      activeOpacity={0.7}
-    >
-      <View style={styles.avatarContainer}>
-        <Avatar
-          name={item.user.name}
-          size="medium"
-          online={item.online}
-        />
-      </View>
+  const onRefresh = async () => {
+    setRefreshing(true);
+    // TODO: API 연동 시 리스트 새로고침 호출
+    setTimeout(() => setRefreshing(false), 700);
+  };
 
-      <View style={styles.chatContent}>
-        <View style={styles.chatHeader}>
-          <Text style={styles.userName}>{item.user.name}</Text>
-          <Text style={styles.timestamp}>{item.timestamp}</Text>
+  const openChat = (item) => {
+    navigation.navigate('ChatRoom', { id: item.id, name: item.name });
+  };
+
+  const renderItem = ({ item }) => (
+    <Card style={styles.rowCard}>
+      <TouchableOpacity style={styles.rowWrap} activeOpacity={0.85} onPress={() => openChat(item)}>
+        {/* 아바타 + 온라인 표시 */}
+        <View style={{ marginRight: 12 }}>
+          <View>
+            <Avatar name={item.name} size="large" />
+            {item.online && <View style={styles.onlineDot} />}
+          </View>
         </View>
-        <View style={styles.messageRow}>
-          <Text 
-            style={[
-              styles.lastMessage,
-              item.unread > 0 && styles.unreadMessage
-            ]}
-            numberOfLines={1}
-          >
-            {item.lastMessage}
+
+        {/* 본문 */}
+        <View style={{ flex: 1 }}>
+          <View style={styles.nameLine}>
+            <Text style={styles.name} numberOfLines={1}>
+              {item.name}
+            </Text>
+            {!!item.pinned && (
+              <Ionicons name="bookmark" size={16} color={colors.primary} style={{ marginLeft: 6 }} />
+            )}
+          </View>
+
+          <Text style={styles.snippet} numberOfLines={1}>
+            {item.last}
           </Text>
-          {item.unread > 0 && (
-            <View style={styles.unreadBadge}>
-              <Text style={styles.unreadCount}>{item.unread}</Text>
+
+          <View style={styles.metaLine}>
+            <Badge text={item.time} />
+            <Badge icon="location" text={`${item.region} · ${item.dist}km`} />
+
+            {/* 오른쪽: 안읽은 갯수 */}
+            <View style={{ marginLeft: 'auto', alignItems: 'flex-end' }}>
+              {item.unread > 0 ? (
+                <View style={styles.unreadBadge}>
+                  <Text style={styles.unreadTxt}>{item.unread}</Text>
+                </View>
+              ) : (
+                <Text style={styles.readTxt}>읽음</Text>
+              )}
             </View>
-          )}
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </Card>
   );
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* 상단 제목 & 검색/새메시지 버튼들 (필요시 더 확장 가능) */}
       <View style={styles.header}>
-        <HeaderLogo size="small" />
-        <TouchableOpacity style={styles.newChatButton}>
-          <Ionicons name="create-outline" size={24} color={colors.primary} />
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color={colors.textTertiary} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="채팅 검색"
-            placeholderTextColor={colors.textTertiary}
-            value={searchText}
-            onChangeText={setSearchText}
-          />
-          {searchText.length > 0 && (
-            <TouchableOpacity onPress={() => setSearchText('')}>
-              <Ionicons name="close-circle" size={20} color={colors.textTertiary} />
-            </TouchableOpacity>
-          )}
+        <Text style={styles.headerTitle}>대화</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          <TouchableOpacity style={styles.iconBtn}>
+            <Ionicons name="search" size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconBtn}>
+            <Ionicons name="create" size={18} color={colors.textSecondary} />
+          </TouchableOpacity>
         </View>
       </View>
 
-      <View style={styles.tabContainer}>
-        <Tag label="전체" selected={true} size="medium" onPress={() => {}} />
-        <Tag label="온라인" selected={false} size="medium" onPress={() => {}} />
-        <Tag label="안읽음" selected={false} size="medium" onPress={() => {}} />
-      </View>
-
+      {/* 알약 필터 (탐색/HOT추천과 동일한 느낌) */}
       <FlatList
-        data={filteredChats}
-        renderItem={renderChat}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
+        data={FILTERS}
+        keyExtractor={(k) => k}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.pillsWrap}
+        renderItem={({ item }) => {
+          const on = item === active;
+          return (
+            <TouchableOpacity
+              onPress={() => setActive(item)}
+              style={[styles.pill, on && styles.pillOn]}
+              activeOpacity={0.9}
+            >
+              <Text style={[styles.pillTxt, on && styles.pillTxtOn]}>{item}</Text>
+            </TouchableOpacity>
+          );
+        }}
+        ListFooterComponent={
+          <TouchableOpacity style={styles.filterGear}>
+            <Ionicons name="options" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+        }
+      />
+
+      {/* 대화 목록 */}
+      <FlatList
+        data={data}
+        keyExtractor={(it) => it.id}
+        ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 24 }}
+        renderItem={renderItem}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={colors.primary} />
+        }
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="chatbubbles-outline" size={64} color={colors.textTertiary} />
-            <Text style={styles.emptyText}>아직 채팅이 없습니다</Text>
-            <Text style={styles.emptySubtext}>새로운 친구와 대화를 시작해보세요</Text>
+          <View style={styles.emptyWrap}>
+            <Ionicons name="chatbubble-ellipses-outline" size={32} color={colors.textTertiary} />
+            <Text style={styles.emptyTxt}>대화가 없습니다.</Text>
           </View>
         }
       />
@@ -166,126 +203,113 @@ export default function ChatsScreen({ navigation }) {
   );
 }
 
+function Badge({ text, icon }) {
+  return (
+    <View style={styles.badge}>
+      {icon && <Ionicons name={icon} size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />}
+      <Text style={styles.badgeTxt}>{text}</Text>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.background,
-  },
+  container: { flex: 1, backgroundColor: colors.background },
+
   header: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingVertical: 12,
     backgroundColor: colors.backgroundSecondary,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
-  newChatButton: {
-    padding: 4,
-  },
-  searchContainer: {
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: colors.backgroundSecondary,
-  },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.backgroundTertiary,
-    borderRadius: 12,
-    paddingHorizontal: 12,
+  headerTitle: { fontSize: 22, fontWeight: '800', color: colors.text },
+
+  // pills
+  pillsWrap: { paddingHorizontal: 12, paddingTop: 10, paddingBottom: 8, alignItems: 'center' },
+  pill: {
+    marginRight: 10,
+    paddingHorizontal: 16,
     paddingVertical: 10,
+    borderRadius: 22,
+    backgroundColor: colors.pillBg || '#F5F6F8',
+    borderWidth: 1,
+    borderColor: colors.border,
   },
-  searchInput: {
-    flex: 1,
-    fontSize: 14,
-    color: colors.text,
-    marginLeft: 8,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    gap: 8,
-    backgroundColor: colors.background,
-  },
-  listContent: {
-    flexGrow: 1,
-  },
-  chatItem: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: colors.backgroundSecondary,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  avatarContainer: {
-    marginRight: 12,
-  },
-  chatContent: {
-    flex: 1,
-  },
-  chatHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  pillOn: { backgroundColor: '#fff', borderColor: colors.pillActiveBorder || colors.primary },
+  pillTxt: { color: colors.textSecondary, fontWeight: '700' },
+  pillTxtOn: { color: colors.text, fontWeight: '900' },
+  filterGear: {
+    marginLeft: 6,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
-    marginBottom: 4,
-  },
-  userName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
-  },
-  timestamp: {
-    fontSize: 12,
-    color: colors.textTertiary,
-  },
-  messageRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  lastMessage: {
-    flex: 1,
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginRight: 8,
-  },
-  unreadMessage: {
-    color: colors.text,
-    fontWeight: '500',
-  },
-  unreadBadge: {
-    backgroundColor: colors.primary,
-    borderRadius: 12,
-    minWidth: 24,
-    height: 24,
     justifyContent: 'center',
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+
+  // row
+  rowCard: { padding: 14, borderRadius: 16, backgroundColor: '#fff' },
+  rowWrap: { flexDirection: 'row', alignItems: 'center' },
+
+  nameLine: { flexDirection: 'row', alignItems: 'center' },
+  name: { fontSize: 17, fontWeight: '800', color: colors.text },
+  snippet: { marginTop: 2, color: colors.textSecondary },
+
+  metaLine: { flexDirection: 'row', alignItems: 'center', marginTop: 8 },
+
+  badge: {
+    flexDirection: 'row',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
     paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    marginRight: 8,
+    backgroundColor: '#fff',
   },
-  unreadCount: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.textInverse,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
+  badgeTxt: { fontSize: 12, color: colors.textSecondary, fontWeight: '700' },
+
+  unreadBadge: {
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.primary,
     alignItems: 'center',
-    paddingVertical: 80,
+    justifyContent: 'center',
+    paddingHorizontal: 6,
   },
-  emptyText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.textSecondary,
-    marginTop: 16,
-    marginBottom: 8,
+  unreadTxt: { color: '#fff', fontWeight: '900', fontSize: 11 },
+  readTxt: { color: colors.textTertiary, fontSize: 12, fontWeight: '700' },
+
+  onlineDot: {
+    position: 'absolute',
+    bottom: 2,
+    right: 2,
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#22C55E',
+    borderWidth: 2,
+    borderColor: '#fff',
   },
-  emptySubtext: {
-    fontSize: 14,
-    color: colors.textTertiary,
+
+  iconBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#fff',
   },
+
+  emptyWrap: { alignItems: 'center', gap: 6, marginTop: 40 },
+  emptyTxt: { color: colors.textTertiary, fontWeight: '700' },
 });

@@ -12,10 +12,10 @@ export default function Avatar({
   style,
 }) {
   const sizeMap = {
-    tiny: 32,
-    small: 40,
-    medium: 56,
-    large: 80,
+    tiny: 40,     // 🔄 탐색/추천에서도 최소 40px
+    small: 60,    // 🔄 조금 더 큼직하게
+    medium: 80,   // 🔄 기본 아바타는 80px
+    large: 100,
     xlarge: 120,
   };
 
@@ -40,7 +40,7 @@ export default function Avatar({
           {
             width: currentSize,
             height: currentSize,
-            borderRadius: 12, // ✅ 원형 대신 사각 라운드
+            borderRadius: 16, // ✅ 탐색/추천과 동일한 사각 라운드
           },
           showBorder && styles.border,
         ]}
@@ -53,7 +53,7 @@ export default function Avatar({
               {
                 width: currentSize,
                 height: currentSize,
-                borderRadius: 12, // ✅ 동일 적용
+                borderRadius: 16, // ✅ 동일
               },
             ]}
           />
@@ -64,7 +64,7 @@ export default function Avatar({
               {
                 width: currentSize,
                 height: currentSize,
-                borderRadius: 12, // ✅ 동일 적용
+                borderRadius: 16, // ✅ 동일
               },
             ]}
           >
@@ -83,8 +83,8 @@ export default function Avatar({
               width: dotSize,
               height: dotSize,
               borderRadius: dotSize / 2,
-              bottom: currentSize * 0.05,
-              right: currentSize * 0.05,
+              bottom: 4,
+              right: 4,
             },
           ]}
         />
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   container: {
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.backgroundTertiary,
+    backgroundColor: colors.backgroundSecondary,
   },
   border: {
     borderWidth: 2,
@@ -112,8 +112,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   initials: {
-    color: colors.textInverse,
-    fontWeight: '600',
+    color: colors.text,
+    fontWeight: '700',
   },
   onlineDot: {
     backgroundColor: colors.success,

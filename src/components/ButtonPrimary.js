@@ -1,37 +1,44 @@
 // src/components/ButtonPrimary.js
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, View } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, View, ActivityIndicator } from 'react-native';
 import colors from '../theme/colors';
 
 export default function ButtonPrimary({
   title,
   onPress,
   disabled,
+  loading = false,
   style,
   variant = 'primary', // 'primary' | 'outline'
 }) {
   const isOutline = variant === 'outline';
+  const isDisabled = disabled || loading;
+
   return (
     <TouchableOpacity
       activeOpacity={0.8}
-      disabled={disabled}
+      disabled={isDisabled}
       onPress={onPress}
       style={[
         styles.btn,
         isOutline ? styles.outline : styles.primary,
-        disabled && styles.disabled,
+        isDisabled && styles.disabled,
         style,
       ]}
     >
-      <Text
-        style={[
-          styles.txt,
-          isOutline ? { color: colors.primary } : { color: '#fff' },
-          disabled && { opacity: 0.7 },
-        ]}
-      >
-        {title}
-      </Text>
+      {loading ? (
+        <ActivityIndicator size="small" color={isOutline ? colors.primary : '#fff'} />
+      ) : (
+        <Text
+          style={[
+            styles.txt,
+            isOutline ? { color: colors.primary } : { color: '#fff' },
+            isDisabled && { opacity: 0.7 },
+          ]}
+        >
+          {title}
+        </Text>
+      )}
     </TouchableOpacity>
   );
 }

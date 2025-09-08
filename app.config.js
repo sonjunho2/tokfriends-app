@@ -48,8 +48,8 @@ export default ({ config }) => ({
         android: {
           gradlePluginVersion: '8.5.2',
           kotlinVersion: '2.0.0',
-          compileSdkVersion: 34,
-          targetSdkVersion: 34,
+          compileSdkVersion: 35,
+          targetSdkVersion: 35,
           minSdkVersion: 24
         }
       }

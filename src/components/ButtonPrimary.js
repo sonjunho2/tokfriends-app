@@ -1,6 +1,6 @@
 // src/components/ButtonPrimary.js
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, View, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import colors from '../theme/colors';
 
 export default function ButtonPrimary({
@@ -12,7 +12,7 @@ export default function ButtonPrimary({
   variant = 'primary', // 'primary' | 'outline'
 }) {
   const isOutline = variant === 'outline';
-  const isDisabled = disabled || loading;
+  const isDisabled = !!disabled || !!loading;
 
   return (
     <TouchableOpacity

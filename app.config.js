@@ -41,6 +41,7 @@ export default ({ config }) => ({
 
   // 플러그인
   plugins: [
+       './app.plugin.js',
     [
       'expo-build-properties',
       {

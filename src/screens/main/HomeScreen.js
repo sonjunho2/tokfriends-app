@@ -2,23 +2,28 @@
 import React, { useMemo, useState, useEffect } from 'react';
 import {
   View, Text, StyleSheet, SafeAreaView, ScrollView,
-  TouchableOpacity, FlatList
+  TouchableOpacity
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../theme/colors';
 import Card from '../../components/Card';
 import Avatar from '../../components/Avatar';
 
-const PILL_ITEMS = ['HOT추천', '내주변', '접속중', '단순대화', '20+', '30+'];
+// ✅ 요청 목록대로 교체: HOT추천, 접속중, 가까운, 20대, 30대, 40대이상, 이성친구, 즉석만남
+const PILL_ITEMS = [
+  'HOT추천', '접속중', '가까운', '20대', '30대', '40대이상', '이성친구', '즉석만남',
+];
+
+// ✅ 아이콘 그리드 라벨/키 동기화 (아이콘은 안전한 Ionicons로 선택)
 const ICONS = [
-  { key: 'hot', label: 'HOT추천', icon: 'flame' },
-  { key: 'online', label: '접속중', icon: 'planet' },
-  { key: 'near', label: '가까운', icon: 'location' },
-  { key: 'age20', label: '20대', icon: 'sparkles' },
-  { key: 'age30', label: '30대', icon: 'ribbon' },
-  { key: 'gender', label: '이성친구', icon: 'people' },
-  { key: 'quick', label: '즉석만남', icon: 'flash' },
-  { key: 'counsel', label: '고민상담', icon: 'chatbubble-ellipses' },
+  { key: 'hot',       label: 'HOT추천',   icon: 'flame' },
+  { key: 'online',    label: '접속중',    icon: 'pulse' },
+  { key: 'near',      label: '가까운',    icon: 'location' },
+  { key: 'age20',     label: '20대',      icon: 'star' },
+  { key: 'age30',     label: '30대',      icon: 'ribbon' },
+  { key: 'age40plus', label: '40대이상',  icon: 'trophy' },
+  { key: 'opposite',  label: '이성친구',  icon: 'people' },
+  { key: 'quick',     label: '즉석만남',  icon: 'flash' },
 ];
 
 export default function HomeScreen({ navigation }) {
@@ -37,6 +42,16 @@ export default function HomeScreen({ navigation }) {
   }, [leftSec]);
 
   const goExplore = () => navigation.navigate('Explore');
+
+  // (선택) 필터 클릭 시 원하는 라우팅이 있으면 여기서 분기
+  const onPressFilter = (label) => {
+    setActivePill(label);
+    if (label === 'HOT추천') navigation.navigate?.('HotRecommend');
+    if (label === '가까운')  navigation.navigate?.('Nearby');
+    if (label === '접속중')  navigation.navigate?.('LiveNow');
+    // 20대/30대/40대이상/이성친구/즉석만남은
+    // 현재 화면 유지 + 선택상태만 반영(서버 필터 연동 시 여기서 추가)
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -72,7 +87,7 @@ export default function HomeScreen({ navigation }) {
           {PILL_ITEMS.map((p) => {
             const on = p === activePill;
             return (
-              <TouchableOpacity key={p} style={[styles.pill, on && styles.pillOn]} onPress={() => setActivePill(p)}>
+              <TouchableOpacity key={p} style={[styles.pill, on && styles.pillOn]} onPress={() => onPressFilter(p)}>
                 <Text style={[styles.pillTxt, on && styles.pillTxtOn]}>{p}</Text>
               </TouchableOpacity>
             );
@@ -90,8 +105,9 @@ export default function HomeScreen({ navigation }) {
               style={styles.iconCell}
               onPress={() => {
                 if (it.key === 'hot') navigation.navigate('HotRecommend');
-                else if (it.key === 'near') setActivePill('내주변');
-                else if (it.key === 'online') setActivePill('접속중');
+                else if (it.key === 'near') onPressFilter('가까운');
+                else if (it.key === 'online') onPressFilter('접속중');
+                else setActivePill(it.label);
               }}
             >
               <View style={styles.iconCircle}>

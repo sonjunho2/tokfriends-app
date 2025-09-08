@@ -1,3 +1,4 @@
+// src/screens/auth/ProfileSetupScreen.js
 import React, { useState } from 'react';
 import {
   View,
@@ -18,7 +19,7 @@ import colors from '../../theme/colors';
 import { apiClient } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 
-// 기본 아바타 URL(사진 미등록 시 사용)
+// 사진 미등록 시 사용할 기본 아바타
 const DEFAULT_AVATAR_URL = 'https://i.pravatar.cc/256';
 
 export default function ProfileSetupScreen({ route, navigation }) {
@@ -58,10 +59,8 @@ export default function ProfileSetupScreen({ route, navigation }) {
   };
 
   const onSubmit = async () => {
-    // 중복 클릭 방지
     if (submitting) return;
 
-    // 필수값 확인
     if (!email || !password || !nickname || !birthYear || !gender) {
       Alert.alert('알림', '필수 정보가 누락되었습니다. 처음부터 다시 진행해주세요.');
       return;
@@ -69,8 +68,8 @@ export default function ProfileSetupScreen({ route, navigation }) {
 
     setSubmitting(true);
     try {
-      // 가입 시도 (사진 미등록이면 기본 아바타 URL 전송)
-      const signupPayload = {
+      // 1) 회원가입(사진 미등록이면 기본 아바타 URL 포함)
+      const payload = {
         email,
         password,
         displayName: nickname,
@@ -80,20 +79,18 @@ export default function ProfileSetupScreen({ route, navigation }) {
         bio,
         avatarUrl: imageUri ? undefined : DEFAULT_AVATAR_URL,
       };
-      await apiClient.signup(signupPayload);
+      await apiClient.signup(payload);
 
-      // 가입 성공 → 자동 로그인
-      const res = await login(email, password);
-      if (!res.success) throw new Error(res.error || '자동 로그인에 실패했습니다.');
+      // 2) 자동 로그인
+      const r = await login(email, password);
+      if (!r.success) throw new Error(r.error || '자동 로그인에 실패했습니다.');
 
+      // 3) 홈으로 이동
       navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     } catch (error) {
-      const raw =
-        error?.response?.data?.message ||
-        error?.message ||
-        '';
+      const raw = error?.response?.data?.message || error?.message || '';
 
-      // 이미 가입된 이메일이면 자동 로그인으로 진입
+      // 이미 가입된 이메일이면 로그인 시도
       if (
         error?.status === 409 ||
         /already\s*registered/i.test(String(raw)) ||
@@ -141,8 +138,7 @@ export default function ProfileSetupScreen({ route, navigation }) {
           title="가입하기"
           onPress={onSubmit}
           loading={submitting}
-          disabled={submitting}   // ✅ 중복 클릭 방지
-          size="large"
+          disabled={submitting}
         />
       </View>
     </SafeAreaView>

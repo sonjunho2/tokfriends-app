@@ -1,81 +1,115 @@
 // src/screens/explore/ExploreScreen.js
-import React, { useMemo, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../theme/colors';
-import UserListItem from '../../components/UserListItem';
+import Card from '../../components/Card';
+import Avatar from '../../components/Avatar';
 
-const TABS = ['인기','내주변','접속중'];
+const FILTERS = ['인기', '내주변', '접속중'];
 
-export default function ExploreScreen({ navigation, route }) {
-  const initial = Number(route?.params?.tabIndex ?? 2); // 기본 '접속중'
-  const [tab, setTab] = useState(initial);
+const MOCK = Array.from({ length: 10 }).map((_, i) => ({
+  id: i + 1,
+  name: ['시아찡', '식연', '같이노후를살아요', '한수아리장미', '포에버파워'][i % 5],
+  age: [41, 42, 55, 39, 53][i % 5],
+  status: ['26초', '29초', '36초', '41초'][i % 4],
+  region: ['서울', '경기', '부산', '제주'][i % 4],
+  dist: [136, 170, 233, 270][i % 4],
+}));
 
-  // TODO: 실제 API로 교체
-  const data = useMemo(() =>
-    Array.from({ length: 20 }, (_, i) => ({
-      id: i+1,
-      name: ['시아찡','식연','같이노후를살아요','한수아리장미','포에버파워'][i%5],
-      age: [41,42,55,39,53][i%5],
-      points: [35,30,25,30,50][i%5],
-      subtitle: '마음이 맞으면 만나고 싶어요 혼자서 자취해요',
-      avatar: `https://i.pravatar.cc/150?img=${(i%60)+1}`,
-      lastSeenLabel: ['26초','26초','29초','36초','41초'][i%5],
-      regionLabel: ['경기','경상','서울','제주','부산'][i%5],
-      distanceKm: [260,171,270,136,177][i%5],
-    })), [tab]
-  );
+export default function ExploreScreen({ navigation }) {
+  const [active, setActive] = useState('접속중');
 
   return (
-    <View style={styles.container}>
-      <View style={styles.topBar}>
-        <Text style={styles.topDim}>홈</Text>
-        <Text style={styles.topOn}>탐색</Text>
-        <TouchableOpacity style={styles.giftBtn} activeOpacity={0.8}>
+    <SafeAreaView style={styles.container}>
+      {/* 상단 홈/탐색 토글 (탐색 활성) */}
+      <View style={styles.topTabs}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={styles.topTab}>홈</Text>
+        </TouchableOpacity>
+        <Text style={[styles.topTab, styles.topTabOn]}>탐색</Text>
+
+        <TouchableOpacity style={styles.giftBtn} activeOpacity={0.85}>
           <Text style={styles.giftTxt}>선물 도착!</Text>
-          <Ionicons name="gift" size={16} color="#D33" />
+          <Ionicons name="gift" size={16} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
-      <View style={styles.filterRow}>
-        <View style={styles.tabs}>
-          {TABS.map((t, i) => {
-            const on = i === tab;
-            return (
-              <TouchableOpacity key={t} style={[styles.tab, on && styles.tabOn]} onPress={() => setTab(i)}>
-                <Text style={[styles.tabTxt, on && styles.tabTxtOn]}>{t}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-        <TouchableOpacity style={styles.setting} activeOpacity={0.8}>
-          <Ionicons name="options" size={20} color={colors.text} />
+      {/* 필터 알약 */}
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillsWrap}>
+        {FILTERS.map((p) => {
+          const on = p === active;
+          return (
+            <TouchableOpacity key={p} style={[styles.pill, on && styles.pillOn]} onPress={() => setActive(p)}>
+              <Text style={[styles.pillTxt, on && styles.pillTxtOn]}>{p}</Text>
+            </TouchableOpacity>
+          );
+        })}
+        <TouchableOpacity style={styles.filterGear}>
+          <Ionicons name="options" size={20} color={colors.textSecondary} />
         </TouchableOpacity>
-      </View>
+      </ScrollView>
 
       <FlatList
-        data={data}
+        data={MOCK}
         keyExtractor={(it) => String(it.id)}
-        renderItem={({ item }) => <UserListItem item={item} onPress={() => {}} />}
-        contentContainerStyle={{ paddingHorizontal:16 }}
-        showsVerticalScrollIndicator={false}
+        ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
+        contentContainerStyle={{ padding: 16, paddingBottom: 24 }}
+        renderItem={({ item }) => (
+          <Card style={styles.rowCard}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Avatar name={item.name} size="large" />
+              <View style={{ marginLeft: 12, flex: 1 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                  <Text style={styles.rowName}>{item.name}, {item.age}</Text>
+                  <Text style={styles.pPoint}> 35P</Text>
+                </View>
+                <Text style={styles.rowSub} numberOfLines={1}>마음이 맞으면 만나고 싶어요 혼자서 자취해요</Text>
+                <View style={{ flexDirection: 'row', marginTop: 6 }}>
+                  <Badge text={item.status} />
+                  <Badge icon="location" text={`${item.region} · ${item.dist}km`} />
+                </View>
+              </View>
+            </View>
+          </Card>
+        )}
       />
+    </SafeAreaView>
+  );
+}
+
+function Badge({ text, icon }) {
+  return (
+    <View style={styles.badge}>
+      {icon && <Ionicons name={icon} size={14} color={colors.textSecondary} style={{ marginRight: 4 }} />}
+      <Text style={styles.badgeTxt}>{text}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container:{ flex:1, backgroundColor:colors.background },
-  topBar:{ flexDirection:'row', alignItems:'center', gap:14, paddingHorizontal:16, paddingVertical:12, backgroundColor:colors.backgroundSecondary, borderBottomWidth:1, borderBottomColor:colors.border },
-  topDim:{ fontSize:24, fontWeight:'800', color:colors.textTertiary },
-  topOn:{ fontSize:24, fontWeight:'900', color:colors.text },
-  giftBtn:{ marginLeft:'auto', flexDirection:'row', alignItems:'center', gap:6, paddingHorizontal:12, paddingVertical:8, borderRadius:18, backgroundColor:'#FFECEB' },
-  giftTxt:{ color:'#D33', fontWeight:'800' },
-  filterRow:{ flexDirection:'row', alignItems:'center', paddingHorizontal:16, paddingVertical:14, gap:12 },
-  tabs:{ flexDirection:'row', flex:1, gap:10 },
-  tab:{ paddingHorizontal:16, paddingVertical:10, borderRadius:18, backgroundColor:colors.pillBg, borderWidth:1, borderColor:colors.border },
-  tabOn:{ backgroundColor:colors.pillActiveBg, borderColor:colors.pillActiveBorder },
-  tabTxt:{ color:colors.textSecondary, fontWeight:'700' },
-  tabTxtOn:{ color:colors.primary },
-  setting:{ width:38, height:38, borderRadius:12, alignItems:'center', justifyContent:'center', backgroundColor:colors.backgroundSecondary, borderWidth:1, borderColor:colors.border },
+  container: { flex: 1, backgroundColor: colors.background },
+  topTabs: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
+  topTab: { fontSize: 28, fontWeight: '800', color: colors.textSecondary, marginRight: 14 },
+  topTabOn: { color: colors.text, marginRight: 20 },
+  giftBtn: {
+    marginLeft: 'auto', flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16,
+    backgroundColor: '#fff', borderWidth: 1, borderColor: colors.border
+  },
+  giftTxt: { color: colors.primary, fontWeight: '800', marginRight: 6 },
+
+  pillsWrap: { paddingHorizontal: 12, paddingTop: 8, paddingBottom: 8, alignItems: 'center' },
+  pill: { marginRight: 10, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 22, backgroundColor: colors.pillBg, borderWidth: 1, borderColor: colors.border },
+  pillOn: { backgroundColor: '#fff', borderColor: colors.pillActiveBorder || colors.primary },
+  pillTxt: { color: colors.textSecondary, fontWeight: '700' },
+  pillTxtOn: { color: colors.text, fontWeight: '900' },
+  filterGear: { marginLeft: 6, width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff', borderWidth: 1, borderColor: colors.border },
+
+  rowCard: { padding: 14, borderRadius: 16 },
+  rowName: { fontSize: 18, fontWeight: '800', color: colors.text },
+  pPoint: { color: colors.primary, fontWeight: '800' },
+  rowSub: { marginTop: 2, color: colors.textSecondary },
+  badge: { flexDirection: 'row', alignItems: 'center', borderWidth: 1, borderColor: colors.border, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10, marginRight: 8, backgroundColor: '#fff' },
+  badgeTxt: { fontSize: 12, color: colors.textSecondary, fontWeight: '700' },
 });

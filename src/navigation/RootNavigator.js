@@ -93,7 +93,7 @@ function AppFlow() {
 }
 
 export default function RootNavigator() {
-  const { user, initializing } = useAuth();
+  const { user, token, initializing } = useAuth();
 
   if (initializing) {
     return (
@@ -103,6 +103,8 @@ export default function RootNavigator() {
     );
   }
 
-  const isSignedIn = !!user && (!!user.id || !!user.token);
+  // ✅ 토큰 존재만으로 로그인 상태 판정 (백엔드 사용자 객체 필드명이 달라도 통과)
+  const isSignedIn = !!token;
+
   return isSignedIn ? <AppFlow /> : <AuthFlow />;
 }

@@ -7,19 +7,19 @@ import { Ionicons } from '@expo/vector-icons';
 import colors from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
 
-// ===== 메인 탭 =====
+// ===== 메인 =====
 import HomeScreen from '../screens/main/HomeScreen';
-import ExploreScreen from '../screens/explore/ExploreScreen';
+import ExploreScreen from '../screens/explore/ExploreScreen';   // ✅ 새 파일
 import ChatsScreen from '../screens/main/ChatsScreen';
-import ShopScreen from '../screens/shop/ShopScreen';
-import MyPageScreen from '../screens/my/MyPageScreen';
+import ShopScreen from '../screens/shop/ShopScreen';            // ✅ 새 파일(가벼운 더미)
+import MyPageScreen from '../screens/my/MyPageScreen';          // ✅ 새 파일(가벼운 더미)
 
-// ===== 스택 푸시 =====
-import HotRecommendScreen from '../screens/recommend/HotRecommendScreen';
+// ===== 푸시 =====
+import HotRecommendScreen from '../screens/recommend/HotRecommendScreen'; // (있으면 사용/없으면 임시 더미)
 import ChatRoomScreen from '../screens/main/ChatRoomScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
 
-// ===== 인증 플로우 =====
+// ===== 인증 =====
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
 import SignupScreen from '../screens/auth/SignupScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -64,19 +64,17 @@ function MainTabs() {
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
         tabBarIcon: ({ focused, color, size }) => {
-          const iconMap = {
+          const map = {
             Home: focused ? 'people' : 'people-outline',
-            Explore: focused ? 'compass' : 'compass-outline',
             Chats: focused ? 'chatbubbles' : 'chatbubbles-outline',
             Shop: focused ? 'bag' : 'bag-outline',
             MyPage: focused ? 'person' : 'person-outline',
           };
-          return <Ionicons name={iconMap[route.name]} size={size} color={color} />;
+          return <Ionicons name={map[route.name]} size={size} color={color} />;
         },
       })}
     >
-      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: '홈' }} />
-      <Tab.Screen name="Explore" component={ExploreScreen} options={{ tabBarLabel: '탐색' }} />
+      <Tab.Screen name="Home" component={HomeStack} options={{ tabBarLabel: '홈' }} />
       <Tab.Screen name="Chats" component={ChatsScreen} options={{ tabBarLabel: '대화' }} />
       <Tab.Screen name="Shop" component={ShopScreen} options={{ tabBarLabel: '상점' }} />
       <Tab.Screen name="MyPage" component={MyPageScreen} options={{ tabBarLabel: '마이페이지' }} />
@@ -84,11 +82,12 @@ function MainTabs() {
   );
 }
 
-function AppFlow() {
+function HomeStack() {
   return (
-    <Stack.Navigator initialRouteName="MainTabs" screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="MainTabs" component={MainTabs} />
-      <Stack.Screen name="HotRecommend" component={HotRecommendScreen} options={{ animation: 'slide_from_right' }} />
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="HomeMain" component={HomeScreen} />
+      <Stack.Screen name="Explore" component={ExploreScreen} />
+      <Stack.Screen name="HotRecommend" component={HotRecommendScreen} />
       <Stack.Screen name="ChatRoom" component={ChatRoomScreen} options={{ animation: 'slide_from_bottom' }} />
       <Stack.Screen name="Profile" component={ProfileScreen} options={{ animation: 'slide_from_right' }} />
     </Stack.Navigator>
@@ -106,10 +105,7 @@ export default function RootNavigator() {
     );
   }
 
-  // ✅ 핵심 수정: "토큰만 있어도" 로그인된 것으로 간주
-  const hasToken = !!token;
-  const hasUser = !!user && (user.id != null || user._id != null);
-  const isSignedIn = hasToken || hasUser;
-
-  return isSignedIn ? <AppFlow /> : <AuthFlow />;
+  // ✅ 토큰만 있어도 로그인으로 간주
+  const isSignedIn = !!token || (!!user && (user.id || user._id));
+  return isSignedIn ? <MainTabs /> : <AuthFlow />;
 }

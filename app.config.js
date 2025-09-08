@@ -40,7 +40,7 @@ export default ({ config }) => ({
   },
 
   // 플러그인
- plugins: [
+  plugins: [
     [
       'expo-build-properties',
       {

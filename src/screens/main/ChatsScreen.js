@@ -5,48 +5,41 @@ import { Ionicons } from '@expo/vector-icons';
 import colors from '../../theme/colors';
 import ChatListItem from '../../components/ChatListItem';
 
-const SEGMENTS = ['HOT추천', '내주변', '접속중', '단순대화'];
+const SEGMENTS = ['전체', '읽지 않음', '신규', '즐겨찾기'];
 
 export default function ChatsScreen({ navigation }) {
   const [seg, setSeg] = useState(0);
 
-  // TODO: 실제 API 연동 시 seg 값 기준으로 서버 필터 적용
+  // TODO: 실제 API 연동 (현재는 더미)
   const data = useMemo(
     () =>
       Array.from({ length: 20 }, (_, i) => ({
         id: i + 1,
-        name: ['여행을좋아하는수아', '수별윤', '같이노후를살아요', '달콤만초콜렛', '나윤희나윤희'][i % 5],
-        age: [26, 45, 47, 40, 50][i % 5],
-        points: [0, 5, 5, 90, 40][i % 5],
-        preview:
-          ['주말에 시간 괜찮으세요?', '사진 고민중이요…', '네! 확인했습니다', '헷.. 같이 하실래요?', '바로 만나고 싶어요'][i % 5],
+        name: ['여행', '수별', '같이', '포에', '시얏'][i % 5],
         avatar: `https://i.pravatar.cc/150?img=${(i % 60) + 1}`,
-        lastSeenLabel: ['1일', '4분', '17시간', '2일', '6시간'][i % 5],
+        snippet: ['주말에 시간 괜찮으세요?', '사진 고마워요 :)', '네! 확인했습니다', '헬스 같이 하실래요?', '안녕하세요!'][i % 5],
+        timeLabel: ['4분', '1시간', '17시간', '2일', '6시간'][i % 5],
         regionLabel: ['서울', '대전', '대전', '울산', '서울'][i % 5],
-        distanceKm: [7, 132, 137, 270, 233][i % 5],
-        online: i % 2 === 0,
-        unread: i % 3 === 0 ? 2 : 0,
-        pinned: i % 7 === 0,
+        distanceKm: [7, 132, 270, 22, 233][i % 5],
+        unread: [2, 0, 1, 0, 3][i % 5],
+        online: [true, false, true, false, false][i % 5],
+        pinned: i % 7 === 0,      // 예: 즐겨찾기 표시
       })),
     [seg]
   );
 
   return (
     <View style={styles.container}>
-      {/* 헤더: HotRecommend 와 동일한 구조/타이포 */}
+      {/* 헤더 (HOT추천과 동일 스타일) */}
       <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8}>
+          <Ionicons name="chevron-back" size={26} color={colors.text} />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>대화</Text>
-        <View style={styles.headerActions}>
-          <TouchableOpacity style={styles.iconBtn} activeOpacity={0.85}>
-            <Ionicons name="search" size={18} color={colors.text} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconBtn} activeOpacity={0.85}>
-            <Ionicons name="create" size={18} color={colors.text} />
-          </TouchableOpacity>
-        </View>
+        <View style={{ width: 26 }} />
       </View>
 
-      {/* 세그먼트(알약) – HotRecommend 의 스타일 매칭 */}
+      {/* 세그먼트(알약 탭) */}
       <View style={styles.segWrap}>
         {SEGMENTS.map((label, i) => {
           const on = i === seg;
@@ -63,20 +56,21 @@ export default function ChatsScreen({ navigation }) {
         })}
       </View>
 
-      {/* 리스트 */}
+      {/* 채팅 리스트 (HOT추천과 동일 여백/톤) */}
       <FlatList
         data={data}
-        showsVerticalScrollIndicator={false}
         keyExtractor={(it) => String(it.id)}
         renderItem={({ item }) => (
           <ChatListItem
             item={item}
-            onPress={() => navigation.navigate('ChatRoom', { id: item.id })}
+            onPress={() => {
+              // 실제 채팅방으로 이동
+              navigation.navigate('ChatRoom', { id: item.id });
+            }}
           />
         )}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16 }}
-        ItemSeparatorComponent={() => <View style={{ height: 10 }} />}
-        ListFooterComponent={<View style={{ height: 6 }} />}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 12 }}
+        showsVerticalScrollIndicator={false}
       />
     </View>
   );
@@ -84,7 +78,6 @@ export default function ChatsScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -96,18 +89,6 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   headerTitle: { fontSize: 22, fontWeight: '800', color: colors.text },
-  headerActions: { flexDirection: 'row', gap: 8 },
-  iconBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-
   segWrap: { flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingVertical: 14 },
   seg: {
     paddingVertical: 10,

@@ -1,6 +1,6 @@
 // src/components/ButtonPrimary.js
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, ActivityIndicator, View } from 'react-native';
 import colors from '../theme/colors';
 
 export default function ButtonPrimary({
@@ -12,7 +12,7 @@ export default function ButtonPrimary({
   variant = 'primary', // 'primary' | 'outline'
 }) {
   const isOutline = variant === 'outline';
-  const isDisabled = !!disabled || !!loading;
+  const isDisabled = disabled || loading;
 
   return (
     <TouchableOpacity
@@ -44,18 +44,9 @@ export default function ButtonPrimary({
 }
 
 const styles = StyleSheet.create({
-  btn: {
-    height: 56,
-    borderRadius: 16,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  btn: { height: 56, borderRadius: 16, justifyContent: 'center', alignItems: 'center' },
   primary: { backgroundColor: colors.primary },
-  outline: {
-    backgroundColor: '#fff',
-    borderWidth: 2,
-    borderColor: colors.primary,
-  },
+  outline: { backgroundColor: '#fff', borderWidth: 2, borderColor: colors.primary },
   txt: { fontSize: 18, fontWeight: '700' },
-  disabled: { backgroundColor: '#F1F2F4' },
+  disabled: { opacity: 0.9 },
 });

@@ -60,7 +60,6 @@ client.interceptors.request.use(
       const storedToken = await getStoredToken();
       if (storedToken) setAuthToken(storedToken);
     }
-    // console.log(`[HTTP] ${config.method?.toUpperCase()} ${config.url}`);
     return config;
   },
   (error) => Promise.reject(error)
@@ -88,9 +87,31 @@ const normalizeError = (err) => {
   return e;
 };
 
+// ─── helpers ───────────────────────────────────────────────────────────────────
+async function tryPostJsonSequential(paths, body) {
+  let lastErr;
+  for (const p of paths) {
+    try {
+      const { data } = await client.post(p, body, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      return data;
+    } catch (e) {
+      const s = e?.response?.status;
+      // 경로/메서드 미지원이면 다음 후보로 진행
+      if (s === 404 || s === 405) {
+        lastErr = e;
+        continue;
+      }
+      // 기타 에러는 즉시 반환
+      throw normalizeError(e);
+    }
+  }
+  throw normalizeError(lastErr || new Error('모든 엔드포인트 시도 실패'));
+}
+
 // ─── API methods ────────────────────────────────────────────────────────────────
 export const apiClient = {
-  // 헬스
   async health() {
     try {
       const { data } = await client.get('/health');
@@ -124,7 +145,7 @@ export const apiClient = {
           });
           return data;
         } catch (err2) {
-          // 3) form-urlencoded, /auth/login/email (콘텐츠 타입 이슈 폴백)
+          // 3) form-urlencoded, /auth/login/email
           try {
             const form = new URLSearchParams();
             form.append('email', jsonBody.email);
@@ -154,7 +175,7 @@ export const apiClient = {
     }
   },
 
-  // 회원가입: /auth/signup/email → (404/400) /auth/signup
+  // 회원가입: 여러 백엔드 변형 엔드포인트로 폴백
   async signup(userData) {
     const body = {
       email: String(userData?.email || '').trim().toLowerCase(),
@@ -162,33 +183,25 @@ export const apiClient = {
       displayName: String(userData?.displayName || '').trim(),
       gender: userData?.gender || 'other',
       dob: userData?.dob || '2000-01-01', // YYYY-MM-DD
+      region: userData?.region ?? undefined,
+      bio: userData?.bio ?? undefined,
     };
 
-    // 1) /auth/signup/email
-    try {
-      const { data } = await client.post('/auth/signup/email', body, {
-        headers: { 'Content-Type': 'application/json' },
-      });
-      return data;
-    } catch (err1) {
-      const status1 = err1?.response?.status;
+    // 가장 흔한 후보들을 순서대로 시도
+    const candidates = [
+      '/auth/signup/email',
+      '/auth/signup',
+      '/auth/register',
+      '/signup',
+      '/register',
+      '/users/signup',
+      '/users/register',
+      '/users', // 일부 서버는 POST /users 로 생성
+    ];
 
-      // 2) /auth/signup (경로 폴백)
-      if (status1 === 404 || status1 === 400) {
-        try {
-          const { data } = await client.post('/auth/signup', body, {
-            headers: { 'Content-Type': 'application/json' },
-          });
-          return data;
-        } catch (err2) {
-          throw normalizeError(err2);
-        }
-      }
-      throw normalizeError(err1);
-    }
+    return await tryPostJsonSequential(candidates, body);
   },
 
-  // 내 정보
   async getMe() {
     try {
       const { data } = await client.get('/users/me');
@@ -198,7 +211,6 @@ export const apiClient = {
     }
   },
 
-  // 사용자
   async getUser(userId) {
     try {
       const { data } = await client.get(`/users/${userId}`);
@@ -208,7 +220,6 @@ export const apiClient = {
     }
   },
 
-  // 공지
   async getActiveAnnouncements() {
     try {
       const { data } = await client.get('/announcements/active');
@@ -219,7 +230,6 @@ export const apiClient = {
     }
   },
 
-  // (아래는 기존 그대로)
   async getTopics() {
     const { data } = await client.get('/topics');
     return data;

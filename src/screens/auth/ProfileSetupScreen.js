@@ -19,7 +19,6 @@ import colors from '../../theme/colors';
 import { apiClient } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 
-// 사진 미등록 시 사용할 기본 아바타
 const DEFAULT_AVATAR_URL = 'https://i.pravatar.cc/256';
 
 export default function ProfileSetupScreen({ route, navigation }) {
@@ -58,6 +57,8 @@ export default function ProfileSetupScreen({ route, navigation }) {
     }
   };
 
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
   const onSubmit = async () => {
     if (submitting) return;
 
@@ -68,7 +69,7 @@ export default function ProfileSetupScreen({ route, navigation }) {
 
     setSubmitting(true);
     try {
-      // 1) 회원가입(사진 미등록이면 기본 아바타 URL 포함)
+      // 1) 회원가입 시도 (사진 미등록 시 기본 아바타 전달)
       const payload = {
         email,
         password,
@@ -81,31 +82,35 @@ export default function ProfileSetupScreen({ route, navigation }) {
       };
       await apiClient.signup(payload);
 
-      // 2) 자동 로그인
-      const r = await login(email, password);
-      if (!r.success) throw new Error(r.error || '자동 로그인에 실패했습니다.');
-
-      // 3) 홈으로 이동
-      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
-    } catch (error) {
-      const raw = error?.response?.data?.message || error?.message || '';
-
-      // 이미 가입된 이메일이면 로그인 시도
-      if (
-        error?.status === 409 ||
-        /already\s*registered/i.test(String(raw)) ||
-        /email.*exists/i.test(String(raw))
-      ) {
+      // 2) 자동 로그인: 최대 3회 재시도(백엔드 반영 지연 대비)
+      let loggedIn = false;
+      let lastErr = null;
+      for (let i = 0; i < 3; i += 1) {
         try {
           const r = await login(email, password);
-          if (r.success) {
-            navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
-            return;
+          if (r?.success) {
+            loggedIn = true;
+            break;
           }
-        } catch {}
+          lastErr = new Error(r?.error || '로그인 실패');
+        } catch (e) {
+          lastErr = e;
+        }
+        await sleep(800); // 백오프
       }
 
-      Alert.alert('가입 처리 실패', String(raw) || '잠시 후 다시 시도해 주세요.');
+      if (!loggedIn) {
+        throw lastErr || new Error('자동 로그인에 실패했습니다.');
+      }
+
+      // 3) 로그인 상태로 홈(MainTabs) 진입
+      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+    } catch (error) {
+      const msg =
+        error?.response?.data?.message ||
+        error?.message ||
+        '가입 처리 실패';
+      Alert.alert('가입 처리 실패', String(msg));
     } finally {
       setSubmitting(false);
     }
@@ -137,7 +142,6 @@ export default function ProfileSetupScreen({ route, navigation }) {
         <ButtonPrimary
           title="가입하기"
           onPress={onSubmit}
-          loading={submitting}
           disabled={submitting}
         />
       </View>

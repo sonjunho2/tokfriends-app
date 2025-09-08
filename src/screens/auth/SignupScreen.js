@@ -1,4 +1,3 @@
-// src/screens/auth/SignupScreen.js
 import React, { useState } from 'react';
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -14,18 +13,18 @@ export default function SignupScreen({ navigation }) {
   const [showPw2, setShowPw2] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // 정책: 비밀번호 최소 8자
   const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
-  const pwValid = pw.length >= 6;
+  const pwValid = pw.length >= 8;
   const match = pw === pw2;
   const canNext = emailValid && pwValid && match && !loading;
 
   const next = () => {
     if (!emailValid) return Alert.alert('안내', '올바른 이메일을 입력해 주세요.');
-    if (!pwValid) return Alert.alert('안내', '비밀번호는 6자 이상이어야 합니다.');
+    if (!pwValid) return Alert.alert('안내', '비밀번호는 8자 이상이어야 합니다.');
     if (!match) return Alert.alert('안내', '비밀번호 확인이 일치하지 않습니다.');
     setLoading(true);
     try {
-      // Agreement로 이메일/비밀번호 전달 (이후 단계로 계속 전파)
       navigation.navigate('Agreement', { email: email.trim(), password: pw });
     } finally {
       setLoading(false);
@@ -58,7 +57,7 @@ export default function SignupScreen({ navigation }) {
           <View style={styles.inputRow}>
             <TextInput
               style={styles.input}
-              placeholder="6자 이상"
+              placeholder="8자 이상"
               placeholderTextColor={colors.textTertiary}
               secureTextEntry={!showPw}
               autoCapitalize="none"

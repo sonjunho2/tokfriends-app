@@ -10,18 +10,16 @@ import Card from '../../components/Card';
 import Avatar from '../../components/Avatar';
 
 const PILL_ITEMS = ['HOT추천', '내주변', '접속중', '단순대화', '20+', '30+'];
-// ✅ 요청하신 순서/라벨 그대로, 텍스트만 사용
-const FILTERS = [
-  { key: 'hot',       label: 'HOT추천'   },
-  { key: 'online',    label: '접속중'    },
-  { key: 'nearby',    label: '가까운'    },
-  { key: '20s',       label: '20대'      },
-  { key: '30s',       label: '30대'      },
-  { key: '40plus',    label: '40대이상'  },
-  { key: 'opposite',  label: '이성친구'  },
-  { key: 'quick',     label: '즉석만남'  },
+const ICONS = [
+  { key: 'hot', label: 'HOT추천', icon: 'flame' },
+  { key: 'online', label: '접속중', icon: 'planet' },
+  { key: 'near', label: '가까운', icon: 'location' },
+  { key: 'age20', label: '20대', icon: 'sparkles' },
+  { key: 'age30', label: '30대', icon: 'ribbon' },
+  { key: 'gender', label: '이성친구', icon: 'people' },
+  { key: 'quick', label: '즉석만남', icon: 'flash' },
+  { key: 'counsel', label: '고민상담', icon: 'chatbubble-ellipses' },
 ];
-
 
 export default function HomeScreen({ navigation }) {
   const [activePill, setActivePill] = useState(PILL_ITEMS[0]);

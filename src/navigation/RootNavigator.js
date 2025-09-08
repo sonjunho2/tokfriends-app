@@ -7,15 +7,15 @@ import { Ionicons } from '@expo/vector-icons';
 import colors from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
 
-// ===== 메인 탭에 들어갈 화면들 =====
+// ===== 메인 탭 =====
 import HomeScreen from '../screens/main/HomeScreen';
-import ExploreScreen from '../screens/explore/ExploreScreen';        // (New)
+import ExploreScreen from '../screens/explore/ExploreScreen';
 import ChatsScreen from '../screens/main/ChatsScreen';
-import ShopScreen from '../screens/shop/ShopScreen';                 // (New)
-import MyPageScreen from '../screens/my/MyPageScreen';               // (New)
+import ShopScreen from '../screens/shop/ShopScreen';
+import MyPageScreen from '../screens/my/MyPageScreen';
 
-// ===== 스택에서 푸시로 띄울 화면들 =====
-import HotRecommendScreen from '../screens/recommend/HotRecommendScreen'; // (New)
+// ===== 스택 푸시 =====
+import HotRecommendScreen from '../screens/recommend/HotRecommendScreen';
 import ChatRoomScreen from '../screens/main/ChatRoomScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
 
@@ -64,7 +64,6 @@ function MainTabs() {
         },
         tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
         tabBarIcon: ({ focused, color, size }) => {
-          const key = route.name;
           const iconMap = {
             Home: focused ? 'people' : 'people-outline',
             Explore: focused ? 'compass' : 'compass-outline',
@@ -72,7 +71,7 @@ function MainTabs() {
             Shop: focused ? 'bag' : 'bag-outline',
             MyPage: focused ? 'person' : 'person-outline',
           };
-          return <Ionicons name={iconMap[key]} size={size} color={color} />;
+          return <Ionicons name={iconMap[route.name]} size={size} color={color} />;
         },
       })}
     >
@@ -97,7 +96,7 @@ function AppFlow() {
 }
 
 export default function RootNavigator() {
-  const { user, initializing } = useAuth();
+  const { user, token, initializing } = useAuth();
 
   if (initializing) {
     return (
@@ -107,6 +106,10 @@ export default function RootNavigator() {
     );
   }
 
-  const isSignedIn = !!user && (!!user.id || !!user.token);
+  // ✅ 핵심 수정: "토큰만 있어도" 로그인된 것으로 간주
+  const hasToken = !!token;
+  const hasUser = !!user && (user.id != null || user._id != null);
+  const isSignedIn = hasToken || hasUser;
+
   return isSignedIn ? <AppFlow /> : <AuthFlow />;
 }

@@ -18,7 +18,7 @@ import colors from '../../theme/colors';
 import { apiClient } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 
-// ✅ 기본 아바타(대체 이미지) URL — 사진 미등록 시 서버에 이 URL 저장
+// 기본 아바타 URL(사진 미등록 시 사용)
 const DEFAULT_AVATAR_URL = 'https://i.pravatar.cc/256';
 
 export default function ProfileSetupScreen({ route, navigation }) {
@@ -58,6 +58,10 @@ export default function ProfileSetupScreen({ route, navigation }) {
   };
 
   const onSubmit = async () => {
+    // 중복 클릭 방지
+    if (submitting) return;
+
+    // 필수값 확인
     if (!email || !password || !nickname || !birthYear || !gender) {
       Alert.alert('알림', '필수 정보가 누락되었습니다. 처음부터 다시 진행해주세요.');
       return;
@@ -65,7 +69,7 @@ export default function ProfileSetupScreen({ route, navigation }) {
 
     setSubmitting(true);
     try {
-      // ✅ 사진 미등록 시 기본 아바타 URL을 함께 전송
+      // 가입 시도 (사진 미등록이면 기본 아바타 URL 전송)
       const signupPayload = {
         email,
         password,
@@ -76,22 +80,35 @@ export default function ProfileSetupScreen({ route, navigation }) {
         bio,
         avatarUrl: imageUri ? undefined : DEFAULT_AVATAR_URL,
       };
-
       await apiClient.signup(signupPayload);
 
-      // (선택) 실제 이미지 업로드가 필요하면 아래 구현 후 활성화
-      // if (imageUri) { await apiClient.uploadAvatar(formData) }
-
+      // 가입 성공 → 자동 로그인
       const res = await login(email, password);
       if (!res.success) throw new Error(res.error || '자동 로그인에 실패했습니다.');
 
       navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     } catch (error) {
-      const msg =
+      const raw =
         error?.response?.data?.message ||
         error?.message ||
-        '가입 처리 실패';
-      Alert.alert('가입 처리 실패', msg);
+        '';
+
+      // 이미 가입된 이메일이면 자동 로그인으로 진입
+      if (
+        error?.status === 409 ||
+        /already\s*registered/i.test(String(raw)) ||
+        /email.*exists/i.test(String(raw))
+      ) {
+        try {
+          const r = await login(email, password);
+          if (r.success) {
+            navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+            return;
+          }
+        } catch {}
+      }
+
+      Alert.alert('가입 처리 실패', String(raw) || '잠시 후 다시 시도해 주세요.');
     } finally {
       setSubmitting(false);
     }
@@ -113,7 +130,6 @@ export default function ProfileSetupScreen({ route, navigation }) {
             </View>
           )}
           <View style={styles.addBadge}>
-            {/* ✅ 선택 사항 문구로 변경 */}
             <Text style={styles.addBadgeText}>사진 등록 (선택)</Text>
           </View>
           <Text style={styles.countHint}>0/1 장</Text>
@@ -125,6 +141,7 @@ export default function ProfileSetupScreen({ route, navigation }) {
           title="가입하기"
           onPress={onSubmit}
           loading={submitting}
+          disabled={submitting}   // ✅ 중복 클릭 방지
           size="large"
         />
       </View>

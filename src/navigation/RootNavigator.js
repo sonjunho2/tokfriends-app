@@ -4,22 +4,10 @@ import { View, ActivityIndicator } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
-import colors from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
+import colors from '../theme/colors';
 
-// ===== 메인 =====
-import HomeScreen from '../screens/main/HomeScreen';
-import ExploreScreen from '../screens/explore/ExploreScreen';   // ✅ 새 파일
-import ChatsScreen from '../screens/main/ChatsScreen';
-import ShopScreen from '../screens/shop/ShopScreen';            // ✅ 새 파일(가벼운 더미)
-import MyPageScreen from '../screens/my/MyPageScreen';          // ✅ 새 파일(가벼운 더미)
-
-// ===== 푸시 =====
-import HotRecommendScreen from '../screens/recommend/HotRecommendScreen'; // (있으면 사용/없으면 임시 더미)
-import ChatRoomScreen from '../screens/main/ChatRoomScreen';
-import ProfileScreen from '../screens/main/ProfileScreen';
-
-// ===== 인증 =====
+// ===== Auth Screens =====
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
 import SignupScreen from '../screens/auth/SignupScreen';
 import LoginScreen from '../screens/auth/LoginScreen';
@@ -29,6 +17,18 @@ import NicknameScreen from '../screens/auth/NicknameScreen';
 import GenderScreen from '../screens/auth/GenderScreen';
 import LocationScreen from '../screens/auth/LocationScreen';
 import ProfileSetupScreen from '../screens/auth/ProfileSetupScreen';
+
+// ===== Main Screens =====
+import HomeScreen from '../screens/main/HomeScreen';
+import LiveNowScreen from '../screens/main/LiveNowScreen';
+import NearbyScreen from '../screens/main/NearbyScreen';
+import RecommendScreen from '../screens/main/RecommendScreen';
+import ChatsScreen from '../screens/main/ChatsScreen';
+import ChatRoomScreen from '../screens/main/ChatRoomScreen';
+import ProfileScreen from '../screens/main/ProfileScreen';
+
+// ===== NEW: Create Chat =====
+import CreateChatRoomScreen from '../screens/chat/CreateChatRoomScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -54,48 +54,51 @@ function MainTabs() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
+        tabBarIcon: ({ focused, color, size }) => {
+          let icon = 'ellipse';
+          if (route.name === 'Home') icon = focused ? 'home' : 'home-outline';
+          else if (route.name === 'LiveNow') icon = focused ? 'pulse' : 'pulse-outline';
+          else if (route.name === 'Nearby') icon = focused ? 'location' : 'location-outline';
+          else if (route.name === 'Recommend') icon = focused ? 'heart' : 'heart-outline';
+          else if (route.name === 'Chats') icon = focused ? 'chatbubbles' : 'chatbubbles-outline';
+          return <Ionicons name={icon} size={size} color={color} />;
+        },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textTertiary,
         tabBarStyle: {
           backgroundColor: colors.backgroundSecondary,
           borderTopColor: colors.border,
           borderTopWidth: 1,
+          paddingBottom: 5,
+          paddingTop: 5,
           height: 60,
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
-        tabBarIcon: ({ focused, color, size }) => {
-          const map = {
-            Home: focused ? 'people' : 'people-outline',
-            Chats: focused ? 'chatbubbles' : 'chatbubbles-outline',
-            Shop: focused ? 'bag' : 'bag-outline',
-            MyPage: focused ? 'person' : 'person-outline',
-          };
-          return <Ionicons name={map[route.name]} size={size} color={color} />;
-        },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: '500' },
       })}
     >
-      <Tab.Screen name="Home" component={HomeStack} options={{ tabBarLabel: '홈' }} />
-      <Tab.Screen name="Chats" component={ChatsScreen} options={{ tabBarLabel: '대화' }} />
-      <Tab.Screen name="Shop" component={ShopScreen} options={{ tabBarLabel: '상점' }} />
-      <Tab.Screen name="MyPage" component={MyPageScreen} options={{ tabBarLabel: '마이페이지' }} />
+      <Tab.Screen name="Home" component={HomeScreen} options={{ tabBarLabel: '홈' }} />
+      <Tab.Screen name="LiveNow" component={LiveNowScreen} options={{ tabBarLabel: '실시간' }} />
+      <Tab.Screen name="Nearby" component={NearbyScreen} options={{ tabBarLabel: '내주변' }} />
+      <Tab.Screen name="Recommend" component={RecommendScreen} options={{ tabBarLabel: '추천' }} />
+      <Tab.Screen name="Chats" component={ChatsScreen} options={{ tabBarLabel: '채팅' }} />
     </Tab.Navigator>
   );
 }
 
-function HomeStack() {
+function AppFlow() {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="HomeMain" component={HomeScreen} />
-      <Stack.Screen name="Explore" component={ExploreScreen} />
-      <Stack.Screen name="HotRecommend" component={HotRecommendScreen} />
+    <Stack.Navigator initialRouteName="MainTabs" screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="MainTabs" component={MainTabs} />
       <Stack.Screen name="ChatRoom" component={ChatRoomScreen} options={{ animation: 'slide_from_bottom' }} />
       <Stack.Screen name="Profile" component={ProfileScreen} options={{ animation: 'slide_from_right' }} />
+      {/* NEW */}
+      <Stack.Screen name="CreateChat" component={CreateChatRoomScreen} options={{ animation: 'slide_from_right' }} />
     </Stack.Navigator>
   );
 }
 
 export default function RootNavigator() {
-  const { user, token, initializing } = useAuth();
+  const { user, initializing } = useAuth();
 
   if (initializing) {
     return (
@@ -105,7 +108,6 @@ export default function RootNavigator() {
     );
   }
 
-  // ✅ 토큰만 있어도 로그인으로 간주
-  const isSignedIn = !!token || (!!user && (user.id || user._id));
-  return isSignedIn ? <MainTabs /> : <AuthFlow />;
+  const isSignedIn = !!user && (!!user.id || !!user.token);
+  return isSignedIn ? <AppFlow /> : <AuthFlow />;
 }

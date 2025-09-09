@@ -6,7 +6,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
-
+import UniversalListScreen from '../screens/list/UniversalListScreen'; // ✅ 새 화면 추가
 // ===== 메인 =====
 import HomeScreen from '../screens/main/HomeScreen';
 import ExploreScreen from '../screens/explore/ExploreScreen';   // ✅ 탐색
@@ -63,6 +63,8 @@ function HomeStack() {
       screenOptions={{ headerShown: false }}
     >
       <Stack.Screen name="HomeMain" component={HomeScreen} />
+            {/* ✅ 공용 리스트 화면 */}
+      <Stack.Screen name="UniversalList" component={UniversalListScreen} />
       <Stack.Screen name="Explore" component={ExploreScreen} />
       <Stack.Screen name="HotRecommend" component={HotRecommendScreen} />
       <Stack.Screen

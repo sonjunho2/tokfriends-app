@@ -10,7 +10,6 @@ const SEGMENTS = ['전체', '읽지 않음', '신규', '즐겨찾기'];
 export default function ChatsScreen({ navigation }) {
   const [seg, setSeg] = useState(0);
 
-  // TODO: 실제 API 연동 (현재는 더미)
   const data = useMemo(
     () =>
       Array.from({ length: 20 }, (_, i) => ({
@@ -30,27 +29,31 @@ export default function ChatsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* 헤더: HOT추천과 동일 톤 */}
+      {/* 헤더 */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8}>
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>내 대화</Text>
-        <View style={{ width: 26 }} />
+        <Text style={styles.headerTitle}>대화</Text>
+
+        {/* ➕ 채팅방 만들기 */}
+        <TouchableOpacity
+          onPress={() => navigation.navigate('CreateChat')}
+          hitSlop={8}
+          style={styles.headerRightBtn}
+        >
+          <Ionicons name="add-circle" size={24} color={colors.primary} />
+        </TouchableOpacity>
       </View>
 
-      {/* 세그먼트(알약 탭): gap 미사용, marginRight로 정렬 */}
+      {/* 세그먼트 */}
       <View style={styles.segWrap}>
         {SEGMENTS.map((label, i) => {
           const on = i === seg;
           return (
             <TouchableOpacity
               key={label}
-              style={[
-                styles.seg,
-                on && styles.segOn,
-                i !== SEGMENTS.length - 1 && styles.segSpacing
-              ]}
+              style={[styles.seg, on && styles.segOn]}
               onPress={() => setSeg(i)}
               activeOpacity={0.9}
             >
@@ -60,7 +63,7 @@ export default function ChatsScreen({ navigation }) {
         })}
       </View>
 
-      {/* 리스트: HOT추천과 동일 여백/톤 */}
+      {/* 채팅 리스트 */}
       <FlatList
         data={data}
         keyExtractor={(it) => String(it.id)}
@@ -79,7 +82,6 @@ export default function ChatsScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -91,8 +93,9 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   headerTitle: { fontSize: 22, fontWeight: '800', color: colors.text },
+  headerRightBtn: { padding: 4 },
 
-  segWrap: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 14 },
+  segWrap: { flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingVertical: 14 },
   seg: {
     paddingVertical: 10,
     paddingHorizontal: 16,
@@ -102,7 +105,6 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
   },
   segOn: { backgroundColor: colors.pillActiveBg, borderColor: colors.pillActiveBorder },
-  segSpacing: { marginRight: 10 },
   segTxt: { color: colors.textSecondary, fontWeight: '700' },
   segTxtOn: { color: colors.primary },
 });

@@ -9,27 +9,21 @@ export default function Avatar({
   size = 'medium',
   online = false,
   showBorder = false,
+  shape = 'circle', // 'circle' | 'rounded'
   style,
 }) {
-  const sizeMap = {
-    tiny: 40,     // 🔄 탐색/추천에서도 최소 40px
-    small: 60,    // 🔄 조금 더 큼직하게
-    medium: 80,   // 🔄 기본 아바타는 80px
-    large: 100,
-    xlarge: 120,
-  };
-
+  const sizeMap = { tiny: 32, small: 40, medium: 56, large: 80, xlarge: 120 };
   const currentSize = typeof size === 'number' ? size : sizeMap[size] || sizeMap.medium;
   const dotSize = Math.max(12, currentSize * 0.25);
   const fontSize = currentSize * 0.35;
 
-  const getInitials = (name) => {
-    if (!name) return '?';
-    const parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return parts[0][0] + parts[1][0];
-    }
-    return name.substring(0, 2).toUpperCase();
+  const radius = shape === 'rounded' ? Math.max(8, Math.round(currentSize * 0.2)) : currentSize / 2;
+
+  const getInitials = (n) => {
+    if (!n) return '?';
+    const parts = String(n).trim().split(' ');
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return n.substring(0, 2).toUpperCase();
   };
 
   return (
@@ -37,40 +31,20 @@ export default function Avatar({
       <View
         style={[
           styles.container,
-          {
-            width: currentSize,
-            height: currentSize,
-            borderRadius: 16, // ✅ 탐색/추천과 동일한 사각 라운드
-          },
+          { width: currentSize, height: currentSize, borderRadius: radius },
           showBorder && styles.border,
         ]}
       >
         {source ? (
           <Image
             source={source}
-            style={[
-              styles.image,
-              {
-                width: currentSize,
-                height: currentSize,
-                borderRadius: 16, // ✅ 동일
-              },
-            ]}
+            style={[styles.image, { width: currentSize, height: currentSize, borderRadius: radius }]}
           />
         ) : (
           <View
-            style={[
-              styles.placeholder,
-              {
-                width: currentSize,
-                height: currentSize,
-                borderRadius: 16, // ✅ 동일
-              },
-            ]}
+            style={[styles.placeholder, { width: currentSize, height: currentSize, borderRadius: radius }]}
           >
-            <Text style={[styles.initials, { fontSize }]}>
-              {getInitials(name)}
-            </Text>
+            <Text style={[styles.initials, { fontSize }]}>{getInitials(name)}</Text>
           </View>
         )}
       </View>
@@ -79,13 +53,7 @@ export default function Avatar({
         <View
           style={[
             styles.onlineDot,
-            {
-              width: dotSize,
-              height: dotSize,
-              borderRadius: dotSize / 2,
-              bottom: 4,
-              right: 4,
-            },
+            { width: dotSize, height: dotSize, borderRadius: dotSize / 2, bottom: currentSize * 0.05, right: currentSize * 0.05 },
           ]}
         />
       )}
@@ -94,31 +62,10 @@ export default function Avatar({
 }
 
 const styles = StyleSheet.create({
-  container: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: colors.backgroundSecondary,
-  },
-  border: {
-    borderWidth: 2,
-    borderColor: colors.primary,
-  },
-  image: {
-    resizeMode: 'cover',
-  },
-  placeholder: {
-    backgroundColor: colors.primaryLight,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  initials: {
-    color: colors.text,
-    fontWeight: '700',
-  },
-  onlineDot: {
-    backgroundColor: colors.success,
-    borderWidth: 2,
-    borderColor: colors.backgroundSecondary,
-    position: 'absolute',
-  },
+  container: { justifyContent: 'center', alignItems: 'center', backgroundColor: colors.backgroundTertiary },
+  border: { borderWidth: 2, borderColor: colors.primary },
+  image: { resizeMode: 'cover' },
+  placeholder: { backgroundColor: colors.primaryLight, justifyContent: 'center', alignItems: 'center' },
+  initials: { color: colors.textInverse, fontWeight: '600' },
+  onlineDot: { backgroundColor: colors.success, borderWidth: 2, borderColor: colors.backgroundSecondary, position: 'absolute' },
 });

@@ -11,18 +11,20 @@ export default function HotRecommendScreen({ navigation }) {
   const [seg, setSeg] = useState(0);
 
   // TODO: 실제 API 반영
-  const data = useMemo(() =>
-    Array.from({ length: 20 }, (_, i) => ({
-      id: i + 1,
-      name: ['여행을좋아하는수아','수별윤','아직너틀그','달코만초콜렛','나윤희나윤희'][i%5],
-      age: [26,45,47,40,50][i%5],
-      points: [0,5,5,90,40][i%5],
-      subtitle: '마음이 맞으면 만나고 싶어요 부모님이랑 살고 있어요',
-      avatar: `https://i.pravatar.cc/150?img=${(i%60)+1}`,
-      lastSeenLabel: ['1일','4분','17시간','2일','6시간'][i%5],
-      regionLabel: ['대전','서울','대전','울산','서울'][i%5],
-      distanceKm: [255,259,137,270,233][i%5],
-    })), [seg]
+  const data = useMemo(
+    () =>
+      Array.from({ length: 20 }, (_, i) => ({
+        id: i + 1,
+        name: ['여행을좋아하는수아', '수별윤', '아직너틀그', '달코만초콜렛', '나윤희나윤희'][i % 5],
+        age: [26, 45, 47, 40, 50][i % 5],
+        points: [0, 5, 5, 90, 40][i % 5],
+        subtitle: '마음이 맞으면 만나고 싶어요 부모님이랑 살고 있어요',
+        avatar: `https://i.pravatar.cc/150?img=${(i % 60) + 1}`,
+        lastSeenLabel: ['1일', '4분', '17시간', '2일', '6시간'][i % 5],
+        regionLabel: ['대전', '서울', '대전', '울산', '서울'][i % 5],
+        distanceKm: [255, 259, 137, 270, 233][i % 5],
+      })),
+    [seg]
   );
 
   return (
@@ -50,7 +52,7 @@ export default function HotRecommendScreen({ navigation }) {
         data={data}
         keyExtractor={(it) => String(it.id)}
         renderItem={({ item }) => <UserListItem item={item} onPress={() => {}} />}
-        contentContainerStyle={{ paddingHorizontal: 16 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16, paddingTop: 4 }}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -58,12 +60,28 @@ export default function HotRecommendScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container:{ flex:1, backgroundColor:colors.background },
-  header:{ flexDirection:'row', alignItems:'center', justifyContent:'space-between', paddingHorizontal:12, paddingVertical:10, backgroundColor:colors.backgroundSecondary, borderBottomWidth:1, borderBottomColor:colors.border },
-  headerTitle:{ fontSize:22, fontWeight:'800', color:colors.text },
-  segWrap:{ flexDirection:'row', gap:10, paddingHorizontal:16, paddingVertical:14 },
-  seg:{ paddingVertical:10, paddingHorizontal:16, borderRadius:18, backgroundColor:colors.pillBg, borderWidth:1, borderColor:colors.border },
-  segOn:{ backgroundColor:colors.pillActiveBg, borderColor:colors.pillActiveBorder },
-  segTxt:{ color:colors.textSecondary, fontWeight:'700' },
-  segTxtOn:{ color:colors.primary },
+  container: { flex: 1, backgroundColor: colors.background },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    backgroundColor: colors.backgroundSecondary,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  headerTitle: { fontSize: 22, fontWeight: '800', color: colors.text },
+  segWrap: { flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingVertical: 14 },
+  seg: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 18,
+    backgroundColor: colors.pillBg,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  segOn: { backgroundColor: colors.pillActiveBg, borderColor: colors.pillActiveBorder },
+  segTxt: { color: colors.textSecondary, fontWeight: '700' },
+  segTxtOn: { color: colors.primary },
 });

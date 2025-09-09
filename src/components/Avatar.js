@@ -3,56 +3,47 @@ import React from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
 import colors from '../theme/colors';
 
+/**
+ * shape: 'rounded' | 'circle'
+ *   - 기본은 'rounded' (이미지처럼 라운드 사각형, radius=12)
+ */
 export default function Avatar({
   source,
   name,
-  size = 'medium',
-  rounded = 14,        // ✅ 라운드값(디자인 통일)
-  showBorder = false,
+  size = 56,
+  shape = 'rounded',
   online = false,
+  showBorder = false,
   style,
 }) {
-  const sizeMap = { tiny: 32, small: 40, medium: 64, large: 84, xlarge: 120 };
-  const currentSize = typeof size === 'number' ? size : sizeMap[size] || sizeMap.medium;
-  const dotSize = Math.max(10, Math.round(currentSize * 0.2));
-  const fontSize = Math.round(currentSize * 0.32);
+  const radius = shape === 'circle' ? size / 2 : 12;
+  const dotSize = Math.max(10, Math.round(size * 0.24));
+  const fontSize = Math.round(size * 0.36);
 
-  const initials = (() => {
-    if (!name) return '?';
-    const s = String(name).trim();
-    if (s.length <= 2) return s.toUpperCase();
-    return s.slice(0, 2).toUpperCase();
-  })();
+  const getInitials = (n) => {
+    if (!n) return '?';
+    const parts = String(n).trim().split(/\s+/);
+    if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+    return n.substring(0, 2).toUpperCase();
+  };
 
   return (
-    <View style={[{ width: currentSize, height: currentSize }, style]}>
+    <View style={[{ width: size, height: size }, style]}>
       <View
         style={[
           styles.box,
-          {
-            width: currentSize,
-            height: currentSize,
-            borderRadius: rounded,
-          },
+          { width: size, height: size, borderRadius: radius },
           showBorder && styles.border,
         ]}
       >
         {source ? (
           <Image
             source={source}
-            style={[
-              styles.img,
-              { width: currentSize, height: currentSize, borderRadius: rounded },
-            ]}
+            style={[styles.img, { width: size, height: size, borderRadius: radius }]}
           />
         ) : (
-          <View
-            style={[
-              styles.placeholder,
-              { width: currentSize, height: currentSize, borderRadius: rounded },
-            ]}
-          >
-            <Text style={[styles.initials, { fontSize }]}>{initials}</Text>
+          <View style={[styles.ph, { width: size, height: size, borderRadius: radius }]}>
+            <Text style={[styles.initials, { fontSize }]}>{getInitials(name)}</Text>
           </View>
         )}
       </View>
@@ -64,9 +55,9 @@ export default function Avatar({
             {
               width: dotSize,
               height: dotSize,
-              borderRadius: Math.round(dotSize / 2),
-              bottom: 2,
+              borderRadius: dotSize / 2,
               right: 2,
+              bottom: 2,
             },
           ]}
         />
@@ -76,25 +67,10 @@ export default function Avatar({
 }
 
 const styles = StyleSheet.create({
-  box: {
-    backgroundColor: colors.backgroundTertiary,
-    overflow: 'hidden',
-  },
-  border: {
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
+  box: { justifyContent: 'center', alignItems: 'center', backgroundColor: colors.backgroundSecondary },
+  border: { borderWidth: 1, borderColor: colors.border },
   img: { resizeMode: 'cover' },
-  placeholder: {
-    backgroundColor: colors.primaryLight,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  initials: { color: colors.textInverse, fontWeight: '700' },
-  dot: {
-    position: 'absolute',
-    backgroundColor: colors.success,
-    borderWidth: 2,
-    borderColor: colors.backgroundSecondary,
-  },
+  ph: { backgroundColor: colors.primaryLight, justifyContent: 'center', alignItems: 'center' },
+  initials: { color: '#fff', fontWeight: '700' },
+  dot: { position: 'absolute', backgroundColor: colors.success, borderWidth: 2, borderColor: '#fff' },
 });

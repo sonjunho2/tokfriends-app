@@ -1,228 +1,130 @@
 // src/screens/main/HomeScreen.js
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  RefreshControl,
-  TouchableOpacity,
-  Alert,
-  FlatList,
+  View, Text, StyleSheet, SafeAreaView, ScrollView,
+  TouchableOpacity
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
-import HeaderLogo from '../../components/HeaderLogo';
-import ButtonPrimary from '../../components/ButtonPrimary';
+import colors from '../../theme/colors';
 import Card from '../../components/Card';
 import Avatar from '../../components/Avatar';
-import colors from '../../theme/colors';
-import { useAuth } from '../../context/AuthContext';
-import { apiClient } from '../../api/client';
+
+const PILL_ITEMS = ['HOT추천', '내주변', '접속중', '단순대화', '20+', '30+'];
+const ICONS = [
+  { key: 'hot', label: 'HOT추천', icon: 'flame' },
+  { key: 'online', label: '접속중', icon: 'planet' },
+  { key: 'near', label: '가까운', icon: 'location' },
+  { key: 'age20', label: '20대', icon: 'sparkles' },
+  { key: 'age30', label: '30대', icon: 'ribbon' },
+  { key: 'gender', label: '이성친구', icon: 'people' },
+  { key: 'quick', label: '즉석만남', icon: 'flash' },
+  { key: 'counsel', label: '고민상담', icon: 'chatbubble-ellipses' },
+];
 
 export default function HomeScreen({ navigation }) {
-  const { user, refreshMe } = useAuth();
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
-  const [userData, setUserData] = useState(null);
-  const [announcements, setAnnouncements] = useState([]);
-
-  const GRADIENT =
-    colors?.gradients?.sunset ??
-    [colors?.primary || '#F36C93', colors?.primaryLight || '#FFD2DE'];
+  const [activePill, setActivePill] = useState(PILL_ITEMS[0]);
+  const [leftSec, setLeftSec] = useState(30 * 60); // 30분 타이머
 
   useEffect(() => {
-    loadInitialData();
+    const t = setInterval(() => setLeftSec((s) => (s > 0 ? s - 1 : 0)), 1000);
+    return () => clearInterval(t);
   }, []);
+  const leftMinStr = useMemo(() => {
+    const m = Math.floor(leftSec / 60);
+    const s = leftSec % 60;
+    return `${m}분 ${String(s).padStart(2, '0')}초`;
+  }, [leftSec]);
 
-  const loadInitialData = useCallback(async () => {
-    try {
-      setLoading(true);
-      const res = await apiClient.getActiveAnnouncements().catch(() => []);
-      setAnnouncements(Array.isArray(res) ? res : []);
-    } catch (e) {
-      console.warn('[Home] loadInitialData error:', e?.message || e);
-      setAnnouncements([]);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  const fetchUserData = async () => {
-    try {
-      setLoading(true);
-      const data = await apiClient.getMe();
-      setUserData(data || {});
-      Alert.alert('성공', '사용자 정보를 불러왔습니다.');
-    } catch (error) {
-      console.warn('[Home] getMe error:', error?.message || error);
-      Alert.alert('오류', '정보를 불러올 수 없습니다.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    try {
-      await Promise.all([refreshMe?.(), loadInitialData()]);
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
-  const renderAnnouncement = ({ item }) => (
-    <Card style={styles.announcementCard}>
-      <View style={styles.announcementHeader}>
-        <Ionicons name="megaphone" size={20} color={colors.primary} />
-        <Text style={styles.announcementTitle} numberOfLines={1}>
-          {item?.title ?? '공지'}
-        </Text>
-      </View>
-      <Text style={styles.announcementContent} numberOfLines={2}>
-        {item?.content ?? ''}
-      </Text>
-      <Text style={styles.announcementDate}>
-        {item?.createdAt
-          ? new Date(item.createdAt).toLocaleDateString('ko-KR')
-          : ''}
-      </Text>
-    </Card>
-  );
+  const goExplore = () => navigation.navigate('Explore');
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* 헤더 (상단 탭/선물도착 제거, 기존 로고+프로필 유지) */}
-      <View style={styles.header}>
-        <HeaderLogo size="medium" />
-        <TouchableOpacity
-          onPress={() => navigation.navigate('Profile')}
-          style={styles.profileButton}
-          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-        >
-          <Avatar name={user?.displayName || user?.email} size="small" />
+      {/* 상단 홈/탐색 토글 */}
+      <View style={styles.topTabs}>
+        <Text style={[styles.topTab, styles.topTabOn]}>홈</Text>
+        <TouchableOpacity onPress={goExplore}>
+          <Text style={styles.topTab}>탐색</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.giftBtn} activeOpacity={0.85}>
+          <Text style={styles.giftTxt}>선물 도착!</Text>
+          <Ionicons name="gift" size={16} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.primary}
-          />
-        }
-      >
-        {/* 환영 카드 */}
-        <LinearGradient
-          colors={GRADIENT}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.welcomeCard}
-        >
-          <View style={styles.welcomeContent}>
-            <Text style={styles.welcomeText}>안녕하세요,</Text>
-            <Text style={styles.welcomeName}>
-              {user?.displayName || '친구'}님! 👋
-            </Text>
-            <Text style={styles.welcomeSubtext}>
-              오늘도 새로운 친구를 만나보세요
-            </Text>
+      <ScrollView contentContainerStyle={{ paddingBottom: 20 }} showsVerticalScrollIndicator={false}>
+        {/* 초록 배너 */}
+        <Card style={styles.greenBanner} noPadding>
+          <View style={styles.greenLeft}>
+            <Text style={styles.greenTitle}>오직 첫 가입자만!</Text>
+            <Text style={styles.greenDesc}>30분 내로 프로필 완성하면{'\n'}50포인트를 드려요.</Text>
           </View>
-          <View style={styles.welcomeIcon}>
-            <Ionicons
-              name="sparkles"
-              size={60}
-              color={colors.textInverse || '#ffffff'}
-            />
-          </View>
-        </LinearGradient>
-
-        {/* 공지사항 */}
-        {announcements.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>공지사항</Text>
-            <FlatList
-              data={announcements}
-              renderItem={renderAnnouncement}
-              keyExtractor={(item, idx) =>
-                item?.id != null ? String(item.id) : `a-${idx}`
-              }
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.announcementsList}
-            />
-          </View>
-        )}
-
-        {/* 내 계정 정보 */}
-        <Card style={styles.infoCard}>
-          <View style={styles.infoHeader}>
-            <Ionicons name="person-circle" size={24} color={colors.primary} />
-            <Text style={styles.infoTitle}>내 계정 정보</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>이메일</Text>
-            <Text style={styles.infoValue}>{user?.email || '-'}</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>닉네임</Text>
-            <Text style={styles.infoValue}>{user?.displayName || '-'}</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>계정 ID</Text>
-            <Text style={styles.infoValue}>{user?.id || '-'}</Text>
-          </View>
-
-          <ButtonPrimary
-            title="내 정보 불러오기"
-            onPress={fetchUserData}
-            loading={loading}
-            icon={
-              <Ionicons
-                name="refresh"
-                size={20}
-                color={colors.textInverse || '#ffffff'}
-              />
-            }
-            style={styles.fetchButton}
-          />
+          <TouchableOpacity style={styles.timerBtn} activeOpacity={0.9}>
+            <Text style={styles.timerTxt}>{leftMinStr}</Text>
+            <Ionicons name="arrow-forward" size={18} color="#fff" />
+          </TouchableOpacity>
+          <View style={styles.greenBadge}><Text style={styles.greenBadgeTxt}>1/1</Text></View>
         </Card>
 
-        {/* 서버 응답 미리보기 */}
-        {userData && (
-          <Card style={styles.dataCard}>
-            <View style={styles.dataHeader}>
-              <Ionicons
-                name="code"
-                size={20}
-                color={colors.accentMint || colors.primary}
-              />
-              <Text style={styles.dataTitle}>서버 응답 데이터</Text>
-            </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.dataScroll}
+        {/* 알약 필터 */}
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.pillsWrap}>
+          {PILL_ITEMS.map((p) => {
+            const on = p === activePill;
+            return (
+              <TouchableOpacity key={p} style={[styles.pill, on && styles.pillOn]} onPress={() => setActivePill(p)}>
+                <Text style={[styles.pillTxt, on && styles.pillTxtOn]}>{p}</Text>
+              </TouchableOpacity>
+            );
+          })}
+          <TouchableOpacity style={styles.filterGear}>
+            <Ionicons name="options" size={20} color={colors.textSecondary} />
+          </TouchableOpacity>
+        </ScrollView>
+
+        {/* 아이콘 그리드 */}
+        <View style={styles.iconGrid}>
+          {ICONS.map((it) => (
+            <TouchableOpacity
+              key={it.key}
+              style={styles.iconCell}
+              onPress={() => {
+                if (it.key === 'hot') navigation.navigate('HotRecommend');
+                else if (it.key === 'near') setActivePill('내주변');
+                else if (it.key === 'online') setActivePill('접속중');
+              }}
             >
-              <Text style={styles.dataContent}>
-                {JSON.stringify(userData, null, 2)}
-              </Text>
-            </ScrollView>
-          </Card>
-        )}
+              <View style={styles.iconCircle}>
+                <Ionicons name={it.icon} size={22} color={colors.textSecondary} />
+              </View>
+              <Text style={styles.iconLabel}>{it.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-        {/* 빠른 메뉴 (그대로 유지) */}
-        {/* ... 기존 빠른 메뉴 코드 (생략 없이 그대로 유지 중) ... */}
+        {/* 카드: 나에게 관심있는 친구들 */}
+        <Card style={styles.bigCard}>
+          <View style={styles.bigCardRow}>
+            <View>
+              <Text style={styles.bigTitle}>나에게{'\n'}관심있는 친구들</Text>
+            </View>
+            <TouchableOpacity>
+              <Text style={styles.linkTxt}>확인하기 ›</Text>
+            </TouchableOpacity>
+          </View>
+        </Card>
 
-        <View style={styles.bottomSpacing} />
+        {/* 카드: 새로운 친구 */}
+        <Card style={styles.bigCard}>
+          <View style={styles.bigCardRow}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Avatar name="새로운 친구" size={40} rounded={12} />
+              <Text style={[styles.bigTitle, { marginLeft: 12 }]}>새로운 친구</Text>
+              <View style={styles.newBadge}><Text style={styles.newBadgeTxt}>NEW</Text></View>
+            </View>
+          </View>
+        </Card>
+
+        {/* ✅ 하단 “첨부 이미지 큰 카드”는 요청대로 제거됨 */}
       </ScrollView>
     </SafeAreaView>
   );
@@ -230,72 +132,65 @@ export default function HomeScreen({ navigation }) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    backgroundColor: colors.backgroundSecondary,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+
+  // 상단 탭/선물
+  topTabs: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
+  topTab: { fontSize: 28, fontWeight: '800', color: colors.textSecondary, marginRight: 14 },
+  topTabOn: { color: colors.text, marginRight: 20 },
+  giftBtn: {
+    marginLeft: 'auto', flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 12, paddingVertical: 8, borderRadius: 16,
+    backgroundColor: '#fff', borderWidth: 1, borderColor: colors.border
   },
-  profileButton: { padding: 4 },
-  scrollContent: { paddingTop: 20 },
-  welcomeCard: {
-    marginHorizontal: 20,
-    marginBottom: 20,
-    borderRadius: 24,
-    padding: 24,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    minHeight: 140,
+  giftTxt: { color: colors.primary, fontWeight: '800', marginRight: 6 },
+
+  // 초록 배너
+  greenBanner: { marginHorizontal: 16, padding: 16, backgroundColor: '#E8FAD8', borderRadius: 16, position: 'relative' },
+  greenLeft: { gap: 6 },
+  greenTitle: { color: '#14853E', fontWeight: '900', fontSize: 16 },
+  greenDesc: { color: '#1D4C2B', fontWeight: '700', fontSize: 18, lineHeight: 26 },
+  timerBtn: {
+    position: 'absolute', right: 12, top: 14,
+    backgroundColor: '#2FB75E', borderRadius: 12,
+    paddingHorizontal: 10, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 6
   },
-  welcomeContent: { flex: 1 },
-  welcomeText: {
-    fontSize: 16,
-    color: colors.textInverse || '#ffffff',
-    opacity: 0.9,
-    marginBottom: 4,
+  timerTxt: { color: '#fff', fontWeight: '900' },
+  greenBadge: { position: 'absolute', right: 12, bottom: 10, backgroundColor: '#DDF0CB', borderRadius: 12, paddingHorizontal: 8, paddingVertical: 3 },
+  greenBadgeTxt: { color: '#2D6B39', fontWeight: '700', fontSize: 12 },
+
+  // 필터 알약
+  pillsWrap: { paddingHorizontal: 12, paddingTop: 14, paddingBottom: 8, alignItems: 'center' },
+  pill: {
+    marginRight: 10, paddingHorizontal: 16, paddingVertical: 10, borderRadius: 22,
+    backgroundColor: colors.pillBg || '#F5F6F8', borderWidth: 1, borderColor: colors.border
   },
-  welcomeName: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: colors.textInverse || '#ffffff',
-    marginBottom: 8,
+  pillOn: { backgroundColor: '#fff', borderColor: colors.pillActiveBorder || colors.primary },
+  pillTxt: { color: colors.textSecondary, fontWeight: '700' },
+  pillTxtOn: { color: colors.text, fontWeight: '900' },
+  filterGear: {
+    marginLeft: 6, width: 40, height: 40, borderRadius: 20,
+    alignItems: 'center', justifyContent: 'center', backgroundColor: '#fff',
+    borderWidth: 1, borderColor: colors.border
   },
-  welcomeSubtext: {
-    fontSize: 14,
-    color: colors.textInverse || '#ffffff',
-    opacity: 0.8,
+
+  // 아이콘 그리드
+  iconGrid: {
+    flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between',
+    paddingHorizontal: 20, paddingTop: 8, paddingBottom: 4
   },
-  welcomeIcon: { marginLeft: 16 },
-  section: { marginHorizontal: 20, marginBottom: 20 },
-  sectionTitle: { fontSize: 18, fontWeight: '600', color: colors.text, marginBottom: 16 },
-  announcementsList: { paddingRight: 20 },
-  announcementCard: { width: 280, marginRight: 16, padding: 16, borderRadius: 16 },
-  announcementHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  announcementTitle: { fontSize: 16, fontWeight: '600', color: colors.text, marginLeft: 8, flex: 1 },
-  announcementContent: { fontSize: 14, color: colors.textSecondary, lineHeight: 20, marginBottom: 8 },
-  announcementDate: { fontSize: 12, color: colors.textTertiary },
-  infoCard: { marginHorizontal: 20, marginBottom: 20, borderRadius: 20, padding: 20 },
-  infoHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 20 },
-  infoTitle: { fontSize: 18, fontWeight: '600', color: colors.text, marginLeft: 8 },
-  infoRow: {
-    flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-    paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: colors.borderLight,
+  iconCell: { width: '22%', alignItems: 'center', marginBottom: 16 },
+  iconCircle: {
+    width: 56, height: 56, borderRadius: 18, backgroundColor: '#fff',
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: colors.border, marginBottom: 6
   },
-  infoLabel: { fontSize: 14, color: colors.textSecondary },
-  infoValue: { fontSize: 14, fontWeight: '500', color: colors.text },
-  fetchButton: { marginTop: 20 },
-  dataCard: { marginHorizontal: 20, marginBottom: 20, borderRadius: 20, padding: 20 },
-  dataHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  dataTitle: { fontSize: 14, fontWeight: '600', color: colors.text, marginLeft: 6 },
-  dataScroll: { maxHeight: 200 },
-  dataContent: {
-    fontSize: 12, fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    color: colors.textSecondary, lineHeight: 18,
-  },
-  bottomSpacing: { height: 20 },
+  iconLabel: { fontSize: 12, color: colors.textSecondary, fontWeight: '700' },
+
+  // 큰 카드 2종
+  bigCard: { marginHorizontal: 16, marginTop: 12, borderRadius: 16, padding: 16 },
+  bigCardRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  bigTitle: { fontSize: 18, color: colors.text, fontWeight: '800' },
+  linkTxt: { color: colors.primary, fontWeight: '800' },
+  newBadge: { marginLeft: 8, backgroundColor: colors.primaryLight, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 10 },
+  newBadgeTxt: { color: colors.primary, fontWeight: '800', fontSize: 10 },
 });

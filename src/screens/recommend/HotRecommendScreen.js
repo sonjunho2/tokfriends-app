@@ -4,13 +4,14 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../theme/colors';
 import UserListItem from '../../components/UserListItem';
+import SegmentBar, { DEFAULT_SEGMENTS } from '../../components/SegmentBar';
 
-const SEGMENTS = ['HOT추천', '내주변', '접속중', '단순대화'];
+export default function HotRecommendScreen({ navigation, route }) {
+  const initial = route?.params?.selected && DEFAULT_SEGMENTS.includes(route.params.selected)
+    ? route.params.selected
+    : 'HOT추천';
+  const [seg, setSeg] = useState(initial);
 
-export default function HotRecommendScreen({ navigation }) {
-  const [seg, setSeg] = useState(0);
-
-  // TODO: 실제 API 반영
   const data = useMemo(
     () =>
       Array.from({ length: 20 }, (_, i) => ({
@@ -29,30 +30,24 @@ export default function HotRecommendScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      {/* 중앙 타이틀 헤더 */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8}>
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>HOT추천</Text>
+        <Text style={styles.headerTitle}>{seg || 'HOT추천'}</Text>
         <View style={{ width: 26 }} />
       </View>
 
-      <View style={styles.segWrap}>
-        {SEGMENTS.map((label, i) => {
-          const on = i === seg;
-          return (
-            <TouchableOpacity key={label} style={[styles.seg, on && styles.segOn]} onPress={() => setSeg(i)}>
-              <Text style={[styles.segTxt, on && styles.segTxtOn]}>{label}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+      {/* 공용 세그먼트 바 */}
+      <SegmentBar value={seg} onChange={setSeg} />
 
+      {/* 리스트 */}
       <FlatList
         data={data}
         keyExtractor={(it) => String(it.id)}
         renderItem={({ item }) => <UserListItem item={item} onPress={() => {}} />}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16, paddingTop: 4 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 12 }}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -62,26 +57,10 @@ export default function HotRecommendScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 12, paddingVertical: 10,
     backgroundColor: colors.backgroundSecondary,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderBottomWidth: 1, borderBottomColor: colors.border,
   },
   headerTitle: { fontSize: 22, fontWeight: '800', color: colors.text },
-  segWrap: { flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingVertical: 14 },
-  seg: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 18,
-    backgroundColor: colors.pillBg,
-    borderWidth: 1,
-    borderColor: colors.border,
-  },
-  segOn: { backgroundColor: colors.pillActiveBg, borderColor: colors.pillActiveBorder },
-  segTxt: { color: colors.textSecondary, fontWeight: '700' },
-  segTxtOn: { color: colors.primary },
 });

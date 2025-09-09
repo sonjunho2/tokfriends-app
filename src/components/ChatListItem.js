@@ -24,7 +24,7 @@ export default function ChatListItem({ item = {}, onPress }) {
     <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={styles.wrap}>
       {/* 아바타 + 온라인 점 */}
       <View style={styles.avatarWrap}>
-        <Avatar name={name} size="medium" />
+        <Avatar name={name} size="medium" shape="rounded" />
         <View
           style={[
             styles.dot,

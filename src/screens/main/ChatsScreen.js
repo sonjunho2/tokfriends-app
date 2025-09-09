@@ -1,5 +1,5 @@
 // src/screens/main/ChatsScreen.js
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../theme/colors';
@@ -7,8 +7,21 @@ import ChatListItem from '../../components/ChatListItem';
 
 const SEGMENTS = ['전체', '읽지 않음', '신규', '즐겨찾기'];
 
-export default function ChatsScreen({ navigation }) {
-  const [seg, setSeg] = useState(0);
+export default function ChatsScreen({ navigation, route }) {
+  // route.params.initialSeg 로 초기 탭을 지정할 수 있게 함 (예: '신규', '전체' 등)
+  const initialIndex = Math.max(
+    0,
+    SEGMENTS.findIndex((s) => s === route?.params?.initialSeg)
+  );
+  const [seg, setSeg] = useState(initialIndex >= 0 ? initialIndex : 0);
+
+  // 다른 화면에서 넘어오며 params가 갱신될 때도 반영
+  useEffect(() => {
+    if (route?.params?.initialSeg) {
+      const idx = SEGMENTS.findIndex((s) => s === route.params.initialSeg);
+      if (idx >= 0) setSeg(idx);
+    }
+  }, [route?.params?.initialSeg]);
 
   // TODO: 실제 API 연동
   const data = useMemo(
@@ -80,7 +93,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.backgroundSecondary, borderBottomWidth: 1, borderBottomColor: colors.border,
   },
   headerTitle: { fontSize: 18, fontWeight: '800', color: colors.text },
-
   segWrap: { flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingVertical: 12, backgroundColor: colors.background },
   seg: {
     paddingVertical: 8, paddingHorizontal: 14, borderRadius: 18,

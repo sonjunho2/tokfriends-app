@@ -10,17 +10,19 @@ const SEGMENTS = ['전체', '읽지 않음', '신규', '즐겨찾기'];
 export default function ChatsScreen({ navigation }) {
   const [seg, setSeg] = useState(0);
 
+  // TODO: 실제 API 연동
   const data = useMemo(
     () =>
       Array.from({ length: 20 }, (_, i) => ({
         id: i + 1,
         name: ['여행', '수별', '같이', '포에', '시얏'][i % 5],
-        avatar: `https://i.pravatar.cc/150?img=${(i % 60) + 1}`,
-        snippet: ['주말에 시간 괜찮으세요?', '사진 고마워요 :)', '네! 확인했습니다', '헬스 같이 하실래요?', '안녕하세요!'][i % 5],
-        timeLabel: ['4분', '1시간', '17시간', '2일', '6시간'][i % 5],
+        preview: ['주말에 시간 괜찮으세요?', '사진 고마워요 :)', '네! 확인했습니다', '헬스 같이 하실래요?', '안녕하세요!'][i % 5],
+        lastSeenLabel: ['4분', '1시간', '17시간', '2일', '6시간'][i % 5],
         regionLabel: ['서울', '대전', '대전', '울산', '서울'][i % 5],
         distanceKm: [7, 132, 270, 22, 233][i % 5],
         unread: [2, 0, 1, 0, 3][i % 5],
+        age: [26, 31, 44, 20, 29][i % 5],
+        points: [0, 5, 0, 90, 40][i % 5],
         online: [true, false, true, false, false][i % 5],
         pinned: i % 7 === 0,
       })),
@@ -29,24 +31,16 @@ export default function ChatsScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* 헤더 */}
+      {/* 헤더 (HOT추천과 동일 스타일) */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8}>
           <Ionicons name="chevron-back" size={26} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>대화</Text>
-
-        {/* ➕ 채팅방 만들기 */}
-        <TouchableOpacity
-          onPress={() => navigation.navigate('CreateChat')}
-          hitSlop={8}
-          style={styles.headerRightBtn}
-        >
-          <Ionicons name="add-circle" size={24} color={colors.primary} />
-        </TouchableOpacity>
+        <View style={{ width: 26 }} />
       </View>
 
-      {/* 세그먼트 */}
+      {/* 세그먼트(알약 탭) */}
       <View style={styles.segWrap}>
         {SEGMENTS.map((label, i) => {
           const on = i === seg;
@@ -63,7 +57,6 @@ export default function ChatsScreen({ navigation }) {
         })}
       </View>
 
-      {/* 채팅 리스트 */}
       <FlatList
         data={data}
         keyExtractor={(it) => String(it.id)}
@@ -73,7 +66,7 @@ export default function ChatsScreen({ navigation }) {
             onPress={() => navigation.navigate('ChatRoom', { id: item.id })}
           />
         )}
-        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 12 }}
+        contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 16, paddingTop: 4 }}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -93,8 +86,6 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   headerTitle: { fontSize: 22, fontWeight: '800', color: colors.text },
-  headerRightBtn: { padding: 4 },
-
   segWrap: { flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingVertical: 14 },
   seg: {
     paddingVertical: 10,

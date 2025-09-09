@@ -1,6 +1,5 @@
-// src/screens/main/HomeScreen.js
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, FlatList, Image } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../theme/colors';
 import Card from '../../components/Card';
@@ -16,8 +15,7 @@ const GRID = [
   { key: 'quick', label: '즉석만남', icon: 'sparkles' },
 ];
 
-const THUMB_H = 150;      // 두 카드 동일 높이
-const THUMB_W = 120;      // 각 썸네일 폭
+const CARD_H = 150; // 두 박스 동일 높이
 
 // 더미 데이터 (TODO: API로 대체)
 const best10 = Array.from({ length: 10 }, (_, i) => ({
@@ -26,11 +24,14 @@ const best10 = Array.from({ length: 10 }, (_, i) => ({
 }));
 const todayNew = Array.from({ length: 12 }, (_, i) => ({
   id: 'n' + i,
-  img: `https://picsum.photos/seed/new${i}/300/300`,
+  img: `https://picsum.photos/seed/new${i}/600/600`,
 }));
 
 export default function HomeScreen({ navigation }) {
   const [leftSec, setLeftSec] = useState(30 * 60);
+  const [idxNew, setIdxNew] = useState(0);
+  const [idxBest, setIdxBest] = useState(0);
+
   useEffect(() => {
     const t = setInterval(() => setLeftSec((s) => (s > 0 ? s - 1 : 0)), 1000);
     return () => clearInterval(t);
@@ -41,18 +42,24 @@ export default function HomeScreen({ navigation }) {
     return `${m}분 ${s}초`;
   }, [leftSec]);
 
-  // 이미지 셀 공통
-  const renderThumb = ({ item }) => (
-    <View style={styles.thumbItem}>
-      <Image source={{ uri: item.img }} style={styles.thumbImg} />
-    </View>
-  );
+  // 캐러셀 자동 전환(스크롤 제거, 이미지 1장씩 자동 변경)
+  useEffect(() => {
+    const t1 = setInterval(() => setIdxNew((i) => (i + 1) % (todayNew.length || 1)), 3000);
+    const t2 = setInterval(() => setIdxBest((i) => (i + 1) % (best10.length || 1)), 3200);
+    return () => {
+      clearInterval(t1);
+      clearInterval(t2);
+    };
+  }, []);
+
+  const newList = todayNew.length > 0 ? todayNew : best10; // 오늘 없으면 대체
+  const newItem = newList[idxNew % newList.length];
+  const bestItem = best10[idxBest % best10.length];
 
   return (
     <SafeAreaView style={styles.container}>
       {/* 상단 앱명(가운데/크게) + 검색 */}
       <View style={styles.appbar}>
-        {/* 좌측 공간(타이틀 센터 보정) */}
         <View style={{ width: 24 }} />
         <Text style={styles.appTitle}>MJ톡</Text>
         <TouchableOpacity hitSlop={8} style={styles.searchBtn}>
@@ -60,7 +67,10 @@ export default function HomeScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 20 }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 120 /* 하단 탭바 가림 방지 */ }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* 초록 배너 */}
         <Card style={styles.greenCard} noPadding>
           <View style={{ padding: 14, paddingRight: 120 }}>
@@ -97,8 +107,6 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.wideTitle}>나에게{'\n'}관심있는 친구들</Text>
             <TouchableOpacity
               onPress={() => {
-                // ✅ 탭 전환 + “신규” 세그먼트로
-                // (HomeStack 내부에서 상위 탭으로 이동)
                 navigation.getParent()?.navigate('Chats', { initialSeg: '신규' });
               }}
             >
@@ -107,39 +115,35 @@ export default function HomeScreen({ navigation }) {
           </View>
         </Card>
 
-        {/* 새로운 친구 / 베스트추천 — 동일 높이 + 가로 스크롤 */}
+        {/* 새로운 친구 / 베스트추천 — 동일 높이 + 이미지 1장 자동 전환 + 하단 중앙 정렬 제목 */}
         <View style={styles.dualRow}>
           {/* 새로운 친구 */}
           <View style={styles.dualCol}>
-            <View style={styles.dualHeader}>
+            <Card style={[styles.dualCard, { height: CARD_H }]}>
+              <View style={styles.imageWrap}>
+                {!!newItem && (
+                  <Image source={{ uri: newItem.img }} style={styles.image} />
+                )}
+              </View>
+            </Card>
+            <View style={styles.cardFooter}>
               <Text style={styles.dualTitle}>새로운 친구</Text>
               <View style={styles.newBadge}><Text style={styles.newBadgeTxt}>NEW</Text></View>
             </View>
-            <Card style={[styles.dualCard, { height: THUMB_H }]}>
-              <FlatList
-                data={todayNew.length > 0 ? todayNew : best10 /* ← 오늘 없으면 어제(대체) */}
-                keyExtractor={(it) => it.id}
-                horizontal
-                renderItem={renderThumb}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 10 }}
-              />
-            </Card>
           </View>
 
           {/* 베스트추천 */}
           <View style={styles.dualCol}>
-            <Text style={styles.dualTitle}>베스트추천</Text>
-            <Card style={[styles.dualCard, { height: THUMB_H }]}>
-              <FlatList
-                data={best10 /* 베스트 10 */}
-                keyExtractor={(it) => it.id}
-                horizontal
-                renderItem={renderThumb}
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 10 }}
-              />
+            <Card style={[styles.dualCard, { height: CARD_H }]}>
+              <View style={styles.imageWrap}>
+                {!!bestItem && (
+                  <Image source={{ uri: bestItem.img }} style={styles.image} />
+                )}
+              </View>
             </Card>
+            <View style={styles.cardFooter}>
+              <Text style={styles.dualTitle}>베스트추천</Text>
+            </View>
           </View>
         </View>
 
@@ -193,18 +197,37 @@ const styles = StyleSheet.create({
 
   dualRow: { flexDirection: 'row', gap: 12, paddingHorizontal: 16, marginTop: 12 },
   dualCol: { flex: 1 },
-  dualHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 6 },
-  dualTitle: { fontSize: 14, fontWeight: '800', color: colors.text },
-  newBadge: { marginLeft: 6, backgroundColor: colors.primaryLight, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
-  newBadgeTxt: { color: colors.primary, fontWeight: '800', fontSize: 10 },
-  dualCard: { borderRadius: 18, justifyContent: 'center' },
 
-  thumbItem: {
-    width: THUMB_W, height: THUMB_H - 16,
-    marginRight: 10, borderRadius: 16, overflow: 'hidden',
+  dualCard: {
+    borderRadius: 18,
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+
+  // 이미지가 박스보다 "살짝 작게 꽉차게" 보이도록 안쪽 여백을 두고 둥근 처리
+  imageWrap: {
+    flex: 1,
+    margin: 10,
+    borderRadius: 16,
+    overflow: 'hidden',
     backgroundColor: '#eee',
   },
-  thumbImg: { width: '100%', height: '100%', resizeMode: 'cover' },
+  image: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+
+  // 하단 중앙 정렬 타이틀
+  cardFooter: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 8,
+    paddingBottom: 2,
+  },
+  dualTitle: { fontSize: 14, fontWeight: '800', color: colors.text, textAlign: 'center' },
+  newBadge: { marginTop: 4, backgroundColor: colors.primaryLight, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
+  newBadgeTxt: { color: colors.primary, fontWeight: '800', fontSize: 10 },
 
   guideCard: { marginHorizontal: 16, marginTop: 12, borderRadius: 14, padding: 16 },
   guideTitle: { fontSize: 16, fontWeight: '800', color: colors.text },

@@ -37,7 +37,8 @@
     "react-native-gesture-handler": "~2.24.0",
     "react-native-reanimated": "~3.17.4",
 
-    "axios": "^1.6.8"
+    "axios": "^1.6.8",
+    "socket.io-client": "^4.7.5"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

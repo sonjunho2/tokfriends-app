@@ -1,7 +1,7 @@
 // tokfriends-app/src/screens/Login.tsx
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
-import { authApi, tokenStore } from '../../lib/api';
+import { authApi, tokenStore } from '../lib/api';
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');

@@ -1,4 +1,6 @@
+// tokfriends-app/src/screens/Login.tsx
 import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { authApi, tokenStore } from '@/lib/api';
 
 export default function LoginScreen() {
@@ -7,57 +9,58 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async () => {
     setLoading(true);
     setError(null);
     try {
       const res = await authApi.loginEmail(email, password);
-      if (res.ok && res.token) {
+      if (res?.ok && res?.token) {
         tokenStore.set(res.token);
-        window.location.href = '/'; // 로그인 후 홈으로 이동
+        // App 루트에서 tokenStore 구독으로 자동 전환
       } else {
         setError('로그인 실패');
       }
     } catch (err: any) {
-      setError(err.message || '로그인 중 오류 발생');
+      setError(err?.message || '로그인 중 오류 발생');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-8 rounded-2xl shadow-md w-80 space-y-4"
-      >
-        <h1 className="text-xl font-bold text-center">로그인</h1>
-        <input
-          type="email"
-          placeholder="이메일"
+    <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 16, backgroundColor: '#F9FAFB' }}>
+      <View style={{ width: 320, backgroundColor: 'white', borderRadius: 16, padding: 16, gap: 12, elevation: 2 }}>
+        <Text style={{ fontSize: 20, fontWeight: '700', textAlign: 'center' }}>로그인</Text>
+        <TextInput
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full border rounded px-3 py-2"
-          required
+          onChangeText={setEmail}
+          placeholder="이메일"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          style={{ borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10 }}
         />
-        <input
-          type="password"
-          placeholder="비밀번호"
+        <TextInput
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full border rounded px-3 py-2"
-          required
+          onChangeText={setPassword}
+          placeholder="비밀번호"
+          secureTextEntry
+          style={{ borderWidth: 1, borderColor: '#E5E7EB', borderRadius: 8, paddingHorizontal: 12, paddingVertical: 10 }}
         />
-        {error && <p className="text-red-500 text-sm">{error}</p>}
-        <button
-          type="submit"
+        {!!error && <Text style={{ color: '#DC2626', fontSize: 12 }}>{error}</Text>}
+        <TouchableOpacity
+          onPress={handleSubmit}
           disabled={loading}
-          className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:opacity-50"
+          style={{
+            backgroundColor: '#2563EB',
+            borderRadius: 8,
+            paddingVertical: 12,
+            alignItems: 'center',
+            opacity: loading ? 0.6 : 1,
+          }}
         >
-          {loading ? '로그인 중...' : '로그인'}
-        </button>
-      </form>
-    </div>
+          {loading ? <ActivityIndicator color="white" /> : <Text style={{ color: 'white', fontWeight: '700' }}>로그인</Text>}
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }

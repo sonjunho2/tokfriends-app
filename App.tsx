@@ -7,19 +7,14 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
-// 화면
 import LoginScreen from './src/screens/Login';
 import DiscoverScreen from './src/screens/Discover';
 import FriendRequestsScreen from './src/screens/FriendRequests';
 import ChatScreen from './src/screens/Chat';
 
-// 토큰
 import { tokenStore } from '@/lib/api';
 
-type RootStackParamList = {
-  Auth: undefined;
-  Main: undefined;
-};
+type RootStackParamList = { Auth: undefined; Main: undefined; };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator();
@@ -50,9 +45,12 @@ export default function App() {
   const [authed, setAuthed] = useState(false);
 
   useEffect(() => {
-    const t = tokenStore.get();
-    setAuthed(!!t);
+    // 초기 토큰 로드
+    setAuthed(!!tokenStore.get());
     setBooting(false);
+    // 토큰 변경 구독 → 상태 동기화
+    const unsub = tokenStore.subscribe((tk) => setAuthed(!!tk));
+    return () => { unsub?.(); };
   }, []);
 
   if (booting) {

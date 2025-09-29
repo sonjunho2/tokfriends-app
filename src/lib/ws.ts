@@ -1,5 +1,5 @@
 import { io, Socket } from 'socket.io-client';
-import { env, tokenStore } from '@/lib/api';
+import { env, tokenStore } from '../lib/api';
 
 export class WS {
   private socket: Socket | null = null;

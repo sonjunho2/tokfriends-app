@@ -1,19 +1,20 @@
-import React, { useContext, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import colors from '../../theme/colors';
-import { AuthContext } from '../../context/AuthContext';
 import Avatar from '../../components/Avatar';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../../context/AuthContext';
 
 export default function MyPageScreen() {
   const navigation = useNavigation();
-  const { user } = useContext(AuthContext) || {};
+  const { user } = useAuth();
   const nickname = user?.nickname || user?.name || '회원님';
   const balance = useMemo(() => {
     const p = user?.points ?? user?.balance ?? 0;
@@ -52,7 +53,13 @@ export default function MyPageScreen() {
             <TouchableOpacity
               style={styles.editBadge}
               activeOpacity={0.9}
-              onPress={() => navigation.navigate('Profile')}
+                         onPress={() => {
+                if (typeof navigation.navigate === 'function') {
+                  navigation.navigate('Home', { screen: 'Profile' });
+                } else {
+                  Alert.alert('알림', '프로필 편집 화면으로 이동할 수 없습니다.');
+                }
+              }}
             >
               <Text style={styles.editBadgeText}>✎</Text>
             </TouchableOpacity>
@@ -65,18 +72,18 @@ export default function MyPageScreen() {
             <GridItem
               label="알림"
               icon="🔔"
-              onPress={() => navigation.navigate('Notifications')}
+                         onPress={() => Alert.alert('준비중', '알림 센터 기능을 준비중입니다.')}
               dot={!!user?.hasUnread}
             />
             <GridItem
               label="1:1문의"
               icon="🎧"
-              onPress={() => navigation.navigate('Support')}
+              onPress={() => Alert.alert('준비중', '1:1 문의 기능을 준비중입니다.')}
             />
             <GridItem
               label="공지"
               icon="📢"
-              onPress={() => navigation.navigate('Notices')}
+                onPress={() => Alert.alert('준비중', '공지사항 기능을 준비중입니다.')}
             />
           </View>
           <View style={styles.gridRow}>
@@ -89,7 +96,7 @@ export default function MyPageScreen() {
               label="무료충전소"
               icon="⚡"
               badge="무료"
-              onPress={() => navigation.navigate('FreeCharge')}
+                onPress={() => Alert.alert('준비중', '무료 충전소 기능을 준비중입니다.')}
             />
             <GridItem
               label="구매한 앨범"

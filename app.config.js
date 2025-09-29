@@ -1,38 +1,38 @@
-# Dependencies
+// Dependencies
 /node_modules
 /.pnp
 .pnp.js
 
-# Expo / React Native caches
+// Expo / React Native caches
 .expo
 .expo-shared
 .expo/web-build
 
-# Metro bundler
+// Metro bundler
 .expo/packager-info.json
 .expo/settings.json
 
- # Build outputs
+// Build outputs
 /dist
 /build
 /web-build
 
-# Logs
+// Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 expo-error.log
 *.log
 
-# OS files
+// OS files
 .DS_Store
 Thumbs.db
 
-# Environment variables
+// Environment variables
 .env
 .env.*
 !.env.example
 
-# Misc
+// Misc
 .idea/
 .vscode/

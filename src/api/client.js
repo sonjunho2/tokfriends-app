@@ -97,6 +97,31 @@ async function tryPostFormSequential(paths, body) {
 }
 
 export const apiClient = {
+  async get(url, config) {
+    try { return await client.get(url, config); }
+    catch (e) { throw normalizeError(e); }
+  },
+
+  async post(url, data, config) {
+    try { return await client.post(url, data, config); }
+    catch (e) { throw normalizeError(e); }
+  },
+
+  async put(url, data, config) {
+    try { return await client.put(url, data, config); }
+    catch (e) { throw normalizeError(e); }
+  },
+
+  async patch(url, data, config) {
+    try { return await client.patch(url, data, config); }
+    catch (e) { throw normalizeError(e); }
+  },
+
+  async delete(url, config) {
+    try { return await client.delete(url, config); }
+    catch (e) { throw normalizeError(e); }
+  },
+  
   async health() {
     try { const { data } = await client.get('/health'); return data; }
     catch (e) { throw normalizeError(e); }

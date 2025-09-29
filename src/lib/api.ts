@@ -1,34 +1,74 @@
-/tokfriends-app/src/lib/api.ts
-// 기본 설정
-const API_BASE = import.meta.env.VITE_TOK_API_BASE || (typeof process !== 'undefined' ? process.env.TOK_API_BASE : '') || '';
-const WS_BASE  = import.meta.env.VITE_TOK_WS_BASE  || (typeof process !== 'undefined' ? process.env.TOK_WS_BASE  : '') || '';
-const JWT_KEY  = import.meta.env.VITE_TOK_JWT_STORAGE_KEY || (typeof process !== 'undefined' ? process.env.TOK_JWT_STORAGE_KEY : 'tokfriends.jwt');
+// tokfriends-app/src/lib/api.ts
+
+// ---- 환경변수 로딩 (Expo: EXPO_PUBLIC_*) ----
+const API_BASE =
+  (typeof process !== 'undefined' && (process.env as any)?.EXPO_PUBLIC_TOK_API_BASE) ||
+  (typeof process !== 'undefined' && (process.env as any)?.TOK_API_BASE) ||
+  (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.VITE_TOK_API_BASE) ||
+  '';
+
+const WS_BASE =
+  (typeof process !== 'undefined' && (process.env as any)?.EXPO_PUBLIC_TOK_WS_BASE) ||
+  (typeof process !== 'undefined' && (process.env as any)?.TOK_WS_BASE) ||
+  (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.VITE_TOK_WS_BASE) ||
+  '';
+
+const JWT_KEY =
+  (typeof process !== 'undefined' && (process.env as any)?.EXPO_PUBLIC_TOK_JWT_STORAGE_KEY) ||
+  (typeof process !== 'undefined' && (process.env as any)?.TOK_JWT_STORAGE_KEY) ||
+  (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.VITE_TOK_JWT_STORAGE_KEY) ||
+  'tokfriends.jwt';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
 
-export const env = {
-  API_BASE,
-  WS_BASE,
-  JWT_KEY,
-};
+export const env = { API_BASE, WS_BASE, JWT_KEY };
 
-// 토큰 저장/조회
+// ---- 토큰 저장/조회 + 변경 이벤트 ----
+type TokenListener = (token: string | null) => void;
+
 export const tokenStore = {
+  _listeners: new Set<TokenListener>(),
+
   get(): string | null {
-    try { return localStorage.getItem(JWT_KEY); } catch { return null; }
+    try { return typeof localStorage !== 'undefined' ? localStorage.getItem(JWT_KEY) : null; } catch { return null; }
   },
+
   set(token: string) {
-    try { localStorage.setItem(JWT_KEY, token); } catch {}
+    try {
+      if (typeof localStorage !== 'undefined') localStorage.setItem(JWT_KEY, token);
+      this._emit();
+    } catch {}
   },
+
   clear() {
-    try { localStorage.removeItem(JWT_KEY); } catch {}
+    try {
+      if (typeof localStorage !== 'undefined') localStorage.removeItem(JWT_KEY);
+      this._emit();
+    } catch {}
+  },
+
+  subscribe(fn: TokenListener) {
+    this._listeners.add(fn);
+    // 즉시 현재 상태 전달
+    try { fn(this.get()); } catch {}
+    return () => this._listeners.delete(fn);
+  },
+
+  _emit() {
+    const tk = this.get();
+    this._listeners.forEach((fn) => {
+      try { fn(tk); } catch {}
+    });
   },
 };
 
-// 공통 요청 래퍼
-async function request<T = any>(path: string, options: { method?: HttpMethod; body?: any; auth?: boolean } = {}): Promise<T> {
+// ---- 공통 요청 래퍼 ----
+async function request<T = any>(
+  path: string,
+  options: { method?: HttpMethod; body?: any; auth?: boolean } = {},
+): Promise<T> {
   if (!API_BASE) throw new Error('API base URL not configured');
-  const url = `${API_BASE.replace(/\/+$/,'')}/${path.replace(/^\/+/, '')}`;
+  const url = `${API_BASE.replace(/\/+$/, '')}/${String(path).replace(/^\/+/, '')}`;
 
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
   if (options.auth) {
@@ -42,7 +82,6 @@ async function request<T = any>(path: string, options: { method?: HttpMethod; bo
     body: options.body ? JSON.stringify(options.body) : undefined,
   });
 
-  // 204 No Content
   if (res.status === 204) return {} as T;
 
   const data = await res.json().catch(() => ({}));
@@ -111,9 +150,11 @@ export const announcementsApi = {
   },
 };
 
-// Metrics (관리자용 요약)
+// Metrics (예시)
 export const metricsApi = {
   async summary() {
     return request<{ ok: boolean; data: any }>('metrics', { method: 'GET', auth: true });
   },
 };
+
+export { WS_BASE };

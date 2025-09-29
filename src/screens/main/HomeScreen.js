@@ -91,7 +91,15 @@ export default function HomeScreen({ navigation }) {
               key={g.key}
               style={styles.gridItem}
               activeOpacity={0.9}
-              onPress={() => { if (g.key === 'hot') navigation.navigate('HotRecommend'); }}
+                         onPress={() => {
+                if (g.key === 'hot') {
+                  navigation.navigate('HotRecommend');
+                } else {
+                  navigation.navigate('UniversalList', {
+                    initialFilter: g.label,
+                  });
+                }
+              }}
             >
               <View style={styles.gridIcon}>
                 <Ionicons name={g.icon} size={22} color={colors.textSecondary} />
@@ -107,7 +115,12 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.wideTitle}>나에게{'\n'}관심있는 친구들</Text>
             <TouchableOpacity
               onPress={() => {
-                navigation.getParent()?.navigate('Chats', { initialSeg: '신규' });
+                         const parentNav = navigation.getParent?.();
+                if (parentNav && typeof parentNav.navigate === 'function') {
+                  parentNav.navigate('Chats', { initialSeg: '신규' });
+                } else if (typeof navigation.navigate === 'function') {
+                  navigation.navigate('Chats');
+                }
               }}
             >
               <Text style={styles.link}>확인하기 ›</Text>

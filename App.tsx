@@ -12,7 +12,7 @@ import DiscoverScreen from './src/screens/Discover';
 import FriendRequestsScreen from './src/screens/FriendRequests';
 import ChatScreen from './src/screens/Chat';
 
-import { tokenStore } from '@/lib/api';
+import { tokenStore } from './src/lib/api';
 
 type RootStackParamList = { Auth: undefined; Main: undefined; };
 

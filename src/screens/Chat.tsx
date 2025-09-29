@@ -1,6 +1,6 @@
 // tokfriends-app/src/screens/Chat.tsx
 import React, { useEffect, useRef, useState } from 'react';
-import { ws } from '@/lib/ws';
+import { ws } from '../lib/ws';
 import { tokenStore } from '../lib/api';
 
 type ChatMsg = {

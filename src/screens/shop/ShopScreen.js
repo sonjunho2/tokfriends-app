@@ -1,15 +1,15 @@
-import React, { useMemo, useContext } from 'react';
+import React, { useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Image,
+  Alert,
 } from 'react-native';
 import colors from '../../theme/colors';
-import { AuthContext } from '../../context/AuthContext';
-import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../../context/AuthContext';
+import { Ionicons } from '@expo/vector-icons';
 
 const POINT_PACKAGES = [
   { id: 'p300', label: '300P', price: '5,900원' },
@@ -21,8 +21,7 @@ const POINT_PACKAGES = [
 ];
 
 export default function ShopScreen() {
-  const navigation = useNavigation();
-  const { user } = useContext(AuthContext) || {};
+  const { user } = useAuth();
   const balance = useMemo(() => {
     // user?.points 또는 user?.balance 값이 있으면 사용, 없으면 0
     const p = user?.points ?? user?.balance ?? 0;
@@ -55,8 +54,7 @@ export default function ShopScreen() {
             style={styles.bannerCta}
             activeOpacity={0.9}
             onPress={() => {
-              // 무통장 스토어 이동(라우팅 이름은 추후 연결)
-              // navigation.navigate('BankStore');
+              Alert.alert('준비중', '무통장 스토어 기능을 준비중입니다.');
             }}
           >
             <Text style={styles.bannerCtaText}>무통장 스토어{'\n'}바로가기</Text>
@@ -69,10 +67,13 @@ export default function ShopScreen() {
           {POINT_PACKAGES.map((item) => (
             <View key={item.id} style={styles.row}>
               <View style={styles.rowLeft}>
-                <Image
-                  source={require('../../assets/point-stack.png')}
-                  style={styles.pointImg}
-                />
+                    <View style={styles.pointImg}>
+                  <Ionicons
+                    name={item.recommended ? 'sparkles' : 'ellipse'}
+                    size={26}
+                    color={item.recommended ? colors.primary : colors.textSecondary}
+                  />
+                </View>
                 <Text style={styles.rowLabel}>
                   {item.label}{' '}
                   {item.recommended ? <Text style={styles.reco}>추천</Text> : null}
@@ -83,8 +84,7 @@ export default function ShopScreen() {
                 style={styles.buyBtn}
                 activeOpacity={0.9}
                 onPress={() => {
-                  // 결제 플로우 연결 지점
-                  // navigation.navigate('Purchase', { productId: item.id });
+                  Alert.alert('준비중', '포인트 충전 결제 기능을 준비중입니다.');
                 }}
               >
                 <Text style={styles.buyBtnText}>{item.price}</Text>
@@ -206,7 +206,10 @@ const styles = StyleSheet.create({
   pointImg: {
     width: 40,
     height: 40,
-    resizeMode: 'contain',
+    borderRadius: 20,
+    backgroundColor: '#F2F4F8',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   rowLabel: {
     fontSize: 18,

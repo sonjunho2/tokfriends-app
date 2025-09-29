@@ -1,5 +1,5 @@
 // src/screens/main/ProfileScreen.js
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -18,18 +18,11 @@ import Card from '../../components/Card';
 import Avatar from '../../components/Avatar';
 import Tag from '../../components/Tag';
 import colors from '../../theme/colors';
-import authStore from '../../store/auth';
+import { useAuth } from '../../context/AuthContext';
 
 export default function ProfileScreen({ navigation }) {
-  const [user, setUser] = useState(authStore.user);
+  const { user, logout } = useAuth();
   const [showRawData, setShowRawData] = useState(false);
-
-  useEffect(() => {
-    const unsubscribe = authStore.subscribe((state) => {
-      setUser(state.user);
-    });
-    return unsubscribe;
-  }, []);
 
   const handleLogout = () => {
     Alert.alert(
@@ -37,10 +30,10 @@ export default function ProfileScreen({ navigation }) {
       '정말 로그아웃 하시겠습니까?',
       [
         { text: '취소', style: 'cancel' },
-        { 
-          text: '로그아웃', 
+       {
+          text: '로그아웃',
           style: 'destructive',
-          onPress: () => authStore.logout()
+          onPress: () => logout(),
         },
       ]
     );

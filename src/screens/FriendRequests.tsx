@@ -1,6 +1,6 @@
 // tokfriends-app/src/screens/FriendRequests.tsx
 import React, { useEffect, useState } from 'react';
-import { friendshipsApi, tokenStore } from '@/lib/api';
+import { friendshipsApi, tokenStore } from '../lib/api';
 
 type RequestRow = {
   id: string;

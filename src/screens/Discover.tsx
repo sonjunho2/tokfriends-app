@@ -1,6 +1,6 @@
 // tokfriends-app/src/screens/Discover.tsx
 import React, { useEffect, useMemo, useState } from 'react';
-import { discoverApi, friendshipsApi, tokenStore } from '@/lib/api';
+import { discoverApi, friendshipsApi, tokenStore } from '../lib/api';
 
 type UserRow = {
   id: string;

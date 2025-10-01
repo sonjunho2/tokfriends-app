@@ -13,7 +13,7 @@ import {
   Alert,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Avatar from '../../components/Avatar';
 import colors from '../../theme/colors';

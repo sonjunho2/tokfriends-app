@@ -49,7 +49,7 @@ export default function ChatsScreen({ navigation, route }) {
         <View style={styles.headerSide}>
           {canGoBack && (
             <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8}>
-              <Ionicons name="chevron-back" size={24} color={colors.text} />
+              <Ionicons name="chevron-back" size={26} color={colors.text} />
             </TouchableOpacity>
           )}
         </View>
@@ -59,9 +59,10 @@ export default function ChatsScreen({ navigation, route }) {
             onPress={() => navigation.navigate('CreateChatRoom')}
             hitSlop={8}
             style={styles.createBtn}
-            activeOpacity={0.8}
+            activeOpacity={0.85}
           >
-            <Ionicons name="create-outline" size={22} color={colors.text} />
+            <Ionicons name="add" size={18} color={colors.textInverse} />
+            <Text style={styles.createBtnTxt}>방 만들기</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -98,7 +99,7 @@ export default function ChatsScreen({ navigation, route }) {
             }
           />
         )}
-        contentContainerStyle={{ paddingHorizontal: 16, backgroundColor: colors.background }}
+        contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
       />
     </View>
@@ -108,20 +109,50 @@ export default function ChatsScreen({ navigation, route }) {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: colors.background },
   header: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 12, paddingVertical: 12,
-    backgroundColor: colors.backgroundSecondary, borderBottomWidth: 1, borderBottomColor: colors.border,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    backgroundColor: colors.backgroundSecondary,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
-    headerSide: { width: 40, alignItems: 'flex-start', justifyContent: 'center' },
-  headerSideRight: { width: 40, alignItems: 'flex-end', justifyContent: 'center' },
-  headerTitle: { fontSize: 18, fontWeight: '800', color: colors.text },
-    createBtn: { alignSelf: 'flex-end' },
-  segWrap: { flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingVertical: 12, backgroundColor: colors.background },
+  headerSide: { width: 40, alignItems: 'flex-start', justifyContent: 'center' },
+  headerSideRight: { minWidth: 40, alignItems: 'flex-end', justifyContent: 'center' },
+  headerTitle: { fontSize: 22, fontWeight: '900', color: colors.text },
+  createBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: colors.primary,
+  },
+  createBtnTxt: { color: colors.textInverse, fontWeight: '800', fontSize: 13 },
+  segWrap: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    backgroundColor: colors.background,
+  },
   seg: {
-    paddingVertical: 8, paddingHorizontal: 14, borderRadius: 18,
-    backgroundColor: colors.pillBg, borderWidth: 1, borderColor: colors.border,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 999,
+    backgroundColor: colors.pillBg,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   segOn: { backgroundColor: colors.pillActiveBg, borderColor: colors.pillActiveBorder },
-  segTxt: { color: colors.textSecondary, fontWeight: '700' },
+  segTxt: { color: colors.textSecondary, fontWeight: '700', fontSize: 13 },
   segTxtOn: { color: colors.primary, fontWeight: '800' },
+    listContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 28,
+    paddingTop: 4,
+    backgroundColor: colors.background,
+  },
 });

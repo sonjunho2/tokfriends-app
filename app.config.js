@@ -1,38 +1,11 @@
-// Dependencies
-node_modules
-.pnp
-.pnp.js
-
-// Expo / React Native caches
-.expo
-.expo-shared
-.expo/web-build
-
-// Metro bundler
-.expo/packager-info.json
-.expo/settings.json
-
-// Build outputs
-/dist
-/build
-/web-build
-
-// Logs
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-expo-error.log
-.log
-
-// OS files
-.DS_Store
-Thumbs.db
-
-// Environment variables
-.env
-.env*
-env.example
-
-// Misc
-.idea/
-vscode
+export default ({ config }) => ({
+  ...config,
+  plugins: [...(config.plugins ?? []), './app.plugin.js'],
+  extra: {
+    ...(config.extra ?? {}),
+    apiBaseUrl:
+      process.env.EXPO_PUBLIC_API_BASE_URL ??
+      config?.extra?.apiBaseUrl ??
+      'https://tok-friends-api.onrender.com',
+  },
+});

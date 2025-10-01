@@ -5,17 +5,17 @@ import colors from '../../theme/colors';
 import Card from '../../components/Card';
 
 const GRID = [
-  { key: 'hot', label: 'HOT추천', icon: 'sparkles' },
-  { key: 'online', label: '접속중', icon: 'sparkles' },
-  { key: 'near', label: '가까운', icon: 'sparkles' },
-  { key: 'age20', label: '20대', icon: 'sparkles' },
-  { key: 'age30', label: '30대', icon: 'sparkles' },
-  { key: 'age40', label: '40대이상', icon: 'sparkles' },
-  { key: 'gender', label: '이성친구', icon: 'sparkles' },
-  { key: 'quick', label: '즉석만남', icon: 'sparkles' },
+  { key: 'hot', label: 'HOT추천' },
+  { key: 'online', label: '접속중' },
+  { key: 'near', label: '가까운' },
+  { key: 'age20', label: '20대' },
+  { key: 'age30', label: '30대' },
+  { key: 'age40', label: '40대이상' },
+  { key: 'gender', label: '이성친구' },
+  { key: 'quick', label: '즉석만남' },
 ];
 
-const CARD_H = 150; // 두 박스 동일 높이
+const CARD_H = 190; // 두 박스 동일 높이
 
 // 더미 데이터 (TODO: API로 대체)
 const best10 = Array.from({ length: 10 }, (_, i) => ({
@@ -89,9 +89,9 @@ export default function HomeScreen({ navigation }) {
           {GRID.map((g) => (
             <TouchableOpacity
               key={g.key}
-                 style={styles.gridItem}
+              style={styles.gridItem}
               activeOpacity={0.9}
-                         onPress={() => {
+              onPress={() => {
                 if (g.key === 'hot') {
                   navigation.navigate('HotRecommend');
                 } else {
@@ -101,10 +101,9 @@ export default function HomeScreen({ navigation }) {
                 }
               }}
             >
-               <View style={styles.gridIcon}>
-                <Ionicons name={g.icon} size={22} color={colors.textSecondary} />
+              <View style={styles.gridIcon}>
+                <Text style={styles.gridIconText}>{g.label}</Text>
               </View>
-              <Text style={styles.gridLabel}>{g.label}</Text>
             </TouchableOpacity>
           ))}
          </View>
@@ -132,6 +131,9 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.dualRow}>
           {/* 새로운 친구 */}
           <View style={styles.dualCol}>
+                      <View style={styles.dualHeader}>
+              <Text style={styles.dualTitle}>새로운 친구</Text>
+            </View>
             <Card style={[styles.dualCard, { height: CARD_H }]}>
               <View style={styles.imageWrap}>
                 {!!newItem && (
@@ -139,14 +141,13 @@ export default function HomeScreen({ navigation }) {
                 )}
               </View>
             </Card>
-            <View style={styles.cardFooter}>
-              <Text style={styles.dualTitle}>새로운 친구</Text>
-              <View style={styles.newBadge}><Text style={styles.newBadgeTxt}>NEW</Text></View>
-            </View>
           </View>
 
           {/* 베스트추천 */}
           <View style={styles.dualCol}>
+                        <View style={styles.dualHeader}>
+              <Text style={styles.dualTitle}>베스트추천</Text>
+            </View>
             <Card style={[styles.dualCard, { height: CARD_H }]}>
               <View style={styles.imageWrap}>
                 {!!bestItem && (
@@ -154,9 +155,6 @@ export default function HomeScreen({ navigation }) {
                 )}
               </View>
             </Card>
-            <View style={styles.cardFooter}>
-              <Text style={styles.dualTitle}>베스트추천</Text>
-            </View>
           </View>
         </View>
 
@@ -194,34 +192,50 @@ const styles = StyleSheet.create({
   greenBadge: { position: 'absolute', right: 10, bottom: 8, backgroundColor: '#DDF0CB', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 },
   greenBadgeTxt: { color: '#2D6B39', fontWeight: '700', fontSize: 11 },
 
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingHorizontal: 16, paddingTop: 12 },
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 14, paddingHorizontal: 16, paddingTop: 12 },
   gridItem: { width: '22%', alignItems: 'center' },
   gridIcon: {
-    width: 56, height: 56, borderRadius: 12,
-    backgroundColor: '#fff', borderWidth: 1, borderColor: colors.border,
-    alignItems: 'center', justifyContent: 'center',
+    width: 72,
+    height: 72,
+    borderRadius: 16,
+    backgroundColor: '#fff',
+    borderWidth: 1.5,
+    borderColor: colors.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 6,
   },
-  gridLabel: { marginTop: 6, fontSize: 12, color: colors.textSecondary, fontWeight: '700' },
+  gridIconText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: colors.text,
+    textAlign: 'center',
+    lineHeight: 18,
+  },
 
   wideCard: { marginHorizontal: 16, marginTop: 12, borderRadius: 14, padding: 16 },
   wideRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   wideTitle: { fontSize: 18, fontWeight: '800', color: colors.text },
   link: { color: colors.primary, fontWeight: '800' },
 
-  dualRow: { flexDirection: 'row', gap: 12, paddingHorizontal: 16, marginTop: 12 },
+  dualRow: { flexDirection: 'row', gap: 16, paddingHorizontal: 16, marginTop: 20 },
   dualCol: { flex: 1 },
 
   dualCard: {
     borderRadius: 18,
     justifyContent: 'center',
     overflow: 'hidden',
+        padding: 0,
   },
 
-  // 이미지가 박스보다 "살짝 작게 꽉차게" 보이도록 안쪽 여백을 두고 둥근 처리
+  dualHeader: {
+    marginBottom: 10,
+    paddingHorizontal: 4,
+  },
+  // 이미지를 박스에 가득 채우되 부드러운 라운드를 유지
   imageWrap: {
     flex: 1,
-    margin: 10,
-    borderRadius: 16,
+    borderRadius: 18,
     overflow: 'hidden',
     backgroundColor: '#eee',
   },
@@ -231,16 +245,11 @@ const styles = StyleSheet.create({
     resizeMode: 'cover',
   },
 
-  // 하단 중앙 정렬 타이틀
-  cardFooter: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingTop: 8,
-    paddingBottom: 2,
+  dualTitle: {
+    fontSize: 16,
+    fontWeight: '900',
+    color: colors.text,
   },
-  dualTitle: { fontSize: 14, fontWeight: '800', color: colors.text, textAlign: 'center' },
-  newBadge: { marginTop: 4, backgroundColor: colors.primaryLight, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 },
-  newBadgeTxt: { color: colors.primary, fontWeight: '800', fontSize: 10 },
 
   guideCard: { marginHorizontal: 16, marginTop: 12, borderRadius: 14, padding: 16 },
   guideTitle: { fontSize: 16, fontWeight: '800', color: colors.text },

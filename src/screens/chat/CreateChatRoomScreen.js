@@ -1,18 +1,21 @@
 // src/screens/chat/CreateChatRoomScreen.js
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  TouchableWithoutFeedback,
+  KeyboardAvoidingView,
+  Keyboard,
+  Platform,
+} from 'react-native';
 import colors from '../../theme/colors';
-import Card from '../../components/Card';
-import ButtonPrimary from '../../components/ButtonPrimary';
 import { apiClient } from '../../api/client';
 
-const CATEGORIES = [
-  'HOT추천', '접속중', '가까운', '20대', '30대', '40대이상', '이성친구', '즉석만남',
-];
-
 export default function CreateChatRoomScreen({ navigation }) {
-  const [category, setCategory] = useState(CATEGORIES[0]);
   const [title, setTitle] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -23,7 +26,7 @@ export default function CreateChatRoomScreen({ navigation }) {
     }
     setSubmitting(true);
     try {
-      const payload = { title: title.trim(), category };
+      const payload = { title: title.trim(), category: '프로필기반' };
       const room = await apiClient.createRoom(payload); // 안전 폴백 포함
       // 생성 성공 → 채팅방으로 진입
       const nextId = room?.id || Date.now();
@@ -34,7 +37,7 @@ export default function CreateChatRoomScreen({ navigation }) {
         user: {
           id: nextId,
           name: nextTitle,
-          category: room?.category || category,
+          category: room?.category || payload.category,
         },
       });
     } catch (e) {
@@ -45,78 +48,138 @@ export default function CreateChatRoomScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      {/* 헤더 */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8}>
-          <Ionicons name="chevron-back" size={26} color={colors.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>채팅방 만들기</Text>
-        <View style={{ width: 26 }} />
-      </View>
+    <View style={styles.backdrop}>
+      <TouchableWithoutFeedback
+        onPress={() => {
+          if (!submitting) navigation.goBack();
+        }}
+      >
+        <View style={styles.overlay} />
+      </TouchableWithoutFeedback>
 
-      <Card style={styles.card}>
-        <Text style={styles.label}>카테고리</Text>
-        <View style={styles.pills}>
-          {CATEGORIES.map((c) => {
-            const on = c === category;
-            return (
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        style={styles.modalWrapper}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>새 채팅방 만들기</Text>
+            <Text style={styles.modalDescription}>
+              관심 카테고리는 가입 시 설정한 내 프로필 정보를 기준으로 자동 추천돼요.
+            </Text>
+
+            <Text style={styles.label}>방 제목</Text>
+            <TextInput
+              value={title}
+              onChangeText={setTitle}
+              placeholder="예) 주말 등산 같이 하실 분"
+              placeholderTextColor={colors.textTertiary}
+              style={styles.input}
+              autoCapitalize="none"
+              maxLength={40}
+              editable={!submitting}
+              returnKeyType="done"
+              onSubmitEditing={onSubmit}
+            />
+
+            <View style={styles.actions}>
               <TouchableOpacity
-                key={c}
-                style={[styles.pill, on && styles.pillOn]}
-                onPress={() => setCategory(c)}
+                style={styles.secondaryBtn}
+                onPress={() => navigation.goBack()}
+                disabled={submitting}
               >
-                <Text style={[styles.pillTxt, on && styles.pillTxtOn]}>{c}</Text>
+                <Text style={styles.secondaryBtnTxt}>취소</Text>
               </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        <Text style={[styles.label, { marginTop: 16 }]}>방 제목</Text>
-        <TextInput
-          value={title}
-          onChangeText={setTitle}
-          placeholder="예) 30대 근처 사람들 자유 대화방"
-          placeholderTextColor={colors.textTertiary}
-          style={styles.input}
-          autoCapitalize="none"
-          maxLength={40}
-        />
-
-        <ButtonPrimary
-          title="방 만들기"
-          onPress={onSubmit}
-          disabled={submitting}
-          style={{ marginTop: 16 }}
-        />
-      </Card>
+              <TouchableOpacity
+                style={[styles.primaryBtn, submitting && styles.primaryBtnDisabled]}
+                onPress={onSubmit}
+                disabled={submitting}
+                activeOpacity={0.85}
+              >
+                <Text style={styles.primaryBtnTxt}>방 만들기</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container:{ flex:1, backgroundColor: colors.background },
-  header:{
-    flexDirection:'row', alignItems:'center', justifyContent:'space-between',
-    paddingHorizontal:12, paddingVertical:10, backgroundColor: colors.backgroundSecondary,
-    borderBottomWidth:1, borderBottomColor: colors.border
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.45)',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
   },
-  headerTitle:{ fontSize:22, fontWeight:'800', color: colors.text },
-
-  card: { margin: 16, borderRadius: 16, padding: 16 },
-  label: { fontSize: 14, fontWeight:'700', color: colors.text, marginBottom: 8 },
-
-  pills: { flexDirection:'row', flexWrap:'wrap', gap: 8 },
-  pill: {
-    paddingVertical:8, paddingHorizontal:14, borderRadius:18,
-    backgroundColor: colors.pillBg, borderWidth:1, borderColor: colors.border
+  overlay: {
+    ...StyleSheet.absoluteFillObject,
   },
-  pillOn: { backgroundColor: colors.pillActiveBg, borderColor: colors.pillActiveBorder },
-  pillTxt: { color: colors.textSecondary, fontWeight:'700' },
-  pillTxtOn: { color: colors.primary },
-
+  modalWrapper: {
+    width: '100%',
+    justifyContent: 'center',
+  },
+  modalCard: {
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: 24,
+    paddingHorizontal: 24,
+    paddingVertical: 28,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: colors.text,
+  },
+  modalDescription: {
+    marginTop: 8,
+    color: colors.textSecondary,
+    lineHeight: 20,
+  },
+  label: {
+    marginTop: 22,
+    marginBottom: 8,
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.text,
+  },
   input: {
-    backgroundColor: '#fff', borderWidth:1, borderColor: colors.border, borderRadius:12,
-    paddingHorizontal:14, paddingVertical:12, fontSize:16, color: colors.text
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: colors.text,
+  },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 28,
+  },
+  secondaryBtn: {
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: colors.backgroundTertiary,
+  },
+  secondaryBtnTxt: {
+    color: colors.textSecondary,
+    fontWeight: '700',
+  },
+  primaryBtn: {
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: colors.primary,
+  },
+  primaryBtnDisabled: {
+    opacity: 0.5,
+  },
+  primaryBtnTxt: {
+    color: colors.textInverse,
+    fontWeight: '800',
   },
 });

@@ -6,18 +6,19 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
-import UniversalListScreen from '../screens/list/UniversalListScreen'; // ✅ 새 화면 추가
+import UniversalListScreen from '../screens/list/UniversalListScreen'; 
 // ===== 메인 =====
 import HomeScreen from '../screens/main/HomeScreen';
-import ExploreScreen from '../screens/explore/ExploreScreen';   // ✅ 탐색
+import ExploreScreen from '../screens/explore/ExploreScreen'; 
 import ChatsScreen from '../screens/main/ChatsScreen';
-import ShopScreen from '../screens/shop/ShopScreen';            // ✅ 더미/실화면
-import MyPageScreen from '../screens/my/MyPageScreen';          // ✅ 더미/실화면
+import ShopScreen from '../screens/shop/ShopScreen';           
+import MyPageScreen from '../screens/my/MyPageScreen';        
 
 // ===== 서브 =====
 import HotRecommendScreen from '../screens/recommend/HotRecommendScreen';
 import ChatRoomScreen from '../screens/main/ChatRoomScreen';
 import ProfileScreen from '../screens/main/ProfileScreen';
+import CreateChatRoomScreen from '../screens/chat/CreateChatRoomScreen';
 
 // ===== 인증 =====
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
@@ -30,26 +31,28 @@ import GenderScreen from '../screens/auth/GenderScreen';
 import LocationScreen from '../screens/auth/LocationScreen';
 import ProfileSetupScreen from '../screens/auth/ProfileSetupScreen';
 
-const Stack = createNativeStackNavigator();
+const AuthStack = createNativeStackNavigator();
+const HomeStackNav = createNativeStackNavigator();
+const ChatsStackNav = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 /** ===== 인증 플로우 ===== */
 function AuthFlow() {
   return (
-    <Stack.Navigator
+    <AuthStack.Navigator
       initialRouteName="Welcome"
       screenOptions={{ headerShown: false }}
     >
-      <Stack.Screen name="Welcome" component={WelcomeScreen} />
-      <Stack.Screen name="Signup" component={SignupScreen} />
-      <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="Agreement" component={AgreementScreen} />
-      <Stack.Screen name="Age" component={AgeScreen} />
-      <Stack.Screen name="Nickname" component={NicknameScreen} />
-      <Stack.Screen name="Gender" component={GenderScreen} />
-      <Stack.Screen name="Location" component={LocationScreen} />
-      <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
-    </Stack.Navigator>
+      <AuthStack.Screen name="Welcome" component={WelcomeScreen} />
+      <AuthStack.Screen name="Signup" component={SignupScreen} />
+      <AuthStack.Screen name="Login" component={LoginScreen} />
+      <AuthStack.Screen name="Agreement" component={AgreementScreen} />
+      <AuthStack.Screen name="Age" component={AgeScreen} />
+      <AuthStack.Screen name="Nickname" component={NicknameScreen} />
+      <AuthStack.Screen name="Gender" component={GenderScreen} />
+      <AuthStack.Screen name="Location" component={LocationScreen} />
+      <AuthStack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
+    </AuthStack.Navigator>
   );
 }
 
@@ -58,26 +61,42 @@ function AuthFlow() {
  */
 function HomeStack() {
   return (
-    <Stack.Navigator
+    <HomeStackNav.Navigator
       initialRouteName="HomeMain"
       screenOptions={{ headerShown: false }}
     >
-      <Stack.Screen name="HomeMain" component={HomeScreen} />
-            {/* ✅ 공용 리스트 화면 */}
-      <Stack.Screen name="UniversalList" component={UniversalListScreen} />
-      <Stack.Screen name="Explore" component={ExploreScreen} />
-      <Stack.Screen name="HotRecommend" component={HotRecommendScreen} />
-      <Stack.Screen
-        name="ChatRoom"
-        component={ChatRoomScreen}
-        options={{ animation: 'slide_from_bottom' }}
-      />
-      <Stack.Screen
+      <HomeStackNav.Screen name="HomeMain" component={HomeScreen} />
+      <HomeStackNav.Screen name="UniversalList" component={UniversalListScreen} />
+      <HomeStackNav.Screen name="Explore" component={ExploreScreen} />
+      <HomeStackNav.Screen name="HotRecommend" component={HotRecommendScreen} />
+      <HomeStackNav.Screen
         name="Profile"
         component={ProfileScreen}
         options={{ animation: 'slide_from_right' }}
       />
-    </Stack.Navigator>
+    </HomeStackNav.Navigator>
+  );
+}
+
+/** ===== 대화 탭 안의 스택 ===== */
+function ChatsStack() {
+  return (
+    <ChatsStackNav.Navigator
+      initialRouteName="ChatsMain"
+      screenOptions={{ headerShown: false }}
+    >
+      <ChatsStackNav.Screen name="ChatsMain" component={ChatsScreen} />
+      <ChatsStackNav.Screen
+        name="ChatRoom"
+        component={ChatRoomScreen}
+        options={{ animation: 'slide_from_right' }}
+      />
+      <ChatsStackNav.Screen
+        name="CreateChatRoom"
+        component={CreateChatRoomScreen}
+        options={{ animation: 'slide_from_bottom' }}
+      />
+    </ChatsStackNav.Navigator>
   );
 }
 
@@ -111,7 +130,7 @@ function MainTabs() {
     >
       {/* 홈 탭은 내부에 HomeStack을 둔다 */}
       <Tab.Screen name="Home" component={HomeStack} options={{ tabBarLabel: '홈' }} />
-      <Tab.Screen name="Chats" component={ChatsScreen} options={{ tabBarLabel: '대화' }} />
+      <Tab.Screen name="Chats" component={ChatsStack} options={{ tabBarLabel: '대화' }} />
       <Tab.Screen name="Shop" component={ShopScreen} options={{ tabBarLabel: '상점' }} />
       <Tab.Screen name="MyPage" component={MyPageScreen} options={{ tabBarLabel: '마이페이지' }} />
     </Tab.Navigator>

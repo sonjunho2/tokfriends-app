@@ -20,21 +20,33 @@ const linking = {
   prefixes: ['ddakchin://'],
   config: {
     screens: {
-      MainTabs: {
+      Home: {
         screens: {
-          Home: 'home',
-          Explore: 'explore',
-          Chats: 'chats',
-          Shop: 'shop',
-          MyPage: 'mypage',
+          HomeMain: 'home',
+          Explore: 'home/explore',
+          UniversalList: 'home/list',
+          HotRecommend: 'home/hot',
+          Profile: 'home/profile',
         },
       },
-      HotRecommend: 'hot',
-      ChatRoom: 'chat/:id',
-      Profile: 'profile',
+      Chats: {
+        screens: {
+          ChatsMain: 'chats',
+          ChatRoom: 'chat/:id',
+          CreateChatRoom: 'chat/create',
+        },
+      },
+      Shop: 'shop',
+      MyPage: 'mypage',
       Login: 'login',
       Signup: 'signup',
       Welcome: 'welcome',
+      Agreement: 'agreement',
+      Age: 'age',
+      Nickname: 'nickname',
+      Gender: 'gender',
+      Location: 'location',
+      ProfileSetup: 'profile-setup',
     },
   },
 };

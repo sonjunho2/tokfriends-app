@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   FlatList,
   TextInput,
   TouchableOpacity,
@@ -64,6 +63,8 @@ export default function ChatRoomScreen({ route, navigation }) {
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
   const [inputText, setInputText] = useState('');
   const flatListRef = useRef(null);
+  const [headerHeight, setHeaderHeight] = useState(0);
+  const [composerHeight, setComposerHeight] = useState(0);
   const [optionsVisible, setOptionsVisible] = useState(false);
   const [reportVisible, setReportVisible] = useState(false);
   const [reportText, setReportText] = useState('');
@@ -160,8 +161,16 @@ export default function ChatRoomScreen({ route, navigation }) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
+    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+      <View
+        style={styles.header}
+        onLayout={(event) => {
+          const nextHeight = event.nativeEvent.layout.height;
+          if (nextHeight !== headerHeight) {
+            setHeaderHeight(nextHeight);
+          }
+        }}
+      >
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
@@ -198,14 +207,18 @@ export default function ChatRoomScreen({ route, navigation }) {
       <KeyboardAvoidingView
         behavior={Platform.select({ ios: 'padding', android: 'height' })}
         style={styles.chatContainer}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 16 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
       >
         <FlatList
           ref={flatListRef}
           data={messages}
           renderItem={renderMessage}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={styles.messagesList}
+          style={styles.messagesListContainer}
+          contentContainerStyle={[
+            styles.messagesList,
+            { paddingBottom: composerHeight + 16 },
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
@@ -216,6 +229,12 @@ export default function ChatRoomScreen({ route, navigation }) {
             styles.inputContainer,
             { paddingBottom: insets.bottom + 8 },
           ]}
+                    onLayout={(event) => {
+            const nextHeight = event.nativeEvent.layout.height;
+            if (nextHeight !== composerHeight) {
+              setComposerHeight(nextHeight);
+            }
+          }}  
         >
           <TouchableOpacity style={styles.attachButton}>
             <Ionicons name="add-circle-outline" size={28} color={colors.textTertiary} />
@@ -344,7 +363,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-    headerAvatar: {
+  headerAvatar: {
     marginRight: 12,
   },
   headerInfo: {
@@ -377,14 +396,17 @@ const styles = StyleSheet.create({
   chatContainer: {
     flex: 1,
   },
+    messagesListContainer: {
+    flex: 1,
+  },
   messagesList: {
     paddingHorizontal: 16,
-    paddingVertical: 16,
+    paddingTop: 16,
   },
   messageContainer: {
     marginBottom: 16,
     flexDirection: 'row',
-        alignItems: 'flex-end',
+    alignItems: 'flex-end',
   },
   myMessageContainer: {
     justifyContent: 'flex-end',
@@ -413,7 +435,7 @@ const styles = StyleSheet.create({
   otherMessageBubble: {
     backgroundColor: colors.backgroundSecondary,
     borderBottomLeftRadius: 4,
-        borderWidth: 1,
+    borderWidth: 1,
     borderColor: colors.borderLight,
   },
   messageText: {
@@ -485,7 +507,7 @@ const styles = StyleSheet.create({
   sendButtonDisabled: {
     opacity: 0.5,
   },
-    optionsBackdrop: {
+  optionsBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(15, 23, 42, 0.2)',
     justifyContent: 'flex-start',

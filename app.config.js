@@ -1,5 +1,9 @@
 export default ({ config }) => ({
   ...config,
+    android: {
+    ...(config.android ?? {}),
+    package: 'com.tokfriends.app',
+  },
   plugins: [...(config.plugins ?? []), './app.plugin.js'],
   extra: {
     ...(config.extra ?? {}),

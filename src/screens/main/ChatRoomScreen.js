@@ -54,7 +54,8 @@ const INITIAL_MESSAGES = [
 ];
 
 export default function ChatRoomScreen({ route, navigation }) {
-  const { user } = route.params || { user: { name: '친구' } };
+  const { user: paramUser, title: paramTitle } = route.params || {};
+  const user = paramUser || { name: paramTitle || '친구' };
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
   const [inputText, setInputText] = useState('');
   const flatListRef = useRef(null);

@@ -48,20 +48,22 @@ export default function SegmentBar({
 }
 
 const styles = StyleSheet.create({
-  wrap: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 8 },
+  wrap: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12 },
   inner: { gap: 10, alignItems: 'center' },
   seg: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 18,
+    minHeight: 44,
+    paddingHorizontal: 18,
+    borderRadius: 20,
     backgroundColor: colors.pillBg,
     borderWidth: 1,
     borderColor: colors.border,
+        justifyContent: 'center',
+    alignItems: 'center',
   },
   segOn: {
     backgroundColor: colors.pillActiveBg,
     borderColor: colors.pillActiveBorder,
   },
-  segTxt: { color: colors.textSecondary, fontWeight: '700' },
+  segTxt: { color: colors.textSecondary, fontWeight: '700', fontSize: 14, lineHeight: 20 },
   segTxtOn: { color: colors.primary },
 });

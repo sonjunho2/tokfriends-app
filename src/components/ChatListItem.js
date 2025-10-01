@@ -7,13 +7,13 @@ import Avatar from './Avatar';
 
 export default function ChatListItem({ item, onPress }) {
   return (
-    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={styles.row}>
+    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={[styles.row, styles.shadow]}>
       {/* 아바타 */}
       <Avatar
         name={item.name}
-        size={56}
+        size={60}
         shape="rounded"   // ← 이미지와 동일한 라운드 사각형
-        style={{ marginRight: 12 }}
+        style={{ marginRight: 14 }}
       />
 
       {/* 중앙 */}
@@ -45,7 +45,7 @@ export default function ChatListItem({ item, onPress }) {
       </View>
 
       {/* 읽음/미읽음 */}
-      <View style={{ marginLeft: 8, alignItems: 'flex-end' }}>
+      <View style={{ marginLeft: 10, alignItems: 'flex-end' }}>
         {item.unread > 0 ? (
           <View style={styles.unread}>
             <Text style={styles.unreadTxt}>{item.unread}</Text>
@@ -62,24 +62,31 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 4,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-    backgroundColor: colors.background, // 리스트 배경과 동일하게
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderRadius: 18,
+    backgroundColor: colors.backgroundSecondary,
+    marginBottom: 12,
+  },
+  shadow: {
+    shadowColor: '#000000',
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
   },
   titleLine: { flexDirection: 'row', alignItems: 'center' },
-  title: { fontSize: 16, fontWeight: '800', color: colors.text },
-  point: { marginLeft: 6, fontSize: 12, fontWeight: '800', color: colors.primary },
-  preview: { marginTop: 4, fontSize: 13, color: colors.textSecondary },
+  title: { fontSize: 17, fontWeight: '800', color: colors.text },
+  point: { marginLeft: 8, fontSize: 12, fontWeight: '800', color: colors.primary },
+  preview: { marginTop: 6, fontSize: 13, color: colors.textSecondary },
 
-  badges: { flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 8, flexWrap: 'wrap' },
+  badges: { flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 8, flexWrap: 'wrap' },
   badge: {
     flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, backgroundColor: '#F7F8FA',
+    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: '#F7F8FA',
   },
-  badgeText: { fontSize: 12, color: colors.textSecondary, fontWeight: '600' },
-  badgePink: { backgroundColor: '#FDE7EE' },
+  badgeText: { fontSize: 12, color: colors.textSecondary, fontWeight: '700' },
+  badgePink: { backgroundColor: colors.primaryLight },
   badgePinkText: { color: colors.primary, fontSize: 12, fontWeight: '800' },
 
   unread: {

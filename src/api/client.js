@@ -214,7 +214,7 @@ export const apiClient = {
   async createRoom(payload = {}) {
     const body = {
       title: String(payload?.title || '').trim(),
-      category: String(payload?.category || '').trim() || '기타',
+      category: String(payload?.category || '').trim() || '프로필기반',
     };
     if (!body.title) {
       throw normalizeError(new Error('방 제목을 입력해 주세요.'));

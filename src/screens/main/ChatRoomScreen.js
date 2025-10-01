@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
     Modal,
   TouchableWithoutFeedback,
   Alert,
+  Keyboard,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Avatar from '../../components/Avatar';
@@ -65,6 +66,24 @@ export default function ChatRoomScreen({ route, navigation }) {
   const [optionsVisible, setOptionsVisible] = useState(false);
   const [reportVisible, setReportVisible] = useState(false);
   const [reportText, setReportText] = useState('');
+  const [androidKeyboard, setAndroidKeyboard] = useState(0);
+
+  useEffect(() => {
+    if (Platform.OS !== 'android') return undefined;
+
+    const showSub = Keyboard.addListener('keyboardDidShow', (event) => {
+      const height = event?.endCoordinates?.height || 0;
+      setAndroidKeyboard(height);
+    });
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
+      setAndroidKeyboard(0);
+    });
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
   
   const sendMessage = () => {
     if (inputText.trim() === '') return;
@@ -115,7 +134,8 @@ export default function ChatRoomScreen({ route, navigation }) {
         {!isMe && (
           <Avatar
             name={user.name}
-            size="small"
+            size={40}
+            shape="rounded"
             style={styles.messageAvatar}
           />
         )}
@@ -153,7 +173,13 @@ export default function ChatRoomScreen({ route, navigation }) {
         </TouchableOpacity>
             
         <View style={styles.headerCenter}>
-          <Avatar name={user.name} size="tiny" />
+          <Avatar
+            name={user.name}
+            size={44}
+            shape="rounded"
+            showBorder
+            style={styles.headerAvatar}
+          />
           <View style={styles.headerInfo}>
             <Text style={styles.headerName}>{user.name}</Text>
             <View style={styles.onlineStatus}>
@@ -173,7 +199,7 @@ export default function ChatRoomScreen({ route, navigation }) {
       </View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.chatContainer}
         keyboardVerticalOffset={0}
       >
@@ -184,10 +210,18 @@ export default function ChatRoomScreen({ route, navigation }) {
           keyExtractor={(item) => item.id}
           contentContainerStyle={styles.messagesList}
           showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
           onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
         />
 
-        <View style={styles.inputContainer}>
+        <View
+          style={[
+            styles.inputContainer,
+            Platform.OS === 'android' && androidKeyboard > 0
+              ? { marginBottom: androidKeyboard }
+              : null,
+          ]}
+        >
           <TouchableOpacity style={styles.attachButton}>
             <Ionicons name="add-circle-outline" size={28} color={colors.textTertiary} />
           </TouchableOpacity>
@@ -314,6 +348,9 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+  },
+    headerAvatar: {
+    marginRight: 12,
   },
   headerInfo: {
     marginLeft: 10,

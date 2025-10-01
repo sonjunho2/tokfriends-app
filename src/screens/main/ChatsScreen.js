@@ -40,15 +40,30 @@ export default function ChatsScreen({ navigation, route }) {
     [seg]
   );
 
+    const canGoBack = navigation.canGoBack();
+  
   return (
     <View style={styles.container}>
       {/* 헤더 */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8}>
-          <Ionicons name="chevron-back" size={24} color={colors.text} />
-        </TouchableOpacity>
+        <View style={styles.headerSide}>
+          {canGoBack && (
+            <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8}>
+              <Ionicons name="chevron-back" size={24} color={colors.text} />
+            </TouchableOpacity>
+          )}
+        </View>
         <Text style={styles.headerTitle}>대화</Text>
-        <View style={{ width: 24 }} />
+        <View style={styles.headerSideRight}>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('CreateChatRoom')}
+            hitSlop={8}
+            style={styles.createBtn}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="create-outline" size={22} color={colors.text} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* 세그먼트 */}
@@ -75,7 +90,12 @@ export default function ChatsScreen({ navigation, route }) {
         renderItem={({ item }) => (
           <ChatListItem
             item={item}
-            onPress={() => navigation.navigate('ChatRoom', { id: item.id })}
+            onPress={() =>
+              navigation.navigate('ChatRoom', {
+                id: item.id,
+                user: item,
+              })
+            }
           />
         )}
         contentContainerStyle={{ paddingHorizontal: 16, backgroundColor: colors.background }}
@@ -92,7 +112,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12, paddingVertical: 12,
     backgroundColor: colors.backgroundSecondary, borderBottomWidth: 1, borderBottomColor: colors.border,
   },
+    headerSide: { width: 40, alignItems: 'flex-start', justifyContent: 'center' },
+  headerSideRight: { width: 40, alignItems: 'flex-end', justifyContent: 'center' },
   headerTitle: { fontSize: 18, fontWeight: '800', color: colors.text },
+    createBtn: { alignSelf: 'flex-end' },
   segWrap: { flexDirection: 'row', gap: 10, paddingHorizontal: 16, paddingVertical: 12, backgroundColor: colors.background },
   seg: {
     paddingVertical: 8, paddingHorizontal: 14, borderRadius: 18,

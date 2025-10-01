@@ -120,6 +120,17 @@ app.json의 apiBaseUrl 확인
 CORS 설정 확인
 JWT_SECRET 환경변수 확인
 
+### API 연결 상태 점검 스크립트
+
+Expo 앱 없이도 API 응답을 확인하려면 프로젝트 루트에서 다음 명령을 실행합니다.
+
+```
+npm run check:api
+```
+
+`EXPO_PUBLIC_API_BASE_URL` 환경변수를 지정하면 해당 주소를 대상으로 `/health`, `/api/health`, `/` 순서로 요청합니다. 첫 번째 성공 응답을 받으면 즉시 종료하고, 모든 경로가 실패하면 마지막 오류 응답을 출력합니다.
+
+
 이미지 로드 실패
 
 assets 폴더 구조 확인

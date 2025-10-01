@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -9,11 +9,12 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
-    Modal,
+  Modal,
   TouchableWithoutFeedback,
   Alert,
-  Keyboard,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Avatar from '../../components/Avatar';
 import colors from '../../theme/colors';
@@ -66,25 +67,21 @@ export default function ChatRoomScreen({ route, navigation }) {
   const [optionsVisible, setOptionsVisible] = useState(false);
   const [reportVisible, setReportVisible] = useState(false);
   const [reportText, setReportText] = useState('');
-  const [androidKeyboard, setAndroidKeyboard] = useState(0);
+  const insets = useSafeAreaInsets();
 
-  useEffect(() => {
-    if (Platform.OS !== 'android') return undefined;
+  useFocusEffect(
+    useCallback(() => {
+      const parent = navigation.getParent();
+      parent?.setOptions({
+        tabBarStyle: { display: 'none' },
+      });
+      
+      return () => {
+        parent?.setOptions({ tabBarStyle: undefined });
+      };
+    }, [navigation])
+  );
 
-    const showSub = Keyboard.addListener('keyboardDidShow', (event) => {
-      const height = event?.endCoordinates?.height || 0;
-      setAndroidKeyboard(height);
-    });
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
-      setAndroidKeyboard(0);
-    });
-
-    return () => {
-      showSub.remove();
-      hideSub.remove();
-    };
-  }, []);
-  
   const sendMessage = () => {
     if (inputText.trim() === '') return;
 
@@ -106,7 +103,7 @@ export default function ChatRoomScreen({ route, navigation }) {
     }, 100);
   };
 
-    const openReport = () => {
+  const openReport = () => {
     setOptionsVisible(false);
     setReportVisible(true);
   };
@@ -199,9 +196,9 @@ export default function ChatRoomScreen({ route, navigation }) {
       </View>
 
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.select({ ios: 'padding', android: 'height' })}
         style={styles.chatContainer}
-        keyboardVerticalOffset={0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 16 : 0}
       >
         <FlatList
           ref={flatListRef}
@@ -217,9 +214,7 @@ export default function ChatRoomScreen({ route, navigation }) {
         <View
           style={[
             styles.inputContainer,
-            Platform.OS === 'android' && androidKeyboard > 0
-              ? { marginBottom: androidKeyboard }
-              : null,
+            { paddingBottom: insets.bottom + 8 },
           ]}
         >
           <TouchableOpacity style={styles.attachButton}>
@@ -448,7 +443,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingTop: 8,
     backgroundColor: colors.backgroundSecondary,
     borderTopWidth: 1,
     borderTopColor: colors.border,
@@ -461,13 +456,13 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'flex-end',
-       backgroundColor: colors.backgroundSecondary,
+    backgroundColor: colors.backgroundSecondary,
     borderRadius: 24,
-        borderWidth: 1,
+    borderWidth: 1,
     borderColor: colors.border,
     marginHorizontal: 8,
     paddingHorizontal: 16,
-        paddingVertical: 10,
+    paddingVertical: 10,
     minHeight: 44,
     maxHeight: 140,
   },

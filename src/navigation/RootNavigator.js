@@ -94,7 +94,11 @@ function ChatsStack() {
       <ChatsStackNav.Screen
         name="CreateChatRoom"
         component={CreateChatRoomScreen}
-        options={{ animation: 'slide_from_bottom' }}
+        options={{
+          animation: 'fade',
+          presentation: 'transparentModal',
+          contentStyle: { backgroundColor: 'transparent' },
+        }}
       />
     </ChatsStackNav.Navigator>
   );
@@ -129,7 +133,19 @@ function MainTabs() {
       })}
     >
       {/* 홈 탭은 내부에 HomeStack을 둔다 */}
-      <Tab.Screen name="Home" component={HomeStack} options={{ tabBarLabel: '홈' }} />
+      <Tab.Screen
+        name="Home"
+        component={HomeStack}
+        options={{ tabBarLabel: '홈' }}
+        listeners={({ navigation }) => ({
+          tabPress: (e) => {
+            // 기본 동작(탭 전환)으로 홈 스택의 현재 화면을 유지하면
+            // 다른 페이지에 머무르게 되므로 명시적으로 초기 화면으로 이동시킨다.
+            e.preventDefault();
+            navigation.navigate('Home', { screen: 'HomeMain' });
+          },
+        })}
+      />
       <Tab.Screen name="Chats" component={ChatsStack} options={{ tabBarLabel: '대화' }} />
       <Tab.Screen name="Shop" component={ShopScreen} options={{ tabBarLabel: '상점' }} />
       <Tab.Screen name="MyPage" component={MyPageScreen} options={{ tabBarLabel: '마이페이지' }} />

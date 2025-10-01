@@ -1,6 +1,6 @@
 // Dependencies
-/node_modules
-/.pnp
+node_modules
+.pnp
 .pnp.js
 
 // Expo / React Native caches
@@ -22,7 +22,7 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 expo-error.log
-*.log
+.log
 
 // OS files
 .DS_Store
@@ -30,9 +30,9 @@ Thumbs.db
 
 // Environment variables
 .env
-.env.*
-!.env.example
+.env*
+env.example
 
 // Misc
 .idea/
-.vscode/
+vscode

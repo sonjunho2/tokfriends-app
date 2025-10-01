@@ -26,7 +26,17 @@ export default function CreateChatRoomScreen({ navigation }) {
       const payload = { title: title.trim(), category };
       const room = await apiClient.createRoom(payload); // 안전 폴백 포함
       // 생성 성공 → 채팅방으로 진입
-      navigation.replace('ChatRoom', { id: room?.id || Date.now(), title: room?.title || title });
+      const nextId = room?.id || Date.now();
+      const nextTitle = room?.title || title.trim();
+      navigation.replace('ChatRoom', {
+        id: nextId,
+        title: nextTitle,
+        user: {
+          id: nextId,
+          name: nextTitle,
+          category: room?.category || category,
+        },
+      });
     } catch (e) {
       Alert.alert('오류', e?.message || '방 생성에 실패했습니다.');
     } finally {

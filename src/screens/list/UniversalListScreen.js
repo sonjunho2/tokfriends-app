@@ -1,6 +1,6 @@
 // src/screens/list/UniversalListScreen.js
 import React, { useMemo, useState, useLayoutEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, FlatList, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../theme/colors';
 import UserListItem from '../../components/UserListItem';
@@ -88,7 +88,12 @@ export default function UniversalListScreen({ navigation, route }) {
   return (
     <View style={styles.container}>
       {/* 알약바(B) */}
-      <View style={styles.segWrap}>
+      <ScrollView
+        style={styles.segScroll}
+        contentContainerStyle={styles.segWrap}
+        horizontal
+        showsHorizontalScrollIndicator={false}
+      >
         {SEGMENTS.map((label, i) => {
           const on = i === seg;
           return (
@@ -102,7 +107,7 @@ export default function UniversalListScreen({ navigation, route }) {
             </TouchableOpacity>
           );
         })}
-      </View>
+      </ScrollView>
 
       {/* 리스트(C) */}
       <FlatList
@@ -120,10 +125,12 @@ export default function UniversalListScreen({ navigation, route }) {
 
 const styles = StyleSheet.create({
   container:{ flex:1, backgroundColor: colors.background },
-  segWrap:{ flexDirection:'row', flexWrap:'wrap', gap:10, paddingHorizontal:16, paddingVertical:14 },
+   segScroll:{ paddingVertical:14 },
+  segWrap:{ flexDirection:'row', alignItems:'center', paddingHorizontal:16, paddingRight:24 },
   seg:{
     paddingVertical:10, paddingHorizontal:16, borderRadius:18,
-    backgroundColor:colors.pillBg, borderWidth:1, borderColor:colors.border
+      backgroundColor:colors.pillBg, borderWidth:1, borderColor:colors.border,
+    marginRight:8,
   },
   segOn:{ backgroundColor:colors.pillActiveBg, borderColor:colors.pillActiveBorder },
   segTxt:{ color:colors.textSecondary, fontWeight:'700' },

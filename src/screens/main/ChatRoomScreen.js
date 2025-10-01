@@ -9,6 +9,9 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+    Modal,
+  TouchableWithoutFeedback,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Avatar from '../../components/Avatar';
@@ -59,7 +62,10 @@ export default function ChatRoomScreen({ route, navigation }) {
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
   const [inputText, setInputText] = useState('');
   const flatListRef = useRef(null);
-
+  const [optionsVisible, setOptionsVisible] = useState(false);
+  const [reportVisible, setReportVisible] = useState(false);
+  const [reportText, setReportText] = useState('');
+  
   const sendMessage = () => {
     if (inputText.trim() === '') return;
 
@@ -79,6 +85,23 @@ export default function ChatRoomScreen({ route, navigation }) {
     setTimeout(() => {
       flatListRef.current?.scrollToEnd({ animated: true });
     }, 100);
+  };
+
+    const openReport = () => {
+    setOptionsVisible(false);
+    setReportVisible(true);
+  };
+
+  const submitReport = () => {
+    if (!reportText.trim()) {
+      Alert.alert('알림', '신고 내용을 입력해 주세요.');
+      return;
+    }
+
+    const submittedText = reportText.trim();
+    setReportVisible(false);
+    setReportText('');
+    Alert.alert('신고 완료', `신고가 접수되었습니다.\n\n내용: ${submittedText}`);
   };
 
   const renderMessage = ({ item }) => {
@@ -122,13 +145,13 @@ export default function ChatRoomScreen({ route, navigation }) {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
           <Ionicons name="arrow-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        
+            
         <View style={styles.headerCenter}>
           <Avatar name={user.name} size="tiny" />
           <View style={styles.headerInfo}>
@@ -140,7 +163,11 @@ export default function ChatRoomScreen({ route, navigation }) {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.moreButton}>
+        <TouchableOpacity
+          style={styles.moreButton}
+          onPress={() => setOptionsVisible(true)}
+          hitSlop={8}
+        >
           <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
         </TouchableOpacity>
       </View>
@@ -164,7 +191,7 @@ export default function ChatRoomScreen({ route, navigation }) {
           <TouchableOpacity style={styles.attachButton}>
             <Ionicons name="add-circle-outline" size={28} color={colors.textTertiary} />
           </TouchableOpacity>
-          
+            
           <View style={styles.inputWrapper}>
             <TextInput
               style={styles.textInput}
@@ -180,7 +207,7 @@ export default function ChatRoomScreen({ route, navigation }) {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[
               styles.sendButton,
               inputText.trim() === '' && styles.sendButtonDisabled
@@ -188,14 +215,79 @@ export default function ChatRoomScreen({ route, navigation }) {
             onPress={sendMessage}
             disabled={inputText.trim() === ''}
           >
-            <Ionicons 
-              name="send" 
-              size={20} 
-              color={inputText.trim() ? colors.primary : colors.textTertiary} 
+            <Ionicons
+              name="send"
+              size={20}
+              color={inputText.trim() ? colors.primary : colors.textTertiary}
             />
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+              
+      <Modal
+        transparent
+        visible={optionsVisible}
+        animationType="fade"
+        onRequestClose={() => setOptionsVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setOptionsVisible(false)}>
+          <View style={styles.optionsBackdrop}>
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View style={styles.optionCard}>
+                <TouchableOpacity style={styles.optionItem} onPress={openReport}>
+                  <Ionicons name="flag-outline" size={18} color={colors.primary} />
+                  <Text style={styles.optionText}>신고하기</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
+
+      <Modal
+        transparent
+        visible={reportVisible}
+        animationType="fade"
+        onRequestClose={() => setReportVisible(false)}
+      >
+        <TouchableWithoutFeedback onPress={() => setReportVisible(false)}>
+          <View style={styles.modalBackdrop}>
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View style={styles.reportCard}>
+                <Text style={styles.reportTitle}>신고하기</Text>
+                <Text style={styles.reportDescription}>
+                  문제가 되는 내용을 자세히 작성해 주세요. 확인 후 신속히 조치하겠습니다.
+                </Text>
+                <TextInput
+                  style={styles.reportInput}
+                  multiline
+                  placeholder="신고 내용을 입력하세요"
+                  placeholderTextColor={colors.textTertiary}
+                  value={reportText}
+                  onChangeText={setReportText}
+                  maxLength={500}
+                />
+                <View style={styles.reportActions}>
+                  <TouchableOpacity
+                    style={styles.secondaryBtn}
+                    onPress={() => setReportVisible(false)}
+                  >
+                    <Text style={styles.secondaryBtnTxt}>취소</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={[styles.primaryBtn, reportText.trim() === '' && styles.primaryBtnDisabled]}
+                    onPress={submitReport}
+                    disabled={reportText.trim() === ''}
+                    activeOpacity={0.85}
+                  >
+                    <Text style={styles.primaryBtnTxt}>신고 보내기</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -260,12 +352,15 @@ const styles = StyleSheet.create({
   messageContainer: {
     marginBottom: 16,
     flexDirection: 'row',
+        alignItems: 'flex-end',
   },
   myMessageContainer: {
     justifyContent: 'flex-end',
+        alignSelf: 'flex-end',
   },
   otherMessageContainer: {
     justifyContent: 'flex-start',
+        alignSelf: 'flex-start',
   },
   messageAvatar: {
     marginRight: 8,
@@ -284,8 +379,10 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 4,
   },
   otherMessageBubble: {
-    backgroundColor: colors.backgroundTertiary,
+    backgroundColor: colors.backgroundSecondary,
     borderBottomLeftRadius: 4,
+        borderWidth: 1,
+    borderColor: colors.borderLight,
   },
   messageText: {
     fontSize: 15,
@@ -327,13 +424,15 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: colors.backgroundTertiary,
+       backgroundColor: colors.backgroundSecondary,
     borderRadius: 24,
+        borderWidth: 1,
+    borderColor: colors.border,
     marginHorizontal: 8,
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    minHeight: 40,
-    maxHeight: 120,
+        paddingVertical: 10,
+    minHeight: 44,
+    maxHeight: 140,
   },
   textInput: {
     flex: 1,
@@ -341,7 +440,7 @@ const styles = StyleSheet.create({
     color: colors.text,
     paddingTop: 0,
     paddingBottom: 0,
-    maxHeight: 100,
+    maxHeight: 120,
   },
   emojiButton: {
     padding: 4,
@@ -353,5 +452,97 @@ const styles = StyleSheet.create({
   },
   sendButtonDisabled: {
     opacity: 0.5,
+  },
+    optionsBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.2)',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-end',
+    paddingHorizontal: 18,
+    paddingTop: 72,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  optionCard: {
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    minWidth: 140,
+  },
+  optionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 6,
+  },
+  optionText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  reportCard: {
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: 20,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    width: '100%',
+    maxWidth: 420,
+  },
+  reportTitle: {
+    fontSize: 18,
+    fontWeight: '900',
+    color: colors.text,
+  },
+  reportDescription: {
+    marginTop: 8,
+    color: colors.textSecondary,
+    lineHeight: 20,
+  },
+  reportInput: {
+    marginTop: 16,
+    minHeight: 120,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    textAlignVertical: 'top',
+    backgroundColor: '#fff',
+    color: colors.text,
+  },
+  reportActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 12,
+    marginTop: 20,
+  },
+  secondaryBtn: {
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: colors.backgroundTertiary,
+  },
+  secondaryBtnTxt: {
+    color: colors.textSecondary,
+    fontWeight: '700',
+  },
+  primaryBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: colors.primary,
+  },
+  primaryBtnDisabled: {
+    opacity: 0.5,
+  },
+  primaryBtnTxt: {
+    color: colors.textInverse,
+    fontWeight: '800',
   },
 });

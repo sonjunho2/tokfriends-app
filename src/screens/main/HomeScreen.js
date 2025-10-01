@@ -5,15 +5,14 @@ import colors from '../../theme/colors';
 import Card from '../../components/Card';
 
 const GRID = [
- { key: 'all', label: '전체' },
-  { key: 'hot', label: 'HOT추천', emphasis: true },
-  { key: 'online', label: '접속중' },
-  { key: 'near', label: '가까운' },
-  { key: 'age20', label: '20대' },
-  { key: 'age30', label: '30대' },
-  { key: 'age40', label: '40대이상' },
-  { key: 'gender', label: '이성친구' },
-  { key: 'quick', label: '즉석만남' },
+  { key: 'hot', label: 'HOT추천', icon: 'sparkles' },
+  { key: 'online', label: '접속중', icon: 'sparkles' },
+  { key: 'near', label: '가까운', icon: 'sparkles' },
+  { key: 'age20', label: '20대', icon: 'sparkles' },
+  { key: 'age30', label: '30대', icon: 'sparkles' },
+  { key: 'age40', label: '40대이상', icon: 'sparkles' },
+  { key: 'gender', label: '이성친구', icon: 'sparkles' },
+  { key: 'quick', label: '즉석만남', icon: 'sparkles' },
 ];
 
 const CARD_H = 150; // 두 박스 동일 높이
@@ -85,17 +84,12 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.greenBadge}><Text style={styles.greenBadgeTxt}>1/1</Text></View>
         </Card>
 
-       {/* 빠른 필터 - 가로 스크롤 칩 */}
-        <ScrollView
-          style={styles.filterScroll}
-          contentContainerStyle={styles.filterContent}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        >
+         {/* 빠른 필터 - 2×4 아이콘 그리드 */}
+        <View style={styles.grid}>
           {GRID.map((g) => (
             <TouchableOpacity
               key={g.key}
-                style={[styles.filterChip, g.emphasis && styles.filterChipEmphasis]}
+                 style={styles.gridItem}
               activeOpacity={0.9}
                          onPress={() => {
                 if (g.key === 'hot') {
@@ -107,10 +101,13 @@ export default function HomeScreen({ navigation }) {
                 }
               }}
             >
-               <Text style={[styles.filterLabel, g.emphasis && styles.filterLabelEmphasis]}>{g.label}</Text>
+               <View style={styles.gridIcon}>
+                <Ionicons name={g.icon} size={22} color={colors.textSecondary} />
+              </View>
+              <Text style={styles.gridLabel}>{g.label}</Text>
             </TouchableOpacity>
           ))}
-            </ScrollView>
+         </View>
 
         {/* 나에게 관심있는 친구들 */}
         <Card style={styles.wideCard}>
@@ -197,29 +194,14 @@ const styles = StyleSheet.create({
   greenBadge: { position: 'absolute', right: 10, bottom: 8, backgroundColor: '#DDF0CB', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 3 },
   greenBadgeTxt: { color: '#2D6B39', fontWeight: '700', fontSize: 11 },
 
-  filterScroll: { marginTop: 12 },
-  filterContent: {
-    paddingHorizontal: 16,
-    paddingVertical: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingRight: 24,
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, paddingHorizontal: 16, paddingTop: 12 },
+  gridItem: { width: '22%', alignItems: 'center' },
+  gridIcon: {
+    width: 56, height: 56, borderRadius: 12,
+    backgroundColor: '#fff', borderWidth: 1, borderColor: colors.border,
+    alignItems: 'center', justifyContent: 'center',
   },
-  filterChip: {
-    borderRadius: 18,
-    borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: '#fff',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginRight: 8,
-  },
-  filterChipEmphasis: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primaryLight,
-  },
-    filterLabel: { fontSize: 13, fontWeight: '700', color: colors.textSecondary },
-  filterLabelEmphasis: { color: colors.primary, fontWeight: '800' },
+  gridLabel: { marginTop: 6, fontSize: 12, color: colors.textSecondary, fontWeight: '700' },
 
   wideCard: { marginHorizontal: 16, marginTop: 12, borderRadius: 14, padding: 16 },
   wideRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

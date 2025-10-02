@@ -268,7 +268,17 @@ export const apiClient = {
   async createPost(postData) { const { data } = await client.post('/posts', postData); return data; },
   async reportUser(reportData) { const { data } = await client.post('/community/report', reportData); return data; },
   async blockUser(blockData) { const { data } = await client.post('/community/block', blockData); return data; },
-  async getGiftOptions() { const { data } = await client.get('/gifts'); return data; },
+  async getGiftOptions() {
+    try {
+      const { data } = await client.get('/gifts');
+      return data;
+    } catch (err) {
+      if (err?.response?.status === 404) {
+        return [];
+      }
+      throw normalizeError(err);
+    }
+  },
 };
 
 export default client;

@@ -10,7 +10,6 @@ export default ({ config }) => {
     },
     plugins: [
       ...(config.plugins ?? []),
-      // EAS/CI에서만 네이티브 빌드 플러그인 적용 (Snack/Web에서는 제외)
       ...(isCI
         ? [
             [
@@ -25,7 +24,6 @@ export default ({ config }) => {
                 },
               },
             ],
-            './app.plugin.js',
           ]
         : []),
     ],
@@ -41,4 +39,3 @@ export default ({ config }) => {
     },
   };
 };
-

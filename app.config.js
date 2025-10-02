@@ -2,7 +2,7 @@ export default ({ config }) => ({
   ...config,
     android: {
     ...(config.android ?? {}),
-    package: 'com.tokfriends.app',
+    package: 'com.sonjunho.ddakchin',
   },
   plugins: [...(config.plugins ?? []), './app.plugin.js'],
   extra: {

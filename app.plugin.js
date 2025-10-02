@@ -1,4 +1,3 @@
-app.plugin.js
 // 새파일 또는 교체
 // 목적: RN 0.76 Gradle 플러그인에서 제거된 `enableBundleCompression` 속성 라인을 app/build.gradle에서 제거
 const { withAppBuildGradle } = require('@expo/config-plugins');

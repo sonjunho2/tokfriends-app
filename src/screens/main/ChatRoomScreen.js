@@ -245,11 +245,12 @@ export default function ChatRoomScreen({ route, navigation }) {
       const gifts = await listGiftOptions();
       setGiftOptions(gifts);
       if (gifts.length === 0) {
-        setGiftError('등록된 선물 목록이 없습니다.');
+        setGiftError('선물 기능이 준비 중입니다.');
       }
     } catch (error) {
       console.error('Failed to load gift options:', error);
-      setGiftError(error?.message || '선물 목록을 불러오지 못했습니다.');
+      setGiftOptions([]);
+      setGiftError('선물 기능이 준비 중입니다.');
     } finally {
       setLoadingGifts(false);
     }
@@ -635,7 +636,7 @@ export default function ChatRoomScreen({ route, navigation }) {
                   />
                 ) : (
                   <View style={styles.giftErrorContainer}>
-                    <Text style={styles.giftErrorText}>{giftError || '등록된 선물 목록이 없습니다.'}</Text>
+                    <Text style={styles.giftErrorText}>{giftError || '선물 기능이 준비 중입니다.'}</Text>
                     <TouchableOpacity style={styles.giftRetryButton} onPress={loadGiftOptions}>
                       <Text style={styles.giftRetryText}>다시 시도</Text>
                     </TouchableOpacity>

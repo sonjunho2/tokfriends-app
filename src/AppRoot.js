@@ -5,6 +5,7 @@ import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import * as Font from 'expo-font';
 import * as SecureStore from 'expo-secure-store';
+import * as ScreenCapture from 'expo-screen-capture';
 import { 
  useFonts,
  NotoSansKR_400Regular,
@@ -23,9 +24,27 @@ export default function App() {
    NotoSansKR_700Bold,
  });
 
- useEffect(() => {
-   initializeApp();
- }, []);
+useEffect(() => {
+  initializeApp();
+}, []);
+
+useEffect(() => {
+  const preventCapture = async () => {
+    try {
+      await ScreenCapture.preventScreenCaptureAsync();
+    } catch (error) {
+      console.warn('Failed to prevent screen capture:', error);
+    }
+  };
+
+  preventCapture();
+
+  return () => {
+    ScreenCapture.allowScreenCaptureAsync().catch((error) => {
+      console.warn('Failed to re-enable screen capture:', error);
+    });
+  };
+}, []);
 
  const initializeApp = async () => {
    try {

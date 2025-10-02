@@ -214,6 +214,7 @@ export default function ChatRoomScreen({ route, navigation }) {
   );
 
   const handlePickFromLibrary = useCallback(async () => {
+    setKeyboardVisible(false);
     setAttachSheetVisible(false);
     const hasPermission = await ensureLibraryPermission();
     if (!hasPermission) return;
@@ -235,11 +236,13 @@ export default function ChatRoomScreen({ route, navigation }) {
   }, [appendMediaMessage, ensureLibraryPermission]);
 
   const handleOpenCameraOptions = useCallback(() => {
+    setKeyboardVisible(false);
     setAttachSheetVisible(false);
     setCameraModeVisible(true);
   }, []);
 
   const handleOpenGiftSheet = useCallback(() => {
+    setKeyboardVisible(false);
     setAttachSheetVisible(false);
     setGiftSheetVisible(true);
   }, []);
@@ -502,6 +505,7 @@ export default function ChatRoomScreen({ route, navigation }) {
             style={styles.attachButton}
             onPress={() => {
               Keyboard.dismiss();
+              setKeyboardVisible(false);
               setAttachSheetVisible(true);
             }}
           >
@@ -543,12 +547,14 @@ export default function ChatRoomScreen({ route, navigation }) {
         animationType="fade"
         onRequestClose={() => {
           Keyboard.dismiss();
+          setKeyboardVisible(false);
           setAttachSheetVisible(false);
         }}
       >
         <TouchableWithoutFeedback
           onPress={() => {
             Keyboard.dismiss();
+            setKeyboardVisible(false);
             setAttachSheetVisible(false);
           }}
         >

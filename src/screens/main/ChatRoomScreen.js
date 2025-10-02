@@ -80,7 +80,22 @@ export default function ChatRoomScreen({ route, navigation }) {
   const [giftOptions, setGiftOptions] = useState([]);
   const [loadingGifts, setLoadingGifts] = useState(false);
   const [giftError, setGiftError] = useState(null);
+  const [isKeyboardVisible, setKeyboardVisible] = useState(false);
   const insets = useSafeAreaInsets();
+
+    useEffect(() => {
+    const showListener = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const hideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+
+    return () => {
+      showListener.remove();
+      hideListener.remove();
+    };
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -452,6 +467,7 @@ export default function ChatRoomScreen({ route, navigation }) {
 
       <KeyboardAvoidingView
         behavior={Platform.select({ ios: 'padding', android: 'height' })}
+        enabled={Platform.OS === 'ios' ? true : isKeyboardVisible}
         style={styles.chatContainer}
         keyboardVerticalOffset={Platform.OS === 'ios' ? headerHeight : 0}
       >
@@ -525,7 +541,10 @@ export default function ChatRoomScreen({ route, navigation }) {
         transparent
         visible={attachSheetVisible}
         animationType="fade"
-        onRequestClose={() => setAttachSheetVisible(false)}
+        onRequestClose={() => {
+          Keyboard.dismiss();
+          setAttachSheetVisible(false);
+        }}
       >
         <TouchableWithoutFeedback
           onPress={() => {

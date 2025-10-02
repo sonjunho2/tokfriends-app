@@ -1,10 +1,25 @@
 export default ({ config }) => ({
   ...config,
-    android: {
+  android: {
     ...(config.android ?? {}),
     package: 'com.sonjunho.ddakchin',
   },
-  plugins: [...(config.plugins ?? []), './app.plugin.js'],
+  plugins: [
+    ...(config.plugins ?? []),
+    [
+      'expo-build-properties',
+      {
+        android: {
+          kotlinVersion: '2.0.21',
+          gradlePluginVersion: '8.7.2',
+          compileSdkVersion: 35,
+          targetSdkVersion: 35,
+          minSdkVersion: 24
+        }
+      }
+    ],
+    './app.plugin.js'
+  ],
   extra: {
     ...(config.extra ?? {}),
     apiBaseUrl:

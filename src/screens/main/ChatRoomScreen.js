@@ -13,6 +13,7 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  Keyboard,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -483,7 +484,10 @@ export default function ChatRoomScreen({ route, navigation }) {
         >
           <TouchableOpacity
             style={styles.attachButton}
-            onPress={() => setAttachSheetVisible(true)}
+            onPress={() => {
+              Keyboard.dismiss();
+              setAttachSheetVisible(true);
+            }}
           >
             <Ionicons name="add-circle-outline" size={28} color={colors.textTertiary} />
           </TouchableOpacity>
@@ -523,7 +527,12 @@ export default function ChatRoomScreen({ route, navigation }) {
         animationType="fade"
         onRequestClose={() => setAttachSheetVisible(false)}
       >
-        <TouchableWithoutFeedback onPress={() => setAttachSheetVisible(false)}>
+        <TouchableWithoutFeedback
+          onPress={() => {
+            Keyboard.dismiss();
+            setAttachSheetVisible(false);
+          }}
+        >
           <View style={styles.bottomSheetBackdrop}>
             <TouchableWithoutFeedback onPress={() => {}}>
               <View style={[styles.bottomSheetContainer, { paddingBottom: insets.bottom + 16 }]}>

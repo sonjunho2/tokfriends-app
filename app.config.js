@@ -1,4 +1,3 @@
-app.config.js
 export default ({ config }) => {
   const isCI = process.env.EAS_BUILD === 'true' || process.env.CI === 'true';
 

@@ -20,6 +20,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { Video } from 'expo-av';
+import { LinearGradient } from 'expo-linear-gradient';
 import Avatar from '../../components/Avatar';
 import colors from '../../theme/colors';
 import { listGiftOptions } from '../../api/gifts';
@@ -81,9 +82,10 @@ export default function ChatRoomScreen({ route, navigation }) {
   const [loadingGifts, setLoadingGifts] = useState(false);
   const [giftError, setGiftError] = useState(null);
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(route?.params?.isFavorite ?? false);
   const insets = useSafeAreaInsets();
 
-    useEffect(() => {
+  useEffect(() => {
     const showListener = Keyboard.addListener('keyboardDidShow', () => {
       setKeyboardVisible(true);
     });
@@ -109,6 +111,12 @@ export default function ChatRoomScreen({ route, navigation }) {
       };
     }, [navigation])
   );
+
+    useEffect(() => {
+    if (typeof route?.params?.isFavorite === 'boolean') {
+      setIsFavorite(route.params.isFavorite);
+    }
+  }, [route?.params?.isFavorite]);
 
   const formatPoints = useCallback((amount) => {
     const numeric = Number(amount);
@@ -247,6 +255,22 @@ export default function ChatRoomScreen({ route, navigation }) {
     setGiftSheetVisible(true);
   }, []);
 
+    const handleToggleFavorite = useCallback(() => {
+    setOptionsVisible(false);
+    setIsFavorite((prev) => {
+      const next = !prev;
+      route?.params?.onToggleFavorite?.(next);
+      navigation.setParams({ isFavorite: next });
+      Alert.alert(
+        '즐겨찾기',
+        next
+          ? `${user.name}님을 즐겨찾기에 추가했어요.`
+          : `${user.name}님을 즐겨찾기에서 삭제했어요.`
+      );
+      return next;
+    });
+  }, [navigation, route?.params, user.name]);
+
   const handleSendGift = useCallback(
     (gift) => {
       if (!gift) return;
@@ -306,7 +330,7 @@ export default function ChatRoomScreen({ route, navigation }) {
 
   const renderMessage = ({ item }) => {
     const isMe = item.sender === 'me';
-        const bubbleStyles = [
+    const bubbleStyles = [
       styles.messageBubble,
       isMe ? styles.myMessageBubble : styles.otherMessageBubble,
     ];
@@ -345,8 +369,8 @@ export default function ChatRoomScreen({ route, navigation }) {
       }
 
       if (item.type === 'gift' && item.gift) {
-        const giftTextColor = isMe ? colors.textInverse : colors.text;
-        const giftAccentColor = isMe ? colors.textInverse : colors.primary;
+        const giftTextColor = isMe ? '#3F2A00' : colors.text;
+        const giftAccentColor = isMe ? '#3F2A00' : colors.primary;
 
         return (
           <View style={styles.giftContent}>
@@ -389,7 +413,7 @@ export default function ChatRoomScreen({ route, navigation }) {
           <Avatar
             name={user.name}
             size={40}
-            shape="rounded"
+            shape="circle"
             style={styles.messageAvatar}
           />
         )}
@@ -425,12 +449,13 @@ export default function ChatRoomScreen({ route, navigation }) {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
-      <View
-        style={styles.header}
-        onLayout={(event) => {
-          const nextHeight = event.nativeEvent.layout.height;
-          if (nextHeight !== headerHeight) {
+    <LinearGradient colors={['#B7D9FF', '#FFE5A8']} style={styles.gradient}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
+        <View
+          style={styles.header}
+          onLayout={(event) => {
+            const nextHeight = event.nativeEvent.layout.height;
+            if (nextHeight !== headerHeight) {
             setHeaderHeight(nextHeight);
           }
         }}
@@ -439,15 +464,14 @@ export default function ChatRoomScreen({ route, navigation }) {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+          <Ionicons name="arrow-back" size={24} color="#1F2A44" />
         </TouchableOpacity>
-            
+
         <View style={styles.headerCenter}>
           <Avatar
             name={user.name}
-            size={44}
-            shape="rounded"
-            showBorder
+            size={46}
+            shape="circle"
             style={styles.headerAvatar}
           />
           <View style={styles.headerInfo}>
@@ -459,13 +483,31 @@ export default function ChatRoomScreen({ route, navigation }) {
           </View>
         </View>
 
-        <TouchableOpacity
-          style={styles.moreButton}
-          onPress={() => setOptionsVisible(true)}
-          hitSlop={8}
-        >
-          <Ionicons name="ellipsis-vertical" size={20} color={colors.text} />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={[
+              styles.favoriteButton,
+              isFavorite && styles.favoriteButtonActive,
+            ]}
+            onPress={handleToggleFavorite}
+            hitSlop={8}
+            activeOpacity={0.85}
+          >
+            <Ionicons
+              name={isFavorite ? 'star' : 'star-outline'}
+              size={22}
+              color={isFavorite ? '#F7B500' : '#1F2A44'}
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.moreButton}
+            onPress={() => setOptionsVisible(true)}
+            hitSlop={8}
+          >
+            <Ionicons name="ellipsis-vertical" size={20} color="#1F2A44" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <KeyboardAvoidingView
@@ -509,7 +551,7 @@ export default function ChatRoomScreen({ route, navigation }) {
               setAttachSheetVisible(true);
             }}
           >
-            <Ionicons name="add-circle-outline" size={28} color={colors.textTertiary} />
+            <Ionicons name="add-circle-outline" size={28} color="#7D8597" />
           </TouchableOpacity>
 
           <View style={styles.inputWrapper}>
@@ -533,9 +575,9 @@ export default function ChatRoomScreen({ route, navigation }) {
             disabled={inputText.trim() === ''}
           >
             <Ionicons
-              name="send"
+             name="paper-plane"
               size={20}
-              color={inputText.trim() ? colors.primary : colors.textTertiary}
+              color={inputText.trim() ? '#3F2A00' : colors.textTertiary}
             />
           </TouchableOpacity>
         </View>
@@ -692,6 +734,17 @@ export default function ChatRoomScreen({ route, navigation }) {
           <View style={styles.optionsBackdrop}>
             <TouchableWithoutFeedback onPress={() => {}}>
               <View style={styles.optionCard}>
+                                <TouchableOpacity style={styles.optionItem} onPress={handleToggleFavorite}>
+                  <Ionicons
+                    name={isFavorite ? 'star' : 'star-outline'}
+                    size={18}
+                    color={isFavorite ? '#F7B500' : '#1F2A44'}
+                  />
+                  <Text style={styles.optionText}>
+                    {isFavorite ? '즐겨찾기 삭제' : '즐겨찾기 추가'}
+                  </Text>
+                </TouchableOpacity>
+                <View style={styles.optionDivider} />
                 <TouchableOpacity style={styles.optionItem} onPress={openReport}>
                   <Ionicons name="flag-outline" size={18} color={colors.primary} />
                   <Text style={styles.optionText}>신고하기</Text>
@@ -746,43 +799,62 @@ export default function ChatRoomScreen({ route, navigation }) {
           </View>
         </TouchableWithoutFeedback>
       </Modal>
-    </SafeAreaView>
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
 const styles = StyleSheet.create({
+    gradient: {
+    flex: 1,
+  },
   container: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: 'transparent',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 12,
+    paddingHorizontal: 18,
     paddingVertical: 12,
-    backgroundColor: colors.backgroundSecondary,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    borderRadius: 26,
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.7)',
+    shadowColor: '#96B8FF',
+    shadowOpacity: 0.25,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 6,
   },
   backButton: {
-    padding: 4,
+    padding: 6,
     marginRight: 12,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.7)',    
   },
   headerCenter: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 12,   
   },
   headerAvatar: {
-    marginRight: 12,
+    marginRight: 0,
+    borderWidth: 2,
+    borderColor: 'rgba(255,255,255,0.7)',
+    borderRadius: 30,
   },
   headerInfo: {
-    marginLeft: 10,
+    flex: 1,
   },
   headerName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: colors.text,
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#1F2A44',
   },
   onlineStatus: {
     flexDirection: 'row',
@@ -790,18 +862,34 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   onlineDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: colors.success,
-    marginRight: 4,
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#4CD47A',
+    marginRight: 6,
   },
   onlineText: {
     fontSize: 12,
-    color: colors.textSecondary,
+    color: '#3A8F6B',
+    fontWeight: '700',
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  favoriteButton: {
+    padding: 6,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+  },
+  favoriteButtonActive: {
+    backgroundColor: 'rgba(255,220,120,0.45)',
   },
   moreButton: {
-    padding: 4,
+    padding: 6,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.7)',
   },
   chatContainer: {
     flex: 1,
@@ -810,8 +898,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   messagesList: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingHorizontal: 20,
+    paddingTop: 20,
   },
   messageContainer: {
     marginBottom: 16,
@@ -827,82 +915,84 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   messageAvatar: {
-    marginRight: 8,
-    marginTop: 4,
+    marginRight: 10,
+    marginTop: 2,
   },
   messageContent: {
-    maxWidth: '75%',
+    maxWidth: '78%',
   },
   messageBubble: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 22,
   },
-    mediaMessageBubble: {
+  mediaMessageBubble: {
     paddingHorizontal: 0,
     paddingVertical: 0,
-    borderRadius: 18,
+    borderRadius: 20,
     backgroundColor: 'transparent',
     borderWidth: 0,
   },
   giftMessageBubble: {
-    paddingHorizontal: 18,
-    paddingVertical: 14,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
   },
   myMessageBubble: {
-    backgroundColor: colors.primary,
-    borderBottomRightRadius: 4,
+    backgroundColor: 'rgba(255,226,102,0.95)',
+    borderBottomRightRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(255,198,53,0.45)',
   },
   otherMessageBubble: {
-    backgroundColor: colors.backgroundSecondary,
-    borderBottomLeftRadius: 4,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderBottomLeftRadius: 8,
     borderWidth: 1,
-    borderColor: colors.borderLight,
+    borderColor: '#D9DEEB',
   },
   messageText: {
     fontSize: 15,
-    lineHeight: 20,
+    lineHeight: 21,
   },
   myMessageText: {
-    color: colors.textInverse,
+    color: '#3F2A00',
+    fontWeight: '600',
   },
   otherMessageText: {
-    color: colors.text,
+    color: '#1F2430',
   },
   messageTime: {
     fontSize: 11,
-    marginTop: 4,
+    marginTop: 6,
     paddingHorizontal: 4,
   },
   myMessageTime: {
-    color: colors.textTertiary,
+    color: 'rgba(63, 42, 0, 0.6)',
     textAlign: 'right',
   },
   otherMessageTime: {
-    color: colors.textTertiary,
+    color: '#7D8597',
     textAlign: 'left',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: 12,
-    paddingTop: 8,
-    backgroundColor: colors.backgroundSecondary,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    backgroundColor: 'rgba(255,255,255,0.88)',
+    borderTopWidth: 0,
   },
   attachButton: {
-    padding: 4,
+    padding: 6,
     marginBottom: 4,
   },
   inputWrapper: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'flex-end',
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 26,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#E3E8F5',
     marginHorizontal: 8,
     paddingHorizontal: 16,
     paddingVertical: 10,
@@ -918,29 +1008,45 @@ const styles = StyleSheet.create({
     maxHeight: 120,
   },
   sendButton: {
-    padding: 8,
-    marginBottom: 4,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 24,
+    backgroundColor: '#FFE266',
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#EBCB54',
+    shadowOpacity: 0.35,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 3,
   },
   sendButtonDisabled: {
     opacity: 0.5,
+    shadowOpacity: 0,
+    elevation: 0,
   },
-    bottomSheetBackdrop: {
+  bottomSheetBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.35)',
+    backgroundColor: 'rgba(15, 23, 42, 0.28)',
     justifyContent: 'flex-end',
   },
   bottomSheetContainer: {
-    backgroundColor: colors.backgroundSecondary,
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: 'rgba(255,255,255,0.96)',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     paddingHorizontal: 20,
-    paddingTop: 18,
-    gap: 16,
+    paddingTop: 20,
+    gap: 18,
+    shadowColor: '#7EA0FF',
+    shadowOpacity: 0.18,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: -4 },
+    elevation: 10,
   },
   sheetTitle: {
     fontSize: 16,
     fontWeight: '800',
-    color: colors.text,
+    color: '#1F2A44',
   },
   sheetActionsRow: {
     flexDirection: 'row',
@@ -953,22 +1059,22 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
+    borderColor: '#E2E8F5',
+    backgroundColor: '#F8FAFF',
     gap: 8,
   },
   sheetActionIcon: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: colors.backgroundSecondary,
-    justifyContent: 'center',
+    width: 48,
+    height: 48,
+    borderRadius: 16,
+    backgroundColor: 'rgba(243,108,147,0.18)',
     alignItems: 'center',
+    justifyContent: 'center',    
   },
   sheetActionLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: colors.text,
+    color: '#1F2A44',
   },
   sheetOptionButton: {
     flexDirection: 'row',
@@ -976,11 +1082,11 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: 16,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: '#E2E8F5',
     paddingHorizontal: 14,
     marginTop: 4,
     gap: 12,
-    backgroundColor: colors.background,
+    backgroundColor: '#F8FAFF',
   },
   sheetOptionIcon: {
     width: 28,
@@ -989,7 +1095,7 @@ const styles = StyleSheet.create({
   sheetOptionLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: colors.text,
+    color: '#1F2A44',
   },
   giftSheetContainer: {
     gap: 16,
@@ -1027,9 +1133,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     borderRadius: 18,
     borderWidth: 1,
-    borderColor: colors.border,
-    backgroundColor: colors.background,
+    borderColor: '#E2E8F5',
+    backgroundColor: '#FFFFFF',
     gap: 16,
+    shadowColor: '#E2E8F5',
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
   },
   giftOptionTextWrapper: {
     flex: 1,
@@ -1043,7 +1154,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontSize: 14,
     fontWeight: '600',
-    color: colors.text,
+    color: '#1F2A44',
   },
   giftOptionDescription: {
     marginTop: 4,
@@ -1074,7 +1185,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 16,
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: '#F8FAFF',
+    borderWidth: 1,
+    borderColor: '#E2E8F5',
   },
   giftRetryText: {
     fontSize: 13,
@@ -1103,26 +1216,28 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   giftIconBadge: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     borderWidth: 1,
-    borderColor: colors.primary,
+    borderColor: 'rgba(243,108,147,0.35)',
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: colors.background,
+    backgroundColor: '#FFF6FB',
   },
   giftTextWrapper: {
     flex: 1,
   },
   giftTitle: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '700',    
+    color: '#1F2A44',
   },
   giftAmount: {
     marginTop: 4,
     fontSize: 13,
     fontWeight: '700',
+    color: colors.primary,
   },
   giftDescription: {
     marginTop: 4,
@@ -1131,7 +1246,7 @@ const styles = StyleSheet.create({
   },
   optionsBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.2)',
+    backgroundColor: 'rgba(30, 41, 59, 0.25)',
     justifyContent: 'flex-start',
     alignItems: 'flex-end',
     paddingHorizontal: 18,
@@ -1139,57 +1254,72 @@ const styles = StyleSheet.create({
   },
   modalBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(15, 23, 42, 0.45)',
+    backgroundColor: 'rgba(15, 23, 42, 0.35)',
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
   },
   optionCard: {
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    minWidth: 140,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 18,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    minWidth: 160,
+    shadowColor: '#8BA9FF',
+    shadowOpacity: 0.22,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 6,
   },
   optionItem: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    paddingVertical: 6,
+    paddingVertical: 8,
+  },
+  optionDivider: {
+    height: 1,
+    backgroundColor: '#E4E9F6',
+    marginVertical: 6,
   },
   optionText: {
     fontSize: 14,
     fontWeight: '700',
-    color: colors.text,
+    color: '#1F2A44',
   },
   reportCard: {
-    backgroundColor: colors.backgroundSecondary,
-    borderRadius: 20,
-    paddingHorizontal: 24,
-    paddingVertical: 24,
+    backgroundColor: 'rgba(255,255,255,0.96)',
+    borderRadius: 24,
+    paddingHorizontal: 26,
+    paddingVertical: 26,
     width: '100%',
     maxWidth: 420,
+    shadowColor: '#7EA0FF',
+    shadowOpacity: 0.2,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 8,
   },
   reportTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '900',
-    color: colors.text,
+    color: '#1F2A44',
   },
   reportDescription: {
-    marginTop: 8,
-    color: colors.textSecondary,
+    marginTop: 10,
+    color: '#5B657A',
     lineHeight: 20,
   },
   reportInput: {
-    marginTop: 16,
-    minHeight: 120,
+    marginTop: 18,
+    minHeight: 130,
     borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    borderColor: '#E2E8F5',
+    borderRadius: 18,
+    paddingHorizontal: 18,
+    paddingVertical: 14,
     textAlignVertical: 'top',
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     color: colors.text,
   },
   reportActions: {
@@ -1202,10 +1332,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 10,
     borderRadius: 12,
-    backgroundColor: colors.backgroundTertiary,
+    backgroundColor: '#F2F4FF',
   },
   secondaryBtnTxt: {
-    color: colors.textSecondary,
+    color: '#5B657A',
     fontWeight: '700',
   },
   primaryBtn: {
@@ -1213,9 +1343,16 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 12,
     backgroundColor: colors.primary,
+    shadowColor: '#F36C93',
+    shadowOpacity: 0.25,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4,
   },
   primaryBtnDisabled: {
     opacity: 0.5,
+    shadowOpacity: 0,
+    elevation: 0,
   },
   primaryBtnTxt: {
     color: colors.textInverse,

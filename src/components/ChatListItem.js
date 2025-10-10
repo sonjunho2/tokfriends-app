@@ -6,93 +6,182 @@ import colors from '../theme/colors';
 import Avatar from './Avatar';
 
 export default function ChatListItem({ item, onPress }) {
+    const isUnread = item.unread > 0;
+
   return (
-    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={[styles.row, styles.shadow]}>
-      {/* 아바타 */}
-      <Avatar
-        name={item.name}
-        size={60}
-        shape="rounded"   // ← 이미지와 동일한 라운드 사각형
-        style={{ marginRight: 14 }}
-      />
+    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={[styles.card, styles.shadow]}>
+      <View style={styles.topRow}>
+        <View style={styles.leftGroup}>
+          <Avatar name={item.name} size={54} shape="circle" style={styles.avatar} />
 
-      {/* 중앙 */}
-      <View style={{ flex: 1 }}>
-        <View style={styles.titleLine}>
-          <Text numberOfLines={1} style={styles.title}>
-            {item.name}, {item.age}
-          </Text>
-          {!!item.points && <Text style={styles.point}>{item.points}P</Text>}
-        </View>
-
-        <Text numberOfLines={1} style={styles.preview}>{item.snippet}</Text>
-
-        <View style={styles.badges}>
-          {/* 좌측 핑크 배지 (방금/1시간 등) */}
-          {!!item.timeLabel && (
-            <View style={[styles.badge, styles.badgePink]}>
-              <Text style={styles.badgePinkText}>{item.timeLabel}</Text>
+          <View style={styles.meta}>
+            <View style={styles.titleRow}>
+              <Text numberOfLines={1} style={styles.title}>
+                {item.name}, {item.age}
+              </Text>
+              {!!item.points && (
+                <View style={styles.pointBadge}>
+                  <Text style={styles.pointBadgeTxt}>{item.points}P</Text>
+                </View>
+              )}
             </View>
-          )}
-          {/* 위치/거리 */}
-          <View style={styles.badge}>
-            <Ionicons name="location" size={12} color={colors.textSecondary} style={{ marginRight: 4 }} />
-            <Text style={styles.badgeText}>
-              {item.regionLabel} · {item.distanceKm}km
+
+            <Text numberOfLines={1} style={styles.preview}>
+              {item.snippet}
             </Text>
           </View>
         </View>
+
+        <View style={styles.statusColumn}>
+          {item.favorite && (
+            <Ionicons name="star" size={18} color="#F9C23C" style={styles.favoriteIcon} />
+          )}
+          {isUnread ? (
+            <View style={styles.unreadBadge}>
+              <Text style={styles.unreadTxt}>{item.unread}</Text>
+            </View>
+                    ) : (
+            <Text style={styles.readTxt}>읽음</Text>  
+          )}
+        </View>
       </View>
 
-      {/* 읽음/미읽음 */}
-      <View style={{ marginLeft: 10, alignItems: 'flex-end' }}>
-        {item.unread > 0 ? (
-          <View style={styles.unread}>
-            <Text style={styles.unreadTxt}>{item.unread}</Text>
+      <View style={styles.badgesRow}>
+        {!!item.timeLabel && (
+          <View style={[styles.badge, styles.timeBadge]}>
+            <Ionicons name="time-outline" size={12} color={colors.primary} style={styles.badgeIcon} />
+            <Text style={styles.timeText}>{item.timeLabel}</Text>
           </View>
-        ) : (
-          <Text style={styles.readTxt}>읽음</Text>
         )}
+                 <View style={[styles.badge, styles.locationBadge]}>
+          <Ionicons name="location" size={12} color={colors.textSecondary} style={styles.badgeIcon} />
+          <Text style={styles.badgeText}>
+            {item.regionLabel} · {item.distanceKm}km
+          </Text>
+        </View> 
       </View>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 18,
+  card: {
+    paddingVertical: 18,
+    paddingHorizontal: 18,
+    borderRadius: 22,
     backgroundColor: colors.backgroundSecondary,
-    marginBottom: 12,
+    marginBottom: 8,
   },
   shadow: {
-    shadowColor: '#000000',
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 3,
+    shadowColor: '#F8A7C1',
+    shadowOpacity: 0.22,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 5,
   },
-  titleLine: { flexDirection: 'row', alignItems: 'center' },
-  title: { fontSize: 17, fontWeight: '800', color: colors.text },
-  point: { marginLeft: 8, fontSize: 12, fontWeight: '800', color: colors.primary },
-  preview: { marginTop: 6, fontSize: 13, color: colors.textSecondary },
-
-  badges: { flexDirection: 'row', alignItems: 'center', marginTop: 10, gap: 8, flexWrap: 'wrap' },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  leftGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  avatar: {
+    marginRight: 14,
+  },
+  meta: {
+    flex: 1,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  title: {
+    flexShrink: 1,
+    fontSize: 18,
+    fontWeight: '800',
+    color: colors.text,
+  },
+  pointBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+    backgroundColor: 'rgba(243,108,147,0.12)',
+  },
+  pointBadgeTxt: {
+    color: colors.primary,
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  preview: {
+    marginTop: 6,
+    fontSize: 13,
+    color: colors.textSecondary,
+  },
+  statusColumn: {
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    marginLeft: 12,
+    gap: 6,
+    minWidth: 42,
+  },
+  favoriteIcon: {
+    marginBottom: 2,
+  },
+  unreadBadge: {
+    minWidth: 26,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 14,
+    backgroundColor: colors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  unreadTxt: {
+    color: colors.textInverse,
+    fontSize: 11,
+    fontWeight: '800',
+  },
+  readTxt: {
+    color: colors.textTertiary,
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  badgesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginTop: 16,
+    flexWrap: 'wrap',
+  },
   badge: {
-    flexDirection: 'row', alignItems: 'center',
-    paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999, backgroundColor: '#F7F8FA',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
   },
-  badgeText: { fontSize: 12, color: colors.textSecondary, fontWeight: '700' },
-  badgePink: { backgroundColor: colors.primaryLight },
-  badgePinkText: { color: colors.primary, fontSize: 12, fontWeight: '800' },
-
-  unread: {
-    minWidth: 20, height: 20, paddingHorizontal: 6, borderRadius: 10,
-    backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center',
+  timeBadge: {
+    backgroundColor: colors.primaryLight,
   },
-  unreadTxt: { color: '#fff', fontSize: 11, fontWeight: '800' },
-  readTxt: { color: colors.textTertiary, fontSize: 12 },
+  timeText: {
+    color: colors.primary,
+    fontSize: 12,
+    fontWeight: '800',
+  },
+  locationBadge: {
+    backgroundColor: '#EEF1F8',
+  },
+  badgeIcon: {
+    marginRight: 6,
+  },
+  badgeText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: '700',
+  },
 });

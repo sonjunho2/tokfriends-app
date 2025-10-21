@@ -26,6 +26,11 @@ import colors from '../../theme/colors';
 import { listGiftOptions } from '../../api/gifts';
 
 const INITIAL_MESSAGES = [
+    {
+    id: 'date-1',
+    type: 'date',
+    text: '2023년 8월 13일 일요일',
+  },
   {
     id: '1',
     text: '안녕하세요! 만나서 반가워요 😊',
@@ -329,6 +334,14 @@ export default function ChatRoomScreen({ route, navigation }) {
   };
 
   const renderMessage = ({ item }) => {
+        if (item.type === 'date') {
+      return (
+        <View style={styles.daySeparator}>
+          <Text style={styles.daySeparatorText}>{item.text}</Text>
+        </View>
+      );
+    }
+
     const isMe = item.sender === 'me';
     const bubbleStyles = [
       styles.messageBubble,
@@ -449,22 +462,22 @@ export default function ChatRoomScreen({ route, navigation }) {
   );
 
   return (
-    <LinearGradient colors={['#B7D9FF', '#FFE5A8']} style={styles.gradient}>
+    <LinearGradient colors={['#FDEB7A', '#F7F7FA']} style={styles.gradient}>
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View
           style={styles.header}
           onLayout={(event) => {
             const nextHeight = event.nativeEvent.layout.height;
             if (nextHeight !== headerHeight) {
-            setHeaderHeight(nextHeight);
-          }
-        }}
-      >
+              setHeaderHeight(nextHeight);
+            }
+          }}
+        >
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color="#1F2A44" />
+          <Ionicons name="arrow-back" size={24} color="#2C2000" />
         </TouchableOpacity>
 
         <View style={styles.headerCenter}>
@@ -496,7 +509,7 @@ export default function ChatRoomScreen({ route, navigation }) {
             <Ionicons
               name={isFavorite ? 'star' : 'star-outline'}
               size={22}
-              color={isFavorite ? '#F7B500' : '#1F2A44'}
+              color={isFavorite ? '#F7B500' : '#2C2000'}
             />
           </TouchableOpacity>
 
@@ -505,7 +518,7 @@ export default function ChatRoomScreen({ route, navigation }) {
             onPress={() => setOptionsVisible(true)}
             hitSlop={8}
           >
-            <Ionicons name="ellipsis-vertical" size={20} color="#1F2A44" />
+            <Ionicons name="ellipsis-vertical" size={20} color="#2C2000" />
           </TouchableOpacity>
         </View>
       </View>
@@ -815,37 +828,32 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginHorizontal: 16,
-    marginTop: 8,
-    marginBottom: 12,
-    paddingHorizontal: 18,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
     paddingVertical: 12,
-    borderRadius: 26,
-    backgroundColor: 'rgba(255,255,255,0.6)',
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.7)',
-    shadowColor: '#96B8FF',
-    shadowOpacity: 0.25,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 6,
+    backgroundColor: '#FEE500',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F2D03B',
   },
   backButton: {
-    padding: 6,
-    marginRight: 12,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.7)',    
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.85)',
+    marginRight: 10,
   },
   headerCenter: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,   
+    gap: 12,
   },
   headerAvatar: {
     marginRight: 0,
     borderWidth: 2,
-    borderColor: 'rgba(255,255,255,0.7)',
+    borderColor: '#FFE26B',
     borderRadius: 30,
   },
   headerInfo: {
@@ -854,7 +862,7 @@ const styles = StyleSheet.create({
   headerName: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#1F2A44',
+    color: '#2C2000',
   },
   onlineStatus: {
     flexDirection: 'row',
@@ -865,12 +873,12 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#4CD47A',
+    backgroundColor: '#2DB676',
     marginRight: 6,
   },
   onlineText: {
     fontSize: 12,
-    color: '#3A8F6B',
+    color: '#2F704D',
     fontWeight: '700',
   },
   headerActions: {
@@ -880,16 +888,16 @@ const styles = StyleSheet.create({
   },
   favoriteButton: {
     padding: 6,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.85)',
   },
   favoriteButtonActive: {
-    backgroundColor: 'rgba(255,220,120,0.45)',
+    backgroundColor: 'rgba(253, 204, 74, 0.6)',
   },
   moreButton: {
     padding: 6,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.85)',
   },
   chatContainer: {
     flex: 1,
@@ -898,33 +906,48 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   messagesList: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingHorizontal: 18,
+    paddingTop: 18,
   },
   messageContainer: {
-    marginBottom: 16,
+    marginBottom: 18,
     flexDirection: 'row',
     alignItems: 'flex-end',
   },
   myMessageContainer: {
     justifyContent: 'flex-end',
     alignSelf: 'flex-end',
+    flexDirection: 'row-reverse',
   },
   otherMessageContainer: {
     justifyContent: 'flex-start',
     alignSelf: 'flex-start',
+    flexDirection: 'row',
   },
   messageAvatar: {
-    marginRight: 10,
-    marginTop: 2,
+    marginHorizontal: 8,
+    marginBottom: 4,
   },
   messageContent: {
     maxWidth: '78%',
   },
+    daySeparator: {
+    alignSelf: 'center',
+    marginVertical: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 16,
+    backgroundColor: '#E5E8F0',
+  },
+  daySeparatorText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#6B7280',
+  },
   messageBubble: {
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: 22,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 18,
   },
   mediaMessageBubble: {
     paddingHorizontal: 0,
@@ -938,23 +961,23 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   myMessageBubble: {
-    backgroundColor: 'rgba(255,226,102,0.95)',
-    borderBottomRightRadius: 8,
+    backgroundColor: '#FEE500',
+    borderBottomRightRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(255,198,53,0.45)',
+    borderColor: '#F3C800',
   },
   otherMessageBubble: {
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    borderBottomLeftRadius: 8,
+    backgroundColor: '#FFFFFF',
+    borderBottomLeftRadius: 6,
     borderWidth: 1,
-    borderColor: '#D9DEEB',
+    borderColor: '#E5E7EB',
   },
   messageText: {
     fontSize: 15,
     lineHeight: 21,
   },
   myMessageText: {
-    color: '#3F2A00',
+    color: '#3C2A00',
     fontWeight: '600',
   },
   otherMessageText: {
@@ -962,24 +985,29 @@ const styles = StyleSheet.create({
   },
   messageTime: {
     fontSize: 11,
-    marginTop: 6,
+    marginTop: 4,
     paddingHorizontal: 4,
   },
   myMessageTime: {
-    color: 'rgba(63, 42, 0, 0.6)',
+    color: 'rgba(61, 38, 0, 0.6)',
     textAlign: 'right',
+    alignSelf: 'flex-end',
+    marginRight: 6,
   },
   otherMessageTime: {
     color: '#7D8597',
     textAlign: 'left',
+    alignSelf: 'flex-start',
+    marginLeft: 6,
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingTop: 10,
-    backgroundColor: 'rgba(255,255,255,0.88)',
-    borderTopWidth: 0,
+    backgroundColor: '#F7F7FA',
+    borderTopWidth: 1,
+    borderTopColor: '#E5E7EB',
   },
   attachButton: {
     padding: 6,
@@ -990,11 +1018,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     backgroundColor: '#FFFFFF',
-    borderRadius: 26,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#E3E8F5',
+    borderColor: '#E5E7EB',
     marginHorizontal: 8,
-    paddingHorizontal: 16,
+    paddingHorizontal: 14,
     paddingVertical: 10,
     minHeight: 44,
     maxHeight: 140,
@@ -1008,22 +1036,16 @@ const styles = StyleSheet.create({
     maxHeight: 120,
   },
   sendButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 24,
-    backgroundColor: '#FFE266',
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#FEE500',
     alignItems: 'center',
     justifyContent: 'center',
-    shadowColor: '#EBCB54',
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 3,
+    marginLeft: 4,
   },
   sendButtonDisabled: {
     opacity: 0.5,
-    shadowOpacity: 0,
-    elevation: 0,
   },
   bottomSheetBackdrop: {
     flex: 1,

@@ -90,7 +90,7 @@ export default function MyPageScreen() {
             <GridItem
               label="설정"
               icon="⚙️"
-               onPress={() => Alert.alert('준비중', '설정 화면을 준비중입니다.')}
+              onPress={() => navigation.navigate('Settings')}
             />
             <GridItem
               label="무료충전소"

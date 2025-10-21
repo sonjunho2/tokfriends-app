@@ -4,6 +4,7 @@ import { View, Text, StyleSheet, TouchableOpacity, FlatList } from 'react-native
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../theme/colors';
 import ChatListItem from '../../components/ChatListItem';
+import SegmentBar from '../../components/SegmentBar';
 
 const SEGMENTS = ['전체', '읽지 않음', '신규', '즐겨찾기'];
 
@@ -25,19 +26,19 @@ const createInitialChats = () =>
 export default function ChatsScreen({ navigation, route }) {
   // route.params.initialSeg 로 초기 탭을 지정할 수 있게 함 (예: '신규', '전체' 등)
   const initialIndex = Math.max(0, SEGMENTS.findIndex((s) => s === route?.params?.initialSeg));
-  const [seg, setSeg] = useState(initialIndex >= 0 ? initialIndex : 0);
+  const [seg, setSeg] = useState(SEGMENTS[initialIndex] || SEGMENTS[0]);
   const [chats, setChats] = useState(createInitialChats);
 
   // 다른 화면에서 넘어오며 params가 갱신될 때도 반영
   useEffect(() => {
     if (route?.params?.initialSeg) {
       const idx = SEGMENTS.findIndex((s) => s === route.params.initialSeg);
-      if (idx >= 0) setSeg(idx);
+      if (idx >= 0) setSeg(SEGMENTS[idx]);
     }
   }, [route?.params?.initialSeg]);
 
   const filteredData = useMemo(() => {
-    switch (SEGMENTS[seg]) {
+    switch (seg) {
       case '읽지 않음':
         return chats.filter((chat) => chat.unread > 0);
       case '신규':
@@ -84,7 +85,7 @@ export default function ChatsScreen({ navigation, route }) {
         <View style={styles.headerSide}>
           {canGoBack && (
             <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8}>
-              <Ionicons name="chevron-back" size={26} color={colors.text} />
+              <Ionicons name="chevron-back" size={24} color={colors.text} />
             </TouchableOpacity>
           )}
         </View>
@@ -103,24 +104,17 @@ export default function ChatsScreen({ navigation, route }) {
       </View>
 
       {/* 세그먼트 */}
-      <View style={styles.segWrap}>
-        {SEGMENTS.map((label, i) => {
-          const on = i === seg;
-          return (
-            <TouchableOpacity
-              key={label}
-              style={[styles.seg, on && styles.segOn]}
-              onPress={() => setSeg(i)}
-              activeOpacity={0.9}
-            >
-              <Text style={[styles.segTxt, on && styles.segTxtOn]}>{label}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
+      <SegmentBar
+        segments={SEGMENTS}
+        value={seg}
+        onChange={setSeg}
+        style={styles.segmentBar}
+        contentContainerStyle={{ paddingRight: 12 }}
+      />
 
       {/* 리스트 */}
       <FlatList
+        style={styles.list}
         data={filteredData}
         keyExtractor={(it) => String(it.id)}
         renderItem={({ item }) => <ChatListItem item={item} onPress={() => handleOpenChat(item)} />}
@@ -138,54 +132,49 @@ export default function ChatsScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFF6F9' },
+  container: { flex: 1, backgroundColor: colors.background },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 22,
-    paddingVertical: 18,
-    backgroundColor: 'transparent',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: colors.backgroundSecondary,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   headerSide: { width: 40, alignItems: 'flex-start', justifyContent: 'center' },
   headerSideRight: { minWidth: 40, alignItems: 'flex-end', justifyContent: 'center' },
-  headerTitle: { fontSize: 24, fontWeight: '900', color: colors.text },
+  headerTitle: { fontSize: 22, fontWeight: '900', color: colors.text },
   createBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    paddingHorizontal: 18,
-    paddingVertical: 9,
-    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
     backgroundColor: colors.primary,
     shadowColor: '#F36C93',
-    shadowOpacity: 0.35,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 4,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 3,
   },
   createBtnTxt: { color: colors.textInverse, fontWeight: '800', fontSize: 13 },
-  segWrap: {
-    flexDirection: 'row',
-    gap: 10,
-    paddingHorizontal: 22,
-    paddingVertical: 18,
-    backgroundColor: 'transparent',
+  segmentBar: {
+    paddingHorizontal: 12,
+    paddingBottom: 8,
+    backgroundColor: colors.backgroundSecondary,
   },
-  seg: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 999,
-    backgroundColor: '#F1F4FF',
+  list: {
+    flex: 1,
+    backgroundColor: colors.backgroundSecondary,
   },
-  segOn: { backgroundColor: colors.primary },
-  segTxt: { color: colors.textSecondary, fontWeight: '700', fontSize: 13 },
-  segTxtOn: { color: colors.textInverse, fontWeight: '800' },
   listContent: {
-    paddingHorizontal: 22,
-    paddingBottom: 36,
-    paddingTop: 6,
-    gap: 14,
+    paddingHorizontal: 16,
+    paddingBottom: 32,
+    paddingTop: 8,
+    backgroundColor: colors.backgroundSecondary,
   },
   emptyWrap: {
     paddingVertical: 80,

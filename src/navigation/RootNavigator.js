@@ -6,13 +6,15 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
+import { useProfileModal } from '../context/ProfileModalContext';
 import UniversalListScreen from '../screens/list/UniversalListScreen'; 
 // ===== 메인 =====
 import HomeScreen from '../screens/main/HomeScreen';
 import ExploreScreen from '../screens/explore/ExploreScreen'; 
 import ChatsScreen from '../screens/main/ChatsScreen';
 import ShopScreen from '../screens/shop/ShopScreen';           
-import MyPageScreen from '../screens/my/MyPageScreen';        
+import MyPageScreen from '../screens/my/MyPageScreen';
+import SettingsScreen from '../screens/my/SettingsScreen';
 
 // ===== 서브 =====
 import HotRecommendScreen from '../screens/recommend/HotRecommendScreen';
@@ -34,6 +36,7 @@ import ProfileSetupScreen from '../screens/auth/ProfileSetupScreen';
 const AuthStack = createNativeStackNavigator();
 const HomeStackNav = createNativeStackNavigator();
 const ChatsStackNav = createNativeStackNavigator();
+const MyPageStackNav = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 /** ===== 인증 플로우 ===== */
@@ -104,8 +107,23 @@ function ChatsStack() {
   );
 }
 
+/** ===== 마이페이지 스택 ===== */
+function MyPageStack() {
+  return (
+    <MyPageStackNav.Navigator screenOptions={{ headerShown: false }}>
+      <MyPageStackNav.Screen name="MyPageMain" component={MyPageScreen} />
+      <MyPageStackNav.Screen
+        name="Settings"
+        component={SettingsScreen}
+        options={{ animation: 'slide_from_right' }}
+      />
+    </MyPageStackNav.Navigator>
+  );
+}
+
 /** ===== 하단 탭 ===== */
 function MainTabs() {
+  const { openProfile } = useProfileModal();
   return (
     <Tab.Navigator
       initialRouteName="Home"
@@ -148,7 +166,17 @@ function MainTabs() {
       />
       <Tab.Screen name="Chats" component={ChatsStack} options={{ tabBarLabel: '대화' }} />
       <Tab.Screen name="Shop" component={ShopScreen} options={{ tabBarLabel: '상점' }} />
-      <Tab.Screen name="MyPage" component={MyPageScreen} options={{ tabBarLabel: '마이페이지' }} />
+      <Tab.Screen
+        name="MyPage"
+        component={MyPageStack}
+        options={{ tabBarLabel: '마이페이지' }}
+        listeners={{
+          tabPress: (e) => {
+            e.preventDefault();
+            openProfile();
+          },
+        }}
+      />
     </Tab.Navigator>
   );
 }

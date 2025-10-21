@@ -3,6 +3,8 @@ import React from 'react';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import RootNavigator from './RootNavigator';
 import colors from '../theme/colors';
+import { ProfileModalProvider } from '../context/ProfileModalContext';
+import GlobalProfileModal from '../components/GlobalProfileModal';
 
 const navTheme = {
   ...DefaultTheme,
@@ -37,7 +39,12 @@ const linking = {
         },
       },
       Shop: 'shop',
-      MyPage: 'mypage',
+      MyPage: {
+        screens: {
+          MyPageMain: 'mypage',
+          Settings: 'mypage/settings',
+        },
+      },
       Login: 'login',
       Signup: 'signup',
       Welcome: 'welcome',
@@ -54,7 +61,10 @@ const linking = {
 export default function Navigation() {
   return (
     <NavigationContainer theme={navTheme} linking={linking}>
-      <RootNavigator />
+      <ProfileModalProvider>
+        <RootNavigator />
+        <GlobalProfileModal />
+      </ProfileModalProvider>
     </NavigationContainer>
   );
 }

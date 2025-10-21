@@ -6,94 +6,73 @@ import colors from '../theme/colors';
 import Avatar from './Avatar';
 
 export default function ChatListItem({ item, onPress }) {
-    const isUnread = item.unread > 0;
+  const isUnread = item.unread > 0;
 
   return (
-    <TouchableOpacity activeOpacity={0.9} onPress={onPress} style={[styles.card, styles.shadow]}>
-      <View style={styles.topRow}>
-        <View style={styles.leftGroup}>
-          <Avatar name={item.name} size={54} shape="circle" style={styles.avatar} />
-
-          <View style={styles.meta}>
-            <View style={styles.titleRow}>
-              <Text numberOfLines={1} style={styles.title}>
-                {item.name}, {item.age}
-              </Text>
-              {!!item.points && (
-                <View style={styles.pointBadge}>
-                  <Text style={styles.pointBadgeTxt}>{item.points}P</Text>
-                </View>
-              )}
+    <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={styles.row}>
+      <Avatar name={item.name} size={60} shape="rounded" style={styles.avatar} />
+      
+      <View style={styles.content}>
+        <View style={styles.titleRow}>
+          <Text numberOfLines={1} style={styles.title}>
+            {item.name}, {item.age}
+          </Text>
+          {!!item.points && (
+            <View style={styles.pointBadge}>
+              <Text style={styles.pointBadgeTxt}>{item.points}P</Text>
             </View>
-
-            <Text numberOfLines={1} style={styles.preview}>
-              {item.snippet}
-            </Text>
-          </View>
+          )}
+          {item.favorite && (
+            <Ionicons name="star" size={16} color="#F9C23C" />
+          )}
         </View>
 
-        <View style={styles.statusColumn}>
-          {item.favorite && (
-            <Ionicons name="star" size={18} color="#F9C23C" style={styles.favoriteIcon} />
-          )}
+        <View style={styles.messageRow}>
+          <Text
+            numberOfLines={1}
+            style={[styles.preview, isUnread && styles.previewUnread]}
+          >
+            {item.snippet}
+          </Text>
           {isUnread ? (
             <View style={styles.unreadBadge}>
               <Text style={styles.unreadTxt}>{item.unread}</Text>
             </View>
-                    ) : (
-            <Text style={styles.readTxt}>읽음</Text>  
+          ) : (
+            <Text style={styles.readTxt}>읽음</Text>
           )}
         </View>
-      </View>
 
-      <View style={styles.badgesRow}>
-        {!!item.timeLabel && (
-          <View style={[styles.badge, styles.timeBadge]}>
-            <Ionicons name="time-outline" size={12} color={colors.primary} style={styles.badgeIcon} />
-            <Text style={styles.timeText}>{item.timeLabel}</Text>
+        <View style={styles.metaRow}>
+          {!!item.timeLabel && <Text style={styles.metaText}>{item.timeLabel}</Text>}
+          <Text style={styles.metaSeparator}>·</Text>
+          <View style={styles.locationRow}>
+            <Ionicons name="location" size={12} color={colors.textSecondary} />
+            <Text style={styles.metaText}>
+              {item.regionLabel} · {item.distanceKm}km
+            </Text>
           </View>
-        )}
-                 <View style={[styles.badge, styles.locationBadge]}>
-          <Ionicons name="location" size={12} color={colors.textSecondary} style={styles.badgeIcon} />
-          <Text style={styles.badgeText}>
-            {item.regionLabel} · {item.distanceKm}km
-          </Text>
-        </View> 
+         </View> 
       </View>
     </TouchableOpacity>
   );
 }
 
 const styles = StyleSheet.create({
-  card: {
-    paddingVertical: 18,
-    paddingHorizontal: 18,
-    borderRadius: 22,
-    backgroundColor: colors.backgroundSecondary,
-    marginBottom: 8,
-  },
-  shadow: {
-    shadowColor: '#F8A7C1',
-    shadowOpacity: 0.22,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 5,
-  },
-  topRow: {
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  leftGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
+    paddingVertical: 16,
+    gap: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
   },
   avatar: {
-    marginRight: 14,
+    marginLeft: 2,
   },
-  meta: {
+  content: {
     flex: 1,
+    gap: 8,
   },
   titleRow: {
     flexDirection: 'row',
@@ -102,41 +81,40 @@ const styles = StyleSheet.create({
   },
   title: {
     flexShrink: 1,
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '800',
     color: colors.text,
   },
   pointBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 999,
-    backgroundColor: 'rgba(243,108,147,0.12)',
+    borderRadius: 12,
+    backgroundColor: colors.primaryLight,
   },
   pointBadgeTxt: {
     color: colors.primary,
     fontSize: 11,
     fontWeight: '800',
   },
+      messageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   preview: {
-    marginTop: 6,
+    flex: 1,
     fontSize: 13,
     color: colors.textSecondary,
   },
-  statusColumn: {
-    alignItems: 'flex-end',
-    justifyContent: 'center',
-    marginLeft: 12,
-    gap: 6,
-    minWidth: 42,
-  },
-  favoriteIcon: {
-    marginBottom: 2,
+  previewUnread: {
+    fontWeight: '700',
+    color: colors.text,
   },
   unreadBadge: {
-    minWidth: 26,
+    minWidth: 24,
     paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 14,
+    borderRadius: 12,
     backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
@@ -151,37 +129,24 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: '600',
   },
-  badgesRow: {
+  metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    marginTop: 16,
-    flexWrap: 'wrap',
+    gap: 6,
   },
-  badge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-  },
-  timeBadge: {
-    backgroundColor: colors.primaryLight,
-  },
-  timeText: {
-    color: colors.primary,
-    fontSize: 12,
-    fontWeight: '800',
-  },
-  locationBadge: {
-    backgroundColor: '#EEF1F8',
-  },
-  badgeIcon: {
-    marginRight: 6,
-  },
-  badgeText: {
+  metaText: {
     fontSize: 12,
     color: colors.textSecondary,
-    fontWeight: '700',
+    fontWeight: '600',
+  },
+  metaSeparator: {
+    color: colors.textTertiary,
+    fontSize: 12,
+    marginHorizontal: 2,
+  },
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
 });

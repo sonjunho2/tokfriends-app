@@ -114,7 +114,24 @@ export default function UniversalListScreen({ navigation, route }) {
         data={filtered}
         keyExtractor={(it) => String(it.id)}
         renderItem={({ item }) => (
-          <UserListItem item={item} onPress={() => {}} />
+          <UserListItem
+            item={item}
+            onPress={() =>
+              navigation.navigate('ProfileDetail', {
+                profile: {
+                  name: item?.name,
+                  location: `${item?.regionLabel || '서울'} · ${item?.distanceKm ?? '-'}km`,
+                  title: `${SEGMENTS[seg]} 추천 회원`,
+                  bio: item?.subtitle,
+                  avatar: item?.avatar,
+                  coverImage: item?.avatar,
+                  age: item?.age,
+                  distanceKm: item?.distanceKm,
+                  points: item?.points,
+                },
+              })
+            }
+          />
         )}
         contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 12 }}
         showsVerticalScrollIndicator={false}

@@ -6,6 +6,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../theme/colors';
 import { useAuth } from '../context/AuthContext';
+import { useAuthStoreSync } from '../store/auth';
 import UniversalListScreen from '../screens/list/UniversalListScreen'; 
 // ===== 메인 =====
 import HomeScreen from '../screens/main/HomeScreen';
@@ -177,7 +178,8 @@ function MainTabs() {
 /** ===== 루트 ===== */
 export default function RootNavigator() {
   const { user, token, initializing } = useAuth();
-
+  useAuthStoreSync();
+  
   if (initializing) {
     return (
       <View
@@ -193,8 +195,9 @@ export default function RootNavigator() {
     );
   }
 
-  // ✅ 토큰만 있어도 로그인으로 간주 (user.id/_id도 허용)
-  const isSignedIn = !!token || (!!user && (user.id || user._id));
+  const tokenExists = Boolean(token);
+  const userHasIdentifier = Boolean(user) && Boolean(user.id || user._id);
+  const isSignedIn = tokenExists || userHasIdentifier;
 
   return isSignedIn ? <MainTabs /> : <AuthFlow />;
 }

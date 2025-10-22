@@ -462,7 +462,7 @@ export default function ChatRoomScreen({ route, navigation }) {
   );
 
   return (
-    <LinearGradient colors={['#FDEB7A', '#F7F7FA']} style={styles.gradient}>
+    <LinearGradient colors={['#DCE6FF', '#F5F6FB']} start={{ x: 0, y: 0 }} end={{ x: 0, y: 1 }} style={styles.gradient}>
       <SafeAreaView style={styles.container} edges={['top', 'bottom']}>
         <View
           style={styles.header}
@@ -477,7 +477,7 @@ export default function ChatRoomScreen({ route, navigation }) {
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
-          <Ionicons name="arrow-back" size={24} color="#2C2000" />
+          <Ionicons name="arrow-back" size={24} color="#202436" />
         </TouchableOpacity>
 
         <View style={styles.headerCenter}>
@@ -509,7 +509,7 @@ export default function ChatRoomScreen({ route, navigation }) {
             <Ionicons
               name={isFavorite ? 'star' : 'star-outline'}
               size={22}
-              color={isFavorite ? '#F7B500' : '#2C2000'}
+              color={isFavorite ? '#FFC93D' : '#202436'}
             />
           </TouchableOpacity>
 
@@ -518,7 +518,7 @@ export default function ChatRoomScreen({ route, navigation }) {
             onPress={() => setOptionsVisible(true)}
             hitSlop={8}
           >
-            <Ionicons name="ellipsis-vertical" size={20} color="#2C2000" />
+            <Ionicons name="ellipsis-vertical" size={20} color="#202436" />
           </TouchableOpacity>
         </View>
       </View>
@@ -564,7 +564,7 @@ export default function ChatRoomScreen({ route, navigation }) {
               setAttachSheetVisible(true);
             }}
           >
-            <Ionicons name="add-circle-outline" size={28} color="#7D8597" />
+            <Ionicons name="add-circle-outline" size={28} color="#8E97B5" />
           </TouchableOpacity>
 
           <View style={styles.inputWrapper}>
@@ -590,7 +590,7 @@ export default function ChatRoomScreen({ route, navigation }) {
             <Ionicons
              name="paper-plane"
               size={20}
-              color={inputText.trim() ? '#3F2A00' : colors.textTertiary}
+              color={inputText.trim() ? '#2B230A' : colors.textTertiary}
             />
           </TouchableOpacity>
         </View>
@@ -747,11 +747,11 @@ export default function ChatRoomScreen({ route, navigation }) {
           <View style={styles.optionsBackdrop}>
             <TouchableWithoutFeedback onPress={() => {}}>
               <View style={styles.optionCard}>
-                                <TouchableOpacity style={styles.optionItem} onPress={handleToggleFavorite}>
+                <TouchableOpacity style={styles.optionItem} onPress={handleToggleFavorite}>
                   <Ionicons
                     name={isFavorite ? 'star' : 'star-outline'}
                     size={18}
-                    color={isFavorite ? '#F7B500' : '#1F2A44'}
+                    color={isFavorite ? '#FFC93D' : '#1F2A44'}
                   />
                   <Text style={styles.optionText}>
                     {isFavorite ? '즐겨찾기 삭제' : '즐겨찾기 추가'}
@@ -829,11 +829,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: '#FEE500',
+    paddingHorizontal: 18,
+    paddingVertical: 14,
+    backgroundColor: 'rgba(243, 247, 255, 0.92)',
     borderBottomWidth: 1,
-    borderBottomColor: '#F2D03B',
+    borderBottomColor: 'rgba(192, 205, 238, 0.65)',
   },
   backButton: {
     width: 36,
@@ -841,7 +841,9 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.85)',
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderWidth: 1,
+    borderColor: 'rgba(204, 214, 244, 0.9)',
     marginRight: 10,
   },
   headerCenter: {
@@ -853,7 +855,7 @@ const styles = StyleSheet.create({
   headerAvatar: {
     marginRight: 0,
     borderWidth: 2,
-    borderColor: '#FFE26B',
+    borderColor: '#D6E0FF',
     borderRadius: 30,
   },
   headerInfo: {
@@ -861,25 +863,25 @@ const styles = StyleSheet.create({
   },
   headerName: {
     fontSize: 18,
-    fontWeight: '800',
-    color: '#2C2000',
+    fontWeight: '700',
+    color: '#202436',
   },
   onlineStatus: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 2,
+    marginTop: 4,
   },
   onlineDot: {
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#2DB676',
+    backgroundColor: '#3CCB89',
     marginRight: 6,
   },
   onlineText: {
     fontSize: 12,
-    color: '#2F704D',
-    fontWeight: '700',
+    color: '#4D7A64',
+    fontWeight: '600',
   },
   headerActions: {
     flexDirection: 'row',
@@ -889,15 +891,19 @@ const styles = StyleSheet.create({
   favoriteButton: {
     padding: 6,
     borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.85)',
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderWidth: 1,
+    borderColor: 'rgba(204, 214, 244, 0.8)',
   },
   favoriteButtonActive: {
-    backgroundColor: 'rgba(253, 204, 74, 0.6)',
+    backgroundColor: 'rgba(255, 213, 96, 0.28)',
   },
   moreButton: {
     padding: 6,
     borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.85)',
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    borderWidth: 1,
+    borderColor: 'rgba(204, 214, 244, 0.8)',
   },
   chatContainer: {
     flex: 1,
@@ -906,11 +912,11 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   messagesList: {
-    paddingHorizontal: 18,
-    paddingTop: 18,
+    paddingHorizontal: 20,
+    paddingTop: 24,
   },
   messageContainer: {
-    marginBottom: 18,
+    marginBottom: 14,
     flexDirection: 'row',
     alignItems: 'flex-end',
   },
@@ -925,29 +931,31 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
   },
   messageAvatar: {
-    marginHorizontal: 8,
+    marginHorizontal: 10,
     marginBottom: 4,
   },
   messageContent: {
-    maxWidth: '78%',
+    maxWidth: '82%',
   },
-    daySeparator: {
+  daySeparator: {
     alignSelf: 'center',
     marginVertical: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 18,
     paddingVertical: 6,
-    borderRadius: 16,
-    backgroundColor: '#E5E8F0',
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.7)',
+    borderWidth: 1,
+    borderColor: 'rgba(206, 214, 234, 0.6)',
   },
   daySeparatorText: {
     fontSize: 12,
-    fontWeight: '700',
-    color: '#6B7280',
+    fontWeight: '600',
+    color: '#75809D',
   },
   messageBubble: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 18,
+    paddingHorizontal: 18,
+    paddingVertical: 12,
+    borderRadius: 20,
   },
   mediaMessageBubble: {
     paddingHorizontal: 0,
@@ -961,27 +969,25 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
   },
   myMessageBubble: {
-    backgroundColor: '#FEE500',
-    borderBottomRightRadius: 6,
-    borderWidth: 1,
-    borderColor: '#F3C800',
+    backgroundColor: '#FFE27A',
+    borderBottomRightRadius: 8,
+    borderWidth: 0,
   },
   otherMessageBubble: {
-    backgroundColor: '#FFFFFF',
-    borderBottomLeftRadius: 6,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    backgroundColor: '#EEF1F8',
+    borderBottomLeftRadius: 8,
+    borderWidth: 0,
   },
   messageText: {
     fontSize: 15,
-    lineHeight: 21,
+    lineHeight: 22,
   },
   myMessageText: {
-    color: '#3C2A00',
+    color: '#2F2608',
     fontWeight: '600',
   },
   otherMessageText: {
-    color: '#1F2430',
+    color: '#20263A',
   },
   messageTime: {
     fontSize: 11,
@@ -989,13 +995,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   myMessageTime: {
-    color: 'rgba(61, 38, 0, 0.6)',
+    color: 'rgba(44, 34, 6, 0.55)',
     textAlign: 'right',
     alignSelf: 'flex-end',
     marginRight: 6,
   },
   otherMessageTime: {
-    color: '#7D8597',
+    color: '#8D96B5',
     textAlign: 'left',
     alignSelf: 'flex-start',
     marginLeft: 6,
@@ -1003,11 +1009,11 @@ const styles = StyleSheet.create({
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    paddingHorizontal: 12,
-    paddingTop: 10,
-    backgroundColor: '#F7F7FA',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    backgroundColor: 'rgba(243, 247, 255, 0.95)',
     borderTopWidth: 1,
-    borderTopColor: '#E5E7EB',
+    borderTopColor: 'rgba(202, 212, 235, 0.7)',
   },
   attachButton: {
     padding: 6,
@@ -1018,19 +1024,19 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-end',
     backgroundColor: '#FFFFFF',
-    borderRadius: 20,
+    borderRadius: 22,
     borderWidth: 1,
-    borderColor: '#E5E7EB',
+    borderColor: 'rgba(200, 210, 236, 0.85)',
     marginHorizontal: 8,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    minHeight: 44,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    minHeight: 46,
     maxHeight: 140,
   },
   textInput: {
     flex: 1,
     fontSize: 15,
-    color: colors.text,
+    color: '#202436',
     paddingTop: 0,
     paddingBottom: 0,
     maxHeight: 120,
@@ -1039,13 +1045,13 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#FEE500',
+    backgroundColor: '#FFE27A',
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 4,
   },
   sendButtonDisabled: {
-    opacity: 0.5,
+    opacity: 0.55,
   },
   bottomSheetBackdrop: {
     flex: 1,

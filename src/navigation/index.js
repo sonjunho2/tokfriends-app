@@ -42,8 +42,8 @@ const linking = {
     MyPage: {
         screens: {
           MyPageMain: 'mypage',
-          Settings: 'mypage/settings',
           ProfileDetail: 'mypage/profile',
+          ProfileEdit: 'mypage/edit',
         },
       },
       Login: 'login',

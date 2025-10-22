@@ -3,6 +3,8 @@ import React from 'react';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import RootNavigator from './RootNavigator';
 import colors from '../theme/colors';
+import GlobalProfileModal from '../components/GlobalProfileModal';
+import { ProfileModalProvider } from '../context/ProfileModalContext';
 
 const navTheme = {
   ...DefaultTheme,
@@ -36,7 +38,7 @@ const linking = {
           CreateChatRoom: 'chat/create',
         },
       },
-      Shop: 'shop',
+    Shop: 'shop',
     MyPage: {
         screens: {
           MyPageMain: 'mypage',

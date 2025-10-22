@@ -6,7 +6,7 @@ import colors from '../theme/colors';
 import Avatar from './Avatar';
 
 export default function ChatListItem({ item, onPress }) {
-  const isUnread = item.unread > 0;
+const isUnread = item.unread > 0;
 
   return (
     <TouchableOpacity activeOpacity={0.85} onPress={onPress} style={styles.row}>

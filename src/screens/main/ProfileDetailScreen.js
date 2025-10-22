@@ -18,6 +18,8 @@ const FALLBACK_IMAGE =
 
 export default function ProfileDetailScreen({ navigation, route }) {
   const profile = route?.params?.profile;
+  const preferredFont = route?.params?.preferredFont;
+  const isSelf = Boolean(route?.params?.isSelf);
 
   const data = useMemo(() => {
     const location = profile?.location || '서울 · 5km 이내';
@@ -36,6 +38,16 @@ export default function ProfileDetailScreen({ navigation, route }) {
     };
   }, [profile]);
 
+    const dynamicFont = useMemo(() => {
+    if (!preferredFont || preferredFont === 'system') {
+      return { heading: null, body: null };
+    }
+    return {
+      heading: { fontFamily: preferredFont },
+      body: { fontFamily: preferredFont },
+    };
+  }, [preferredFont]);
+
   const metaItems = useMemo(() => {
     const items = [];
     if (typeof data.age === 'number') {
@@ -52,6 +64,13 @@ export default function ProfileDetailScreen({ navigation, route }) {
 
   const handleMessage = () => {
     navigation.navigate('Chats', { screen: 'ChatsMain', params: { initialSeg: '신규' } });
+  };
+
+    const handleEditProfile = () => {
+    navigation.navigate('ProfileEdit', {
+      profile: profile || data,
+      preferredFont,
+    });
   };
 
   return (
@@ -88,15 +107,15 @@ export default function ProfileDetailScreen({ navigation, route }) {
         </View>
 
         <View style={styles.body}>
-          <Text style={styles.tagline}>{data.title}</Text>
-          <Text style={styles.name}>{data.name}</Text>
-          <Text style={styles.location}>{data.location}</Text>
+          <Text style={[styles.tagline, dynamicFont.body]}>{data.title}</Text>
+          <Text style={[styles.name, dynamicFont.heading]}>{data.name}</Text>
+          <Text style={[styles.location, dynamicFont.body]}>{data.location}</Text>
 
           {metaItems.length > 0 && (
             <View style={styles.metaRow}>
               {metaItems.map((item) => (
                 <View key={item} style={styles.metaBadge}>
-                  <Text style={styles.metaBadgeText}>{item}</Text>
+                  <Text style={[styles.metaBadgeText, dynamicFont.body]}>{item}</Text>
                 </View>
               ))}
             </View>
@@ -104,13 +123,28 @@ export default function ProfileDetailScreen({ navigation, route }) {
 
           <View style={styles.infoCard}>
             <Ionicons name="sparkles-outline" size={20} color={colors.primary} />
-            <Text style={styles.infoText}>{data.bio}</Text>
+            <Text style={[styles.infoText, dynamicFont.body]}>{data.bio}</Text>
           </View>
 
-          <TouchableOpacity style={styles.primaryButton} onPress={handleMessage} activeOpacity={0.85}>
-            <Ionicons name="chatbubble-ellipses-outline" size={20} color={colors.textInverse} />
-            <Text style={styles.primaryButtonText}>메시지 보내기</Text>
-          </TouchableOpacity>
+          {isSelf ? (
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={handleEditProfile}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="create-outline" size={20} color={colors.primary} />
+              <Text style={[styles.editButtonText, dynamicFont.heading]}>프로필 수정</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={handleMessage}
+              activeOpacity={0.85}
+            >
+              <Ionicons name="chatbubble-ellipses-outline" size={20} color={colors.textInverse} />
+              <Text style={styles.primaryButtonText}>메시지 보내기</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -243,4 +277,20 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: colors.textInverse,
   },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: 24,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  editButtonText: {
+    fontSize: 16,
+    fontWeight: '800',
+    color: colors.primary,
+  },            
 });

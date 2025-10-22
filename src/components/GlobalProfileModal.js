@@ -54,7 +54,7 @@ export default function GlobalProfileModal() {
   const handleOpenSettings = () => {
     closeProfile();
     setTimeout(() => {
-      navigation.navigate('MyPage', { screen: 'Settings' });
+      navigation.navigate('MyPage', { screen: 'MyPageMain' });
     }, 0);
   };
 

@@ -8,15 +8,24 @@ import {
   TouchableOpacity,
   ScrollView,
   Switch,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import colors from '../../theme/colors';
 import Avatar from '../../components/Avatar';
 import { useAuth } from '../../context/AuthContext';
 
+const FALLBACK_COVER =
+  'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1080&q=80';
+
 export default function SettingsScreen({ navigation }) {
   const { user } = useAuth();
-  const nickname = user?.nickname || user?.name || '회원님';
+
+  const nickname = user?.nickname || user?.displayName || user?.name || '회원님';
+  const locationLabel = user?.location || '서울, 여자 27살';
+  const tagline =
+    user?.headline || user?.title || '대화친구 필요하신분? 나이는 상관없어요!';
+
   const [pushEnabled, setPushEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [fontSize, setFontSize] = useState('medium');
@@ -28,6 +37,20 @@ export default function SettingsScreen({ navigation }) {
     return Number.isFinite(numeric) ? numeric : 0;
   }, [user]);
 
+  const profilePayload = useMemo(
+    () => ({
+      name: nickname,
+      location: locationLabel,
+      title: user?.joinPhrase || '오늘 가입한 회원입니다',
+      bio:
+        user?.bio ||
+        '새로운 인연을 기다리고 있어요. 반려견과 드라이브하는 것을 좋아해요!',
+      avatar: user?.avatar || null,
+      coverImage: user?.coverImage || FALLBACK_COVER,
+    }),
+    [nickname, locationLabel, user]
+  );
+
   const quickActions = [
     {
       key: 'charge',
@@ -35,6 +58,7 @@ export default function SettingsScreen({ navigation }) {
       label: '충전하기',
       value: `${balance} P`,
       accent: colors.primary,
+      onPress: () => Alert.alert('충전', '포인트 충전 기능을 준비중입니다.'),
     },
     {
       key: 'attendance',
@@ -42,13 +66,15 @@ export default function SettingsScreen({ navigation }) {
       label: '출석체크',
       value: '매일 도전해요',
       accent: '#3B82F6',
+      onPress: () => Alert.alert('출석체크', '오늘의 출석을 기록해보세요!'),
     },
     {
-      key: 'level',
-      icon: 'ribbon-outline',
+      key: 'push',
+      icon: 'notifications-outline',
       label: '푸시알림',
-      value: '나이는 상관없어요!',
+      value: '중요 소식 놓치지 마세요',
       accent: '#A855F7',
+      onPress: () => setPushEnabled((prev) => !prev),
     },
   ];
 
@@ -58,54 +84,67 @@ export default function SettingsScreen({ navigation }) {
     { key: 'support', icon: 'chatbubble-ellipses-outline', label: '영자언니에게 문의하기' },
   ];
 
-  const renderQuickAction = (item) => (
-    <TouchableOpacity key={item.key} style={styles.quickItem} activeOpacity={0.85}>
-      <View style={[styles.quickIcon, { backgroundColor: `${item.accent}1A` }]}> 
-        <Ionicons name={item.icon} size={18} color={item.accent} />
-      </View>
-      <View style={{ flex: 1 }}>
-        <Text style={styles.quickLabel}>{item.label}</Text>
-        {!!item.value && <Text style={styles.quickValue}>{item.value}</Text>}
-      </View>
-      <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
-    </TouchableOpacity>
-  );
-
-  const renderSupportRow = (item) => (
-    <TouchableOpacity key={item.key} style={styles.supportRow} activeOpacity={0.85}>
-      <Ionicons name={item.icon} size={18} color={colors.textSecondary} style={{ width: 22 }} />
-      <Text style={styles.supportLabel}>{item.label}</Text>
-      {item.value ? <Text style={styles.supportValue}>{item.value}</Text> : null}
-      <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
-    </TouchableOpacity>
-  );
+  const handleOpenProfile = () => {
+    navigation.navigate('ProfileDetail', { profile: profilePayload });
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity style={styles.headerButton} onPress={() => navigation.goBack()} hitSlop={8}>
+        <TouchableOpacity
+          style={styles.headerButton}
+          onPress={() => navigation.goBack()}
+          hitSlop={8}
+        >
           <Ionicons name="chevron-back" size={24} color={colors.text} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>설정</Text>
-        <View style={styles.headerSpacer} />
+        <View style={styles.headerButton} />
       </View>
 
       <ScrollView
         contentContainerStyle={{ paddingBottom: 32 }}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.profileCard}>
-          <Avatar size={72} name={nickname} uri={user?.avatar} showBorder style={styles.profileAvatar} />
-          <View style={{ flex: 1 }}>
-            <Text style={styles.profileName}>{nickname}</Text>
-            <Text style={styles.profileMeta}>{user?.location || '서울, 여자 27살'}</Text>
-            <Text style={styles.profileNote}>대화친구 필요하신분? 나이는 상관없어요!</Text>
+        <TouchableOpacity activeOpacity={0.9} onPress={handleOpenProfile}>
+          <View style={styles.profileCard}>
+            <Avatar
+              size={72}
+              name={nickname}
+              uri={user?.avatar}
+              showBorder
+              style={styles.profileAvatar}
+            />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.profileName}>{nickname}</Text>
+              <Text style={styles.profileMeta}>{locationLabel}</Text>
+              <Text style={styles.profileNote}>{tagline}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
           </View>
-        </View>
+        </TouchableOpacity>
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>빠른 설정</Text>
-          <View style={styles.card}>{quickActions.map(renderQuickAction)}</View>
+          <View style={styles.card}>
+            {quickActions.map((item) => (
+              <TouchableOpacity
+                key={item.key}
+                style={styles.quickItem}
+                activeOpacity={0.85}
+                onPress={item.onPress}
+              >
+                <View style={[styles.quickIcon, { backgroundColor: `${item.accent}1A` }]}>
+                  <Ionicons name={item.icon} size={18} color={item.accent} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.quickLabel}>{item.label}</Text>
+                  {!!item.value && <Text style={styles.quickValue}>{item.value}</Text>}
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
         <View style={styles.section}>
@@ -128,13 +167,21 @@ export default function SettingsScreen({ navigation }) {
                   style={[styles.fontChoice, fontSize === 'medium' && styles.fontChoiceActive]}
                   onPress={() => setFontSize('medium')}
                 >
-                  <Text style={[styles.fontChoiceText, fontSize === 'medium' && styles.fontChoiceTextActive]}>기본</Text>
+                  <Text
+                    style={[styles.fontChoiceText, fontSize === 'medium' && styles.fontChoiceTextActive]}
+                  >
+                    기본
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.fontChoice, fontSize === 'large' && styles.fontChoiceActive]}
                   onPress={() => setFontSize('large')}
                 >
-                  <Text style={[styles.fontChoiceText, fontSize === 'large' && styles.fontChoiceTextActive]}>크게</Text>
+                  <Text
+                    style={[styles.fontChoiceText, fontSize === 'large' && styles.fontChoiceTextActive]}
+                  >
+                    크게
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -153,13 +200,31 @@ export default function SettingsScreen({ navigation }) {
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>도움말</Text>
-          <View style={styles.card}>{supportLinks.map(renderSupportRow)}</View>
+          <View style={styles.card}>
+            {supportLinks.map((item) => (
+              <TouchableOpacity key={item.key} style={styles.supportRow} activeOpacity={0.85}>
+                <Ionicons
+                  name={item.icon}
+                  size={18}
+                  color={colors.textSecondary}
+                  style={{ width: 22 }}
+                />
+                <Text style={styles.supportLabel}>{item.label}</Text>
+                {item.value ? <Text style={styles.supportValue}>{item.value}</Text> : null}
+                <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
 
-        <View style={styles.footerCard}>
-          <Text style={styles.footerTitle}>그냥 계속 해맑음.</Text>
-          <Text style={styles.footerSubtitle}>오늘도 즐거운 하루 보내세요!</Text>
-        </View>
+        <TouchableOpacity
+          style={styles.footerCard}
+          activeOpacity={0.9}
+          onPress={handleOpenProfile}
+        >
+          <Text style={styles.footerTitle}>프로필 전체 보기</Text>
+          <Text style={styles.footerSubtitle}>내 프로필을 확인하고 업데이트하세요.</Text>
+        </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
   );
@@ -192,27 +257,24 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: colors.text,
   },
-  headerSpacer: {
-    width: 32,
-  },
   profileCard: {
     marginTop: 16,
     marginHorizontal: 18,
-    padding: 20,
-    borderRadius: 24,
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 18,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
     shadowColor: '#000',
     shadowOpacity: 0.05,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 3,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
   profileAvatar: {
-    borderWidth: 3,
-    borderColor: '#F3F4F6',
+    borderWidth: 4,
+    borderColor: '#fff',
   },
   profileName: {
     fontSize: 22,
@@ -221,18 +283,18 @@ const styles = StyleSheet.create({
   },
   profileMeta: {
     marginTop: 4,
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
     color: colors.textSecondary,
   },
   profileNote: {
-    marginTop: 8,
+    marginTop: 6,
     fontSize: 13,
     color: colors.textSecondary,
-    lineHeight: 18,
+    fontWeight: '600',
   },
   section: {
-    marginTop: 24,
+    marginTop: 22,
     paddingHorizontal: 18,
   },
   sectionTitle: {
@@ -242,30 +304,28 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   card: {
-    borderRadius: 22,
-    backgroundColor: colors.backgroundSecondary,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     paddingHorizontal: 18,
-    paddingVertical: 4,
+    paddingVertical: 12,
     shadowColor: '#000',
     shadowOpacity: 0.04,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 2,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 1,
   },
   quickItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
     gap: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
+    paddingVertical: 12,
   },
   quickIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    alignItems: 'center',
+    width: 42,
+    height: 42,
+    borderRadius: 14,
     justifyContent: 'center',
+    alignItems: 'center',
   },
   quickLabel: {
     fontSize: 15,
@@ -273,49 +333,48 @@ const styles = StyleSheet.create({
     color: colors.text,
   },
   quickValue: {
-    marginTop: 4,
-    fontSize: 12,
+    marginTop: 2,
+    fontSize: 13,
     color: colors.textSecondary,
   },
   toggleRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
-  },
-  fontRow: {
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
   toggleLabel: {
     fontSize: 15,
     fontWeight: '700',
     color: colors.text,
   },
+  fontRow: {
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
   fontChoiceRow: {
     flexDirection: 'row',
-    alignSelf: 'flex-end',
-    gap: 8,
+    gap: 10,
     marginTop: 12,
   },
   fontChoice: {
-    paddingVertical: 6,
-    paddingHorizontal: 14,
-    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: colors.pillBg,
     borderWidth: 1,
     borderColor: colors.border,
-    backgroundColor: colors.background,
   },
   fontChoiceActive: {
-    borderColor: colors.primary,
-    backgroundColor: colors.primaryLight,
+    backgroundColor: colors.pillActiveBg,
+    borderColor: colors.pillActiveBorder,
   },
   fontChoiceText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.textSecondary,
   },
   fontChoiceTextActive: {
@@ -324,44 +383,40 @@ const styles = StyleSheet.create({
   supportRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
     gap: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.borderLight,
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
   },
   supportLabel: {
     flex: 1,
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '700',
     color: colors.text,
   },
   supportValue: {
+    marginRight: 6,
     fontSize: 13,
     color: colors.textSecondary,
-    marginRight: 8,
+    fontWeight: '700',
   },
   footerCard: {
-    marginTop: 32,
+    marginTop: 24,
     marginHorizontal: 18,
-    marginBottom: 16,
-    borderRadius: 24,
-    backgroundColor: colors.backgroundSecondary,
-    paddingVertical: 32,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOpacity: 0.04,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 3,
+    backgroundColor: '#FFE0D6',
+    borderRadius: 20,
+    padding: 20,
+    alignItems: 'flex-start',
+    gap: 6,
   },
   footerTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: colors.text,
+    color: '#FF6A55',
   },
   footerSubtitle: {
-    marginTop: 6,
-    fontSize: 13,
-    color: colors.textSecondary,
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.text,
   },
 });

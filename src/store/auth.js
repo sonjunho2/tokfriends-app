@@ -1,3 +1,4 @@
+import React from 'react';
 import { useAuth } from '../context/AuthContext';
 
 // 기존 authStore 사용하는 컴포넌트들을 위한 호환성 래퍼

@@ -1,5 +1,5 @@
 // src/screens/my/SettingsScreen.js
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   SafeAreaView,
   View,
@@ -9,14 +9,27 @@ import {
   ScrollView,
   Switch,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as Font from 'expo-font';
 import colors from '../../theme/colors';
 import Avatar from '../../components/Avatar';
 import { useAuth } from '../../context/AuthContext';
 
 const FALLBACK_COVER =
   'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=1080&q=80';
+
+const MANAGED_FONT_ENDPOINT = 'https://manage.tokfriends.app/api/fonts/latest';
+
+const FALLBACK_MANAGED_FONTS = [
+  {
+    id: 'nanumGothicBold',
+    label: '나눔고딕 Bold',
+    value: 'NanumGothic_700Bold',
+    uri: 'https://github.com/google/fonts/raw/main/ofl/nanumgothic/NanumGothic-Bold.ttf',
+  },
+];
 
 export default function SettingsScreen({ navigation }) {
   const { user } = useAuth();
@@ -29,6 +42,24 @@ export default function SettingsScreen({ navigation }) {
   const [pushEnabled, setPushEnabled] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
   const [fontSize, setFontSize] = useState('medium');
+  const [availableFonts, setAvailableFonts] = useState(() => [
+    { id: 'system', label: '시스템 기본', value: 'system' },
+    { id: 'notoSansRegular', label: 'Noto Sans KR', value: 'NotoSansKR_400Regular' },
+    { id: 'notoSansBold', label: 'Noto Sans KR Bold', value: 'NotoSansKR_700Bold' },
+  ]);
+  const [selectedFont, setSelectedFont] = useState('system');
+  const [fontLoading, setFontLoading] = useState(false);
+  const [fontMessage, setFontMessage] = useState('');
+
+  const dynamicFont = useMemo(() => {
+    if (selectedFont === 'system') {
+      return { heading: null, body: null };
+    }
+    return {
+      heading: { fontFamily: selectedFont },
+      body: { fontFamily: selectedFont },
+    };
+  }, [selectedFont]);
 
   const balance = useMemo(() => {
     const p = user?.points ?? user?.balance ?? 300;
@@ -84,8 +115,91 @@ export default function SettingsScreen({ navigation }) {
     { key: 'support', icon: 'chatbubble-ellipses-outline', label: '영자언니에게 문의하기' },
   ];
 
+    const handleSelectFont = useCallback((value) => {
+    setSelectedFont(value);
+    setFontMessage('');
+  }, []);
+
+  const handleAddManagedFont = useCallback(async () => {
+    if (fontLoading) {
+      return;
+    }
+
+    setFontLoading(true);
+    setFontMessage('관리서버에서 새 폰트를 다운로드 중이에요...');
+
+    const existing = new Set(availableFonts.map((font) => font.value));
+    let candidate = null;
+
+    try {
+      const response = await fetch(MANAGED_FONT_ENDPOINT);
+      if (response.ok) {
+        const payload = await response.json();
+        const entries = [];
+        const rawFonts = Array.isArray(payload)
+          ? payload
+          : Array.isArray(payload?.fonts)
+          ? payload.fonts
+          : Array.isArray(payload?.data?.fonts)
+          ? payload.data.fonts
+          : payload?.font
+          ? [payload.font]
+          : [];
+
+        rawFonts.forEach((item, index) => {
+          const rawFamily =
+            item?.expoFamily ||
+            item?.fontFamily ||
+            item?.family ||
+            item?.value ||
+            item?.name ||
+            `ManagedFont${index + 1}`;
+          const family = String(rawFamily).replace(/[^0-9a-zA-Z_-]/g, '') || `ManagedFont${index + 1}`;
+          const uri = item?.uri || item?.url || item?.source;
+          if (!uri) return;
+          entries.push({
+            id: item?.id || family,
+            label: item?.displayName || item?.label || item?.name || `커스텀 폰트 ${index + 1}`,
+            value: family,
+            uri,
+          });
+        });
+
+        candidate = entries.find((font) => !existing.has(font.value));
+      }
+    } catch (error) {
+      console.warn('Failed to fetch managed font manifest', error);
+    }
+
+    if (!candidate) {
+      candidate = FALLBACK_MANAGED_FONTS.find((font) => !existing.has(font.value));
+    }
+
+    if (!candidate) {
+      setFontMessage('추가할 수 있는 새 폰트가 없어요.');
+      setFontLoading(false);
+      return;
+    }
+
+    try {
+      await Font.loadAsync({ [candidate.value]: candidate.uri });
+      setAvailableFonts((prev) => [...prev, candidate]);
+      setSelectedFont(candidate.value);
+      setFontMessage(`'${candidate.label}' 폰트를 적용했어요.`);
+    } catch (error) {
+      console.warn('Failed to load managed font', error);
+      setFontMessage('폰트를 불러오지 못했어요. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setFontLoading(false);
+    }
+  }, [availableFonts, fontLoading]);
+
   const handleOpenProfile = () => {
-    navigation.navigate('ProfileDetail', { profile: profilePayload });
+    navigation.navigate('ProfileDetail', {
+      profile: profilePayload,
+      isSelf: true,
+      preferredFont: selectedFont,
+    });
   };
 
   return (
@@ -98,7 +212,7 @@ export default function SettingsScreen({ navigation }) {
         >
           <Ionicons name="chevron-back" size={24} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>설정</Text>
+        <Text style={[styles.headerTitle, dynamicFont.heading]}>마이페이지</Text>
         <View style={styles.headerButton} />
       </View>
 
@@ -116,16 +230,16 @@ export default function SettingsScreen({ navigation }) {
               style={styles.profileAvatar}
             />
             <View style={{ flex: 1 }}>
-              <Text style={styles.profileName}>{nickname}</Text>
-              <Text style={styles.profileMeta}>{locationLabel}</Text>
-              <Text style={styles.profileNote}>{tagline}</Text>
+              <Text style={[styles.profileName, dynamicFont.heading]}>{nickname}</Text>
+              <Text style={[styles.profileMeta, dynamicFont.body]}>{locationLabel}</Text>
+              <Text style={[styles.profileNote, dynamicFont.body]}>{tagline}</Text>
             </View>
             <Ionicons name="chevron-forward" size={20} color={colors.textTertiary} />
           </View>
         </TouchableOpacity>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>빠른 설정</Text>
+          <Text style={[styles.sectionTitle, dynamicFont.heading]}>빠른 설정</Text>
           <View style={styles.card}>
             {quickActions.map((item) => (
               <TouchableOpacity
@@ -138,8 +252,8 @@ export default function SettingsScreen({ navigation }) {
                   <Ionicons name={item.icon} size={18} color={item.accent} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={styles.quickLabel}>{item.label}</Text>
-                  {!!item.value && <Text style={styles.quickValue}>{item.value}</Text>}
+                  <Text style={[styles.quickLabel, dynamicFont.body]}>{item.label}</Text>
+                  {!!item.value && <Text style={[styles.quickValue, dynamicFont.body]}>{item.value}</Text>}
                 </View>
                 <Ionicons name="chevron-forward" size={18} color={colors.textTertiary} />
               </TouchableOpacity>
@@ -148,10 +262,10 @@ export default function SettingsScreen({ navigation }) {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>환경 설정</Text>
+          <Text style={[styles.sectionTitle, dynamicFont.heading]}>환경 설정</Text>
           <View style={styles.card}>
             <View style={styles.toggleRow}>
-              <Text style={styles.toggleLabel}>푸시알림</Text>
+              <Text style={[styles.toggleLabel, dynamicFont.body]}>푸시알림</Text>
               <Switch
                 value={pushEnabled}
                 onValueChange={setPushEnabled}
@@ -161,7 +275,7 @@ export default function SettingsScreen({ navigation }) {
             </View>
 
             <View style={styles.fontRow}>
-              <Text style={styles.toggleLabel}>폰트 크기</Text>
+              <Text style={[styles.toggleLabel, dynamicFont.body]}>폰트 크기</Text>
               <View style={styles.fontChoiceRow}>
                 <TouchableOpacity
                   style={[styles.fontChoice, fontSize === 'medium' && styles.fontChoiceActive]}
@@ -186,8 +300,61 @@ export default function SettingsScreen({ navigation }) {
               </View>
             </View>
 
+                                  <View style={styles.fontManagerRow}>
+              <Text style={[styles.toggleLabel, dynamicFont.body]}>폰트 스타일</Text>
+              <TouchableOpacity
+                style={[styles.fontAddButton, fontLoading && styles.fontAddButtonDisabled]}
+                onPress={handleAddManagedFont}
+                activeOpacity={0.85}
+                disabled={fontLoading}
+              >
+                {fontLoading ? (
+                  <ActivityIndicator size="small" color={colors.primary} />
+                ) : (
+                  <Text style={styles.fontAddButtonText}>폰트 추가</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.fontOptionsWrap}>
+              {availableFonts.map((font) => {
+                const isSelected = selectedFont === font.value;
+                return (
+                  <TouchableOpacity
+                    key={font.value}
+                    style={[styles.fontOption, isSelected && styles.fontOptionActive]}
+                    onPress={() => handleSelectFont(font.value)}
+                    activeOpacity={0.9}
+                  >
+                    <Text
+                      style={[
+                        styles.fontOptionText,
+                        isSelected && styles.fontOptionTextActive,
+                        font.value !== 'system' ? { fontFamily: font.value } : null,
+                      ]}
+                    >
+                      {font.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <View style={styles.fontPreviewCard}>
+              <Text style={[styles.fontPreviewLabel, dynamicFont.body]}>폰트 미리보기</Text>
+              <Text
+                style={[
+                  styles.fontPreviewText,
+                  selectedFont !== 'system' ? { fontFamily: selectedFont } : null,
+                ]}
+              >
+                좋은 인연은 멀지 않아요. 오늘의 인사를 나눠보세요!
+              </Text>
+              {!!fontMessage && <Text style={styles.fontStatusText}>{fontMessage}</Text>}
+            </View>
+
             <View style={styles.toggleRow}>
-              <Text style={styles.toggleLabel}>다크모드</Text>
+              <Text style={[styles.toggleLabel, dynamicFont.body]}>다크모드</Text>
               <Switch
                 value={darkMode}
                 onValueChange={setDarkMode}
@@ -199,7 +366,7 @@ export default function SettingsScreen({ navigation }) {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>도움말</Text>
+          <Text style={[styles.sectionTitle, dynamicFont.heading]}>도움말</Text>
           <View style={styles.card}>
             {supportLinks.map((item) => (
               <TouchableOpacity key={item.key} style={styles.supportRow} activeOpacity={0.85}>
@@ -209,8 +376,10 @@ export default function SettingsScreen({ navigation }) {
                   color={colors.textSecondary}
                   style={{ width: 22 }}
                 />
-                <Text style={styles.supportLabel}>{item.label}</Text>
-                {item.value ? <Text style={styles.supportValue}>{item.value}</Text> : null}
+                <Text style={[styles.supportLabel, dynamicFont.body]}>{item.label}</Text>
+                {item.value ? (
+                  <Text style={[styles.supportValue, dynamicFont.body]}>{item.value}</Text>
+                ) : null}
                 <Ionicons name="chevron-forward" size={16} color={colors.textTertiary} />
               </TouchableOpacity>
             ))}
@@ -222,8 +391,10 @@ export default function SettingsScreen({ navigation }) {
           activeOpacity={0.9}
           onPress={handleOpenProfile}
         >
-          <Text style={styles.footerTitle}>프로필 전체 보기</Text>
-          <Text style={styles.footerSubtitle}>내 프로필을 확인하고 업데이트하세요.</Text>
+          <Text style={[styles.footerTitle, dynamicFont.heading]}>프로필 전체 보기</Text>
+          <Text style={[styles.footerSubtitle, dynamicFont.body]}>
+            내 프로필을 확인하고 업데이트하세요.
+          </Text>
         </TouchableOpacity>
       </ScrollView>
     </SafeAreaView>
@@ -379,6 +550,82 @@ const styles = StyleSheet.create({
   },
   fontChoiceTextActive: {
     color: colors.primary,
+  },
+    fontManagerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  fontAddButton: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    backgroundColor: '#FFFFFF',
+  },
+  fontAddButtonDisabled: {
+    opacity: 0.6,
+  },
+  fontAddButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  fontOptionsWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 12,
+  },
+  fontOption: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: colors.pillBg,
+    borderWidth: 1,
+    borderColor: colors.border,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  fontOptionActive: {
+    backgroundColor: colors.pillActiveBg,
+    borderColor: colors.pillActiveBorder,
+  },
+  fontOptionText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.textSecondary,
+  },
+  fontOptionTextActive: {
+    color: colors.primary,
+  },
+  fontPreviewCard: {
+    marginTop: 12,
+    borderRadius: 16,
+    padding: 14,
+    backgroundColor: colors.backgroundSecondary,
+    borderWidth: 1,
+    borderColor: colors.border,
+    gap: 8,
+  },
+  fontPreviewLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.textSecondary,
+  },
+  fontPreviewText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.text,
+    lineHeight: 22,
+  },
+  fontStatusText: {
+    fontSize: 12,
+    color: colors.textSecondary,
   },
   supportRow: {
     flexDirection: 'row',

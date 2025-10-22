@@ -195,3 +195,6 @@ export default function RootNavigator() {
 
   // ✅ 토큰만 있어도 로그인으로 간주 (user.id/_id도 허용)
   const isSignedIn = !!token || (!!user && (user.id || user._id));
+
+  return isSignedIn ? <MainTabs /> : <AuthFlow />;
+}

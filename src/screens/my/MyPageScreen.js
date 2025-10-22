@@ -1,3 +1,4 @@
+// src/screens/my/MyPageScreen.js
 import React, { useMemo } from 'react';
 import {
   View,
@@ -9,17 +10,62 @@ import {
 } from 'react-native';
 import colors from '../../theme/colors';
 import Avatar from '../../components/Avatar';
-import { useNavigation } from '@react-navigation/native';
 import { useAuth } from '../../context/AuthContext';
 
-export default function MyPageScreen() {
-  const navigation = useNavigation();
+const FALLBACK_COVER =
+  'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=1080&q=80';
+
+export default function MyPageScreen({ navigation }) {
   const { user } = useAuth();
   const nickname = user?.nickname || user?.name || '회원님';
+  const locationLabel = user?.location || '서울 강남구';
   const balance = useMemo(() => {
     const p = user?.points ?? user?.balance ?? 0;
     return typeof p === 'number' ? p : parseInt(String(p).replace(/\D/g, ''), 10) || 0;
   }, [user]);
+
+    const profilePayload = useMemo(
+    () => ({
+      name: nickname,
+      location: locationLabel,
+      title: user?.headline || '오늘 가입한 회원입니다',
+      bio:
+        user?.bio ||
+        '마음이 맞는 친구를 기다리고 있어요. 드라이브와 카페 투어를 좋아해요!',
+      avatar: user?.avatar || null,
+      coverImage: user?.coverImage || FALLBACK_COVER,
+    }),
+    [nickname, locationLabel, user]
+  );
+
+  const handleOpenProfile = () => {
+    navigation.navigate('ProfileDetail', { profile: profilePayload });
+  };
+
+  const handleGridPress = (key) => {
+    switch (key) {
+      case 'alerts':
+        Alert.alert('준비중', '알림 센터 기능을 준비중입니다.');
+        break;
+      case 'support':
+        Alert.alert('준비중', '1:1 문의 기능을 준비중입니다.');
+        break;
+      case 'notice':
+        Alert.alert('준비중', '공지사항 기능을 준비중입니다.');
+        break;
+      case 'settings':
+        navigation.navigate('Settings');
+        break;
+      case 'charge':
+        Alert.alert('준비중', '무료 충전소 기능을 준비중입니다.');
+        break;
+      case 'album':
+        Alert.alert('준비중', '구매한 앨범 목록을 준비중입니다.');
+        break;
+      default:
+        break;
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -29,19 +75,20 @@ export default function MyPageScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* 프로필 헤더 */}
-        <View style={styles.profileCard}>
-          <View style={{ flex: 1 }}>
-            <Text style={styles.nickLine}>
-              <Text style={styles.nickname}>{nickname}</Text>
-              <Text style={styles.nickSuffix}>님</Text>
-            </Text>
-            <Text style={styles.subtitle}>좋은 일이 생길 것 같아요!</Text>
+        <TouchableOpacity activeOpacity={0.9} onPress={handleOpenProfile}>
+          <View style={styles.profileCard}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.nickLine}>
+                <Text style={styles.nickname}>{nickname}</Text>
+                <Text style={styles.nickSuffix}>님</Text>
+              </Text>
+              <Text style={styles.subtitle}>좋은 일이 생길 것 같아요!</Text>
 
-            <View style={styles.pointRow}>
-              <Text style={styles.pointLabel}>보유포인트</Text>
-              <Text style={styles.pointValue}>{balance}p</Text>
-            </View>
-            <Text style={styles.ticketText}>첫 메시지 이용권 3/3</Text>
+              <View style={styles.pointRow}>
+                <Text style={styles.pointLabel}>보유포인트</Text>
+                <Text style={styles.pointValue}>{balance}p</Text>
+              </View>
+              <Text style={styles.ticketText}>첫 메시지 이용권 3/3</Text>
           </View>
 
           <View style={{ alignItems: 'flex-end' }}>
@@ -53,18 +100,13 @@ export default function MyPageScreen() {
             <TouchableOpacity
               style={styles.editBadge}
               activeOpacity={0.9}
-                         onPress={() => {
-                if (typeof navigation.navigate === 'function') {
-                  navigation.navigate('Home', { screen: 'Profile' });
-                } else {
-                  Alert.alert('알림', '프로필 편집 화면으로 이동할 수 없습니다.');
-                }
-              }}
-            >
-              <Text style={styles.editBadgeText}>✎</Text>
-            </TouchableOpacity>
-          </View>
+                onPress={() => navigation.navigate('Settings')}
+              >
+                <Text style={styles.editBadgeText}>⚙</Text>
+              </TouchableOpacity>
+            </View>
         </View>
+       </TouchableOpacity>
 
         {/* 기능 그리드 */}
         <View style={styles.gridCard}>
@@ -72,18 +114,18 @@ export default function MyPageScreen() {
             <GridItem
               label="알림"
               icon="🔔"
-                         onPress={() => Alert.alert('준비중', '알림 센터 기능을 준비중입니다.')}
+              onPress={() => handleGridPress('alerts')}
               dot={!!user?.hasUnread}
             />
             <GridItem
               label="1:1문의"
               icon="🎧"
-              onPress={() => Alert.alert('준비중', '1:1 문의 기능을 준비중입니다.')}
+              onPress={() => handleGridPress('support')}
             />
             <GridItem
               label="공지"
               icon="📢"
-                onPress={() => Alert.alert('준비중', '공지사항 기능을 준비중입니다.')}
+              onPress={() => handleGridPress('notice')}
             />
           </View>
           <View style={styles.gridRow}>
@@ -96,13 +138,13 @@ export default function MyPageScreen() {
               label="무료충전소"
               icon="⚡"
               badge="무료"
-                onPress={() => Alert.alert('준비중', '무료 충전소 기능을 준비중입니다.')}
+              onPress={() => handleGridPress('charge')}
             />
             <GridItem
               label="구매한 앨범"
               icon="🔒"
               badge="무료"
-              onPress={() => Alert.alert('준비중', '구매한 앨범 목록을 준비중입니다.')}
+              onPress={() => handleGridPress('album')}
             />
           </View>
         </View>

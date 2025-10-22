@@ -13,8 +13,8 @@ import HomeScreen from '../screens/main/HomeScreen';
 import ExploreScreen from '../screens/explore/ExploreScreen'; 
 import ChatsScreen from '../screens/main/ChatsScreen';
 import ShopScreen from '../screens/shop/ShopScreen';           
-import MyPageScreen from '../screens/my/MyPageScreen';
 import SettingsScreen from '../screens/my/SettingsScreen';
+import ProfileEditScreen from '../screens/my/ProfileEditScreen';
 
 // ===== 서브 =====
 import HotRecommendScreen from '../screens/recommend/HotRecommendScreen';
@@ -111,15 +111,15 @@ function ChatsStack() {
 function MyPageStack() {
   return (
     <MyPageStackNav.Navigator screenOptions={{ headerShown: false }}>
-      <MyPageStackNav.Screen name="MyPageMain" component={MyPageScreen} />
-      <MyPageStackNav.Screen
-        name="Settings"
-        component={SettingsScreen}
-        options={{ animation: 'slide_from_right' }}
-      />
+      <MyPageStackNav.Screen name="MyPageMain" component={SettingsScreen} />
       <MyPageStackNav.Screen
         name="ProfileDetail"
         component={ProfileDetailScreen}
+        options={{ animation: 'slide_from_right' }}
+      />
+      <MyPageStackNav.Screen
+        name="ProfileEdit"
+        component={ProfileEditScreen}
         options={{ animation: 'slide_from_right' }}
       />
     </MyPageStackNav.Navigator>

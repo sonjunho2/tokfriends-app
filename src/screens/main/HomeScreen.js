@@ -5,27 +5,132 @@ import colors from '../../theme/colors';
 import Card from '../../components/Card';
 
 const GRID = [
-  { key: 'hot', label: 'HOT추천' },
-  { key: 'online', label: '접속중' },
-  { key: 'near', label: '가까운' },
-  { key: 'age20', label: '20대' },
-  { key: 'age30', label: '30대' },
-  { key: 'age40', label: '40대이상' },
-  { key: 'gender', label: '이성친구' },
-  { key: 'quick', label: '즉석만남' },
+  { key: 'HOT추천', label: 'HOT추천' },
+  { key: '접속중', label: '접속중' },
+  { key: '가까운', label: '가까운' },
+  { key: '20대', label: '20대' },
+  { key: '30대', label: '30대' },
+  { key: '40대이상', label: '40대이상' },
+  { key: '이성친구', label: '이성친구' },
+  { key: '즉석만남', label: '즉석만남' },
 ];
 
 const CARD_H = 190; // 두 박스 동일 높이
 
 // 더미 데이터 (TODO: API로 대체)
-const best10 = Array.from({ length: 10 }, (_, i) => ({
-  id: 'b' + i,
-  img: `https://i.pravatar.cc/300?img=${(i % 60) + 1}`,
-}));
-const todayNew = Array.from({ length: 12 }, (_, i) => ({
-  id: 'n' + i,
-  img: `https://picsum.photos/seed/new${i}/600/600`,
-}));
+const best10 = [
+  {
+    id: 'b0',
+    name: '윤아',
+    age: 27,
+    img: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=900&q=80',
+    avatar: 'https://i.pravatar.cc/150?img=11',
+    location: '서울 강남구',
+    bio: '따뜻한 커피와 산책을 좋아해요. 주말엔 전시 보러 가요.',
+    title: '오늘의 베스트 추천',
+    distanceKm: 3,
+    points: 120,
+  },
+  {
+    id: 'b1',
+    name: '수아',
+    age: 25,
+    img: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?auto=format&fit=crop&w=900&q=80',
+    avatar: 'https://i.pravatar.cc/150?img=22',
+    location: '서울 마포구',
+    bio: '즉흥 여행과 사진 찍기를 사랑하는 수아예요.',
+    title: '감성 가득한 친구',
+    distanceKm: 7,
+    points: 98,
+  },
+  {
+    id: 'b2',
+    name: '나리',
+    age: 33,
+    img: 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=900&q=80',
+    avatar: 'https://i.pravatar.cc/150?img=35',
+    location: '경기 성남시',
+    bio: '차분한 대화를 좋아하고 드라이브를 즐겨요.',
+    title: '차분한 대화 메이트',
+    distanceKm: 12,
+    points: 76,
+  },
+  {
+    id: 'b3',
+    name: '은채',
+    age: 29,
+    img: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=900&q=80',
+    avatar: 'https://i.pravatar.cc/150?img=5',
+    location: '부산 해운대구',
+    bio: '바다 보며 수다 떠는 걸 가장 좋아해요.',
+    title: '늘 웃는 바다 친구',
+    distanceKm: 220,
+    points: 88,
+  },
+  {
+    id: 'b4',
+    name: '다인',
+    age: 31,
+    img: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=900&q=80',
+    avatar: 'https://i.pravatar.cc/150?img=45',
+    location: '대전 서구',
+    bio: '새로운 도전을 좋아하는 활발한 성격이에요.',
+    title: '활발한 드라이브 파트너',
+    distanceKm: 150,
+    points: 64,
+  },
+];
+
+const todayNew = [
+  {
+    id: 'n0',
+    name: '유리',
+    age: 24,
+    img: 'https://images.unsplash.com/photo-1521579971123-1192931a1452?auto=format&fit=crop&w=900&q=80',
+    avatar: 'https://i.pravatar.cc/150?img=16',
+    location: '서울 송파구',
+    bio: '헬스와 요리를 즐기는 유리에요. 새로운 레시피를 공유해요.',
+    title: '오늘 가입한 따끈한 친구',
+    distanceKm: 5,
+    points: 45,
+  },
+  {
+    id: 'n1',
+    name: '연우',
+    age: 28,
+    img: 'https://images.unsplash.com/photo-1504593811423-6dd665756598?auto=format&fit=crop&w=900&q=80',
+    avatar: 'https://i.pravatar.cc/150?img=26',
+    location: '인천 연수구',
+    bio: '독서모임을 운영 중이고 진솔한 대화를 좋아합니다.',
+    title: '생각을 나누는 사람',
+    distanceKm: 24,
+    points: 52,
+  },
+  {
+    id: 'n2',
+    name: '하린',
+    age: 26,
+    img: 'https://images.unsplash.com/photo-1463453091185-61582044d556?auto=format&fit=crop&w=900&q=80',
+    avatar: 'https://i.pravatar.cc/150?img=39',
+    location: '광주 서구',
+    bio: '노래 듣고 기타 연주하면서 하루를 마무리해요.',
+    title: '음악을 나누는 친구',
+    distanceKm: 180,
+    points: 38,
+  },
+  {
+    id: 'n3',
+    name: '세린',
+    age: 27,
+    img: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=900&q=80',
+    avatar: 'https://i.pravatar.cc/150?img=56',
+    location: '대구 수성구',
+    bio: '맛집 탐방과 사진 찍기를 좋아하는 세린입니다.',
+    title: '오늘의 맛집 투어러',
+    distanceKm: 90,
+    points: 41,
+  },
+];
 
 export default function HomeScreen({ navigation }) {
   const [leftSec, setLeftSec] = useState(30 * 60);
@@ -56,6 +161,23 @@ export default function HomeScreen({ navigation }) {
   const newItem = newList[idxNew % newList.length];
   const bestItem = best10[idxBest % best10.length];
 
+    const handleHighlightPress = (item) => {
+    if (!item) return;
+    navigation.navigate('ProfileDetail', {
+      profile: {
+        name: item.name,
+        location: item.location,
+        title: item.title,
+        bio: item.bio,
+        avatar: item.avatar,
+        coverImage: item.img,
+        age: item.age,
+        distanceKm: item.distanceKm,
+        points: item.points,
+      },
+    });
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       {/* 상단 앱명(가운데/크게) + 검색 */}
@@ -84,7 +206,7 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.greenBadge}><Text style={styles.greenBadgeTxt}>1/1</Text></View>
         </Card>
 
-         {/* 빠른 필터 - 2×4 아이콘 그리드 */}
+        {/* 빠른 필터 - 2×4 아이콘 그리드 */}
         <View style={styles.grid}>
           {GRID.map((g) => (
             <TouchableOpacity
@@ -92,13 +214,7 @@ export default function HomeScreen({ navigation }) {
               style={styles.gridItem}
               activeOpacity={0.9}
               onPress={() => {
-                if (g.key === 'hot') {
-                  navigation.navigate('HotRecommend');
-                } else {
-                  navigation.navigate('UniversalList', {
-                    initialFilter: g.label,
-                  });
-                }
+                navigation.navigate('HotRecommend', { selected: g.label });
               }}
             >
               <View style={styles.gridIcon}>
@@ -106,7 +222,7 @@ export default function HomeScreen({ navigation }) {
               </View>
             </TouchableOpacity>
           ))}
-         </View>
+        </View>
 
         {/* 나에게 관심있는 친구들 */}
         <Card style={styles.wideCard}>
@@ -114,7 +230,7 @@ export default function HomeScreen({ navigation }) {
             <Text style={styles.wideTitle}>나에게{'\n'}관심있는 친구들</Text>
             <TouchableOpacity
               onPress={() => {
-                         const parentNav = navigation.getParent?.();
+                const parentNav = navigation.getParent?.();
                 if (parentNav && typeof parentNav.navigate === 'function') {
                   parentNav.navigate('Chats', { initialSeg: '신규' });
                 } else if (typeof navigation.navigate === 'function') {
@@ -131,30 +247,36 @@ export default function HomeScreen({ navigation }) {
         <View style={styles.dualRow}>
           {/* 새로운 친구 */}
           <View style={styles.dualCol}>
-                      <View style={styles.dualHeader}>
+            <View style={styles.dualHeader}>
               <Text style={styles.dualTitle}>새로운 친구</Text>
             </View>
-            <Card style={[styles.dualCard, { height: CARD_H }]}>
-              <View style={styles.imageWrap}>
-                {!!newItem && (
-                  <Image source={{ uri: newItem.img }} style={styles.image} />
-                )}
-              </View>
-            </Card>
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={() => handleHighlightPress(newItem)}
+            >
+              <Card style={[styles.dualCard, { height: CARD_H }]}>
+                <View style={styles.imageWrap}>
+                  {!!newItem && <Image source={{ uri: newItem.img }} style={styles.image} />}
+                </View>
+              </Card>
+            </TouchableOpacity>
           </View>
 
           {/* 베스트추천 */}
           <View style={styles.dualCol}>
-                        <View style={styles.dualHeader}>
+            <View style={styles.dualHeader}>
               <Text style={styles.dualTitle}>베스트추천</Text>
             </View>
-            <Card style={[styles.dualCard, { height: CARD_H }]}>
-              <View style={styles.imageWrap}>
-                {!!bestItem && (
-                  <Image source={{ uri: bestItem.img }} style={styles.image} />
-                )}
-              </View>
-            </Card>
+            <TouchableOpacity
+              activeOpacity={0.9}
+              onPress={() => handleHighlightPress(bestItem)}
+            >
+              <Card style={[styles.dualCard, { height: CARD_H }]}>
+                <View style={styles.imageWrap}>
+                  {!!bestItem && <Image source={{ uri: bestItem.img }} style={styles.image} />}
+                </View>
+              </Card>
+            </TouchableOpacity>
           </View>
         </View>
 

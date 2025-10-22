@@ -3,8 +3,6 @@ import React from 'react';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import RootNavigator from './RootNavigator';
 import colors from '../theme/colors';
-import { ProfileModalProvider } from '../context/ProfileModalContext';
-import GlobalProfileModal from '../components/GlobalProfileModal';
 
 const navTheme = {
   ...DefaultTheme,
@@ -28,7 +26,7 @@ const linking = {
           Explore: 'home/explore',
           UniversalList: 'home/list',
           HotRecommend: 'home/hot',
-          Profile: 'home/profile',
+          ProfileDetail: 'home/profile',
         },
       },
       Chats: {
@@ -39,10 +37,11 @@ const linking = {
         },
       },
       Shop: 'shop',
-      MyPage: {
+    MyPage: {
         screens: {
           MyPageMain: 'mypage',
           Settings: 'mypage/settings',
+          ProfileDetail: 'mypage/profile',
         },
       },
       Login: 'login',

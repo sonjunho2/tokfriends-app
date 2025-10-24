@@ -1,5 +1,5 @@
 // src/components/GlobalProfileModal.js
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   Modal,
   View,
@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -16,6 +17,7 @@ import { useAuth } from '../context/AuthContext';
 import { useProfileModal } from '../context/ProfileModalContext';
 import Avatar from './Avatar';
 import { useNavigation } from '@react-navigation/native';
+import { apiClient } from '../api/client';
 
 const FALLBACK_IMAGE = 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=600&q=80';
 
@@ -24,6 +26,7 @@ export default function GlobalProfileModal() {
   const insets = useSafeAreaInsets();
   const { visible, profile, closeProfile } = useProfileModal();
   const { user } = useAuth();
+  const [sending, setSending] = useState(false);
 
   const profileData = useMemo(() => {
     if (profile) return profile;
@@ -58,11 +61,35 @@ export default function GlobalProfileModal() {
     }, 0);
   };
 
-  const handleMessage = () => {
-    closeProfile();
-    setTimeout(() => {
-      navigation.navigate('Chats', { screen: 'ChatsMain', params: { initialSeg: '신규' } });
-    }, 0);
+  const handleMessage = async () => {
+    if (sending) return;
+    const targetId = profile?.id || profile?._id;
+    if (!targetId) {
+      Alert.alert('안내', '대화할 회원 정보를 찾을 수 없습니다.');
+      return;
+    }
+    setSending(true);
+    try {
+      const room = await apiClient.ensureDirectRoom(targetId, { title: profileData?.name });
+      const roomId = room?.id || room?._id || Date.now();
+      const participant = {
+        id: targetId,
+        name: profileData?.name,
+        avatar: profileData?.avatar,
+        headline: profileData?.title,
+      };
+      closeProfile();
+      setTimeout(() => {
+        navigation.navigate('Chats', {
+          screen: 'ChatRoom',
+          params: { id: roomId, room, user: participant },
+        });
+      }, 120);
+    } catch (error) {
+      Alert.alert('메시지 시작 실패', error?.message || '채팅방을 생성하지 못했습니다.');
+    } finally {
+      setSending(false);
+    }
   };
 
   if (!visible || !profileData) return null;
@@ -110,7 +137,12 @@ export default function GlobalProfileModal() {
             <Text style={styles.infoText}>{profileData.bio}</Text>
           </View>
 
-          <TouchableOpacity style={styles.primaryButton} onPress={handleMessage} activeOpacity={0.85}>
+          <TouchableOpacity
+            style={[styles.primaryButton, sending && { opacity: 0.6 }]}
+            onPress={handleMessage}
+            activeOpacity={0.85}
+            disabled={sending}
+          >
             <Ionicons name="chatbubble-ellipses-outline" size={20} color={colors.textInverse} />
             <Text style={styles.primaryButtonText}>메시지 보내기</Text>
           </TouchableOpacity>

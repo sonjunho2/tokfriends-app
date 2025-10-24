@@ -1,17 +1,19 @@
 // src/screens/main/ProfileDetailScreen.js
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
-  SafeAreaView,
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
   ImageBackground,
+  Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import Avatar from '../../components/Avatar';
 import colors from '../../theme/colors';
+import { apiClient } from '../../api/client';
 
 const FALLBACK_IMAGE =
   'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=1080&q=80';
@@ -20,6 +22,7 @@ export default function ProfileDetailScreen({ navigation, route }) {
   const profile = route?.params?.profile;
   const preferredFont = route?.params?.preferredFont;
   const isSelf = Boolean(route?.params?.isSelf);
+  const [sending, setSending] = useState(false);
 
   const data = useMemo(() => {
     const location = profile?.location || '서울 · 5km 이내';
@@ -62,8 +65,36 @@ export default function ProfileDetailScreen({ navigation, route }) {
     return items;
   }, [data.age, data.distanceKm, data.points]);
 
-  const handleMessage = () => {
-    navigation.navigate('Chats', { screen: 'ChatsMain', params: { initialSeg: '신규' } });
+  const handleMessage = async () => {
+    if (sending) return;
+    const targetId = profile?.id || profile?._id;
+    if (!targetId) {
+      Alert.alert('안내', '대화할 회원 정보를 찾을 수 없습니다.');
+      return;
+    }
+    setSending(true);
+    try {
+      const room = await apiClient.ensureDirectRoom(targetId, { title: data.name });
+      const roomId = room?.id || room?._id || Date.now();
+      const participant = {
+        id: targetId,
+        name: data.name,
+        avatar: data.avatar,
+        headline: data.title,
+      };
+      navigation.navigate('Chats', {
+        screen: 'ChatRoom',
+        params: {
+          id: roomId,
+          room,
+          user: participant,
+        },
+      });
+    } catch (error) {
+      Alert.alert('메시지 시작 실패', error?.message || '채팅방을 생성하지 못했습니다.');
+    } finally {
+      setSending(false);
+    }
   };
 
     const handleEditProfile = () => {
@@ -137,9 +168,10 @@ export default function ProfileDetailScreen({ navigation, route }) {
             </TouchableOpacity>
           ) : (
             <TouchableOpacity
-              style={styles.primaryButton}
+              style={[styles.primaryButton, sending && { opacity: 0.6 }]}
               onPress={handleMessage}
               activeOpacity={0.85}
+              disabled={sending}
             >
               <Ionicons name="chatbubble-ellipses-outline" size={20} color={colors.textInverse} />
               <Text style={styles.primaryButtonText}>메시지 보내기</Text>

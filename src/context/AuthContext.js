@@ -9,6 +9,7 @@ const AuthContext = createContext({
   setUser: () => {},
   login: async () => ({ success: false }),
   signup: async () => ({ success: false }),
+  authenticateWithToken: async () => ({ success: false }),
   logout: async () => {},
   refreshMe: async () => {},
 });
@@ -44,16 +45,25 @@ export const AuthProvider = ({ children }) => {
     setState((s) => ({ ...s, user: user || null, token: token || s.token }));
   };
 
+  const authenticateWithToken = async (token, userPayload = null) => {
+    try {
+      if (!token) throw new Error('토큰이 필요합니다.');
+      await saveToken(token);
+      setState((s) => ({ ...s, token }));
+      const me = userPayload || (await apiClient.getMe());
+      setState((s) => ({ ...s, user: me }));
+      return { success: true, user: me };
+    } catch (e) {
+      return { success: false, error: e?.message || '세션 설정에 실패했습니다.' };
+    }
+  };
+
   const login = async (email, password) => {
     try {
       const res = await apiClient.login(email, password);
       const token = res?.access_token;
       if (!token) throw new Error('토큰 응답이 비어 있습니다.');
-      await saveToken(token);
-      setState((s) => ({ ...s, token }));
-      const me = await apiClient.getMe();
-      setState((s) => ({ ...s, user: me }));
-      return { success: true };
+      return await authenticateWithToken(token);
     } catch (e) {
       return { success: false, error: e?.message || '아이디 또는 비밀번호를 확인해 주세요.' };
     }
@@ -101,6 +111,7 @@ export const AuthProvider = ({ children }) => {
         setUser,
         login,
         signup,
+        authenticateWithToken,
         logout,
         refreshMe,
       }}

@@ -38,23 +38,19 @@ const linking = {
           CreateChatRoom: 'chat/create',
         },
       },
-    Shop: 'shop',
-    MyPage: {
+      Shop: 'shop',
+      MyPage: {
         screens: {
           MyPageMain: 'mypage',
           ProfileDetail: 'mypage/profile',
           ProfileEdit: 'mypage/edit',
         },
       },
-      Login: 'login',
-      Signup: 'signup',
       Welcome: 'welcome',
+      PhoneEntry: 'phone',
+      PhoneVerification: 'phone/verify',
       Agreement: 'agreement',
-      Age: 'age',
-      Nickname: 'nickname',
-      Gender: 'gender',
-      Location: 'location',
-      ProfileSetup: 'profile-setup',
+      ProfileRegistration: 'profile-registration',
     },
   },
 };

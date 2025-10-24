@@ -24,14 +24,10 @@ import CreateChatRoomScreen from '../screens/chat/CreateChatRoomScreen';
 
 // ===== 인증 =====
 import WelcomeScreen from '../screens/auth/WelcomeScreen';
-import SignupScreen from '../screens/auth/SignupScreen';
-import LoginScreen from '../screens/auth/LoginScreen';
+import PhoneEntryScreen from '../screens/auth/PhoneEntryScreen';
+import PhoneVerificationScreen from '../screens/auth/PhoneVerificationScreen';
 import AgreementScreen from '../screens/auth/AgreementScreen';
-import AgeScreen from '../screens/auth/AgeScreen';
-import NicknameScreen from '../screens/auth/NicknameScreen';
-import GenderScreen from '../screens/auth/GenderScreen';
-import LocationScreen from '../screens/auth/LocationScreen';
-import ProfileSetupScreen from '../screens/auth/ProfileSetupScreen';
+import ProfileRegistrationScreen from '../screens/auth/ProfileRegistrationScreen';
 
 const AuthStack = createNativeStackNavigator();
 const HomeStackNav = createNativeStackNavigator();
@@ -47,14 +43,10 @@ function AuthFlow() {
       screenOptions={{ headerShown: false }}
     >
       <AuthStack.Screen name="Welcome" component={WelcomeScreen} />
-      <AuthStack.Screen name="Signup" component={SignupScreen} />
-      <AuthStack.Screen name="Login" component={LoginScreen} />
+      <AuthStack.Screen name="PhoneEntry" component={PhoneEntryScreen} />
+      <AuthStack.Screen name="PhoneVerification" component={PhoneVerificationScreen} />
       <AuthStack.Screen name="Agreement" component={AgreementScreen} />
-      <AuthStack.Screen name="Age" component={AgeScreen} />
-      <AuthStack.Screen name="Nickname" component={NicknameScreen} />
-      <AuthStack.Screen name="Gender" component={GenderScreen} />
-      <AuthStack.Screen name="Location" component={LocationScreen} />
-      <AuthStack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
+      <AuthStack.Screen name="ProfileRegistration" component={ProfileRegistrationScreen} />
     </AuthStack.Navigator>
   );
 }

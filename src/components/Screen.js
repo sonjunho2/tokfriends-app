@@ -1,13 +1,13 @@
 // tokfriends-app/src/components/Screen.js
 import React from 'react';
 import {
-  SafeAreaView,
   ScrollView,
   View,
   StyleSheet,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function Screen({
   children,
@@ -65,7 +65,7 @@ export default function Screen({
   );
 
   return safeArea ? (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom', 'left', 'right']}>
       {wrappedContent}
     </SafeAreaView>
   ) : (

@@ -247,6 +247,254 @@ export const apiClient = {
   },
   // ⬆️⬆️⬆️ 여기까지 추가
 
+  async requestPhoneOtp(payload = {}) {
+    const digits = String(payload?.phone || '')
+      .replace(/[^0-9]/g, '')
+      .replace(/^82/, '0');
+    if (!digits) {
+      throw normalizeError(new Error('휴대폰 번호를 입력해 주세요.'));
+    }
+
+    const body = {
+      phone: digits,
+      countryCode: payload?.countryCode || 'KR',
+    };
+
+    const endpoints = [
+      '/auth/phone/request-otp',
+      '/auth/phone/send-otp',
+      '/auth/otp/request',
+      '/otp/request',
+      '/otp/send',
+    ];
+
+    let lastErr;
+    for (const path of endpoints) {
+      try {
+        const { data } = await client.post(path, body);
+        return data;
+      } catch (err) {
+        const status = err?.response?.status;
+        if (status === 404 || status === 405) {
+          lastErr = err;
+          continue;
+        }
+        throw normalizeError(err);
+      }
+    }
+    throw normalizeError(lastErr || new Error('인증번호 전송 경로가 존재하지 않습니다.'));
+  },
+
+  async verifyPhoneOtp(payload = {}) {
+    const digits = String(payload?.phone || '')
+      .replace(/[^0-9]/g, '')
+      .replace(/^82/, '0');
+    const code = String(payload?.code || '').replace(/\D/g, '');
+    if (!digits || code.length < 4) {
+      throw normalizeError(new Error('휴대폰 번호와 인증번호를 확인해 주세요.'));
+    }
+
+    const body = {
+      phone: digits,
+      code,
+      requestId: payload?.requestId || payload?.verificationId || undefined,
+    };
+
+    const endpoints = [
+      '/auth/phone/verify',
+      '/auth/phone/confirm',
+      '/auth/otp/verify',
+      '/otp/verify',
+    ];
+
+    let lastErr;
+    for (const path of endpoints) {
+      try {
+        const { data } = await client.post(path, body);
+        return data;
+      } catch (err) {
+        const status = err?.response?.status;
+        if (status === 404 || status === 405) {
+          lastErr = err;
+          continue;
+        }
+        throw normalizeError(err);
+      }
+    }
+    throw normalizeError(lastErr || new Error('인증번호 확인 경로가 존재하지 않습니다.'));
+  },
+
+  async completePhoneSignup(payload = {}) {
+    const body = {
+      phone: String(payload?.phone || '').replace(/[^0-9]/g, ''),
+      verificationId: payload?.verificationId,
+      nickname: String(payload?.nickname || '').trim(),
+      birthYear: payload?.birthYear,
+      gender: payload?.gender || 'other',
+      region: payload?.region || null,
+      headline: payload?.headline || '',
+      bio: payload?.bio || '',
+      avatarUri: payload?.avatarUri || undefined,
+    };
+
+    if (!body.phone || !body.verificationId) {
+      throw normalizeError(new Error('인증 정보가 누락되었습니다.'));
+    }
+    if (!body.nickname || !body.birthYear || !body.headline || !body.bio) {
+      throw normalizeError(new Error('필수 가입 정보를 모두 입력해 주세요.'));
+    }
+
+    const endpoints = [
+      '/auth/phone/complete-profile',
+      '/auth/phone/signup',
+      '/auth/signup/phone',
+      '/users/signup/phone',
+    ];
+
+    let lastErr;
+    for (const path of endpoints) {
+      try {
+        const { data } = await client.post(path, body);
+        return data;
+      } catch (err) {
+        const status = err?.response?.status;
+        if (status === 404 || status === 405) {
+          lastErr = err;
+          continue;
+        }
+        throw normalizeError(err);
+      }
+    }
+    throw normalizeError(lastErr || new Error('휴대폰 기반 가입 처리에 실패했습니다.'));
+  },
+
+  async getLegalDocument(slug) {
+    const key = String(slug || '').replace(/[^0-9a-zA-Z-_]/g, '').toLowerCase();
+    if (!key) {
+      throw normalizeError(new Error('문서 식별자가 필요합니다.'));
+    }
+    const candidates = [
+      `/legal-documents/${key}`,
+      `/legal/${key}`,
+      `/policies/${key}`,
+      `/cms/pages/${key}`,
+    ];
+    let lastErr;
+    for (const path of candidates) {
+      try {
+        const { data } = await client.get(path);
+        return data;
+      } catch (err) {
+        const status = err?.response?.status;
+        if (status === 404 || status === 405) {
+          lastErr = err;
+          continue;
+        }
+        throw normalizeError(err);
+      }
+    }
+    throw normalizeError(lastErr || new Error('약관 문서를 찾을 수 없습니다.'));
+  },
+
+  async ensureDirectRoom(userId, options = {}) {
+    const target = userId || options?.targetUserId || options?.participantId;
+    if (!target) {
+      throw normalizeError(new Error('대화할 상대의 ID가 필요합니다.'));
+    }
+    const body = {
+      targetUserId: target,
+      participantId: target,
+    };
+
+    const endpoints = [
+      '/chats/direct',
+      '/chat/direct',
+      '/chats/rooms/direct',
+      '/chat/rooms/direct',
+      '/conversations/direct',
+    ];
+
+    let lastErr;
+    for (const path of endpoints) {
+      try {
+        const { data } = await client.post(path, body);
+        if (data?.room) return data.room;
+        return data;
+      } catch (err) {
+        const status = err?.response?.status;
+        if (status === 404 || status === 405) {
+          lastErr = err;
+          continue;
+        }
+        throw normalizeError(err);
+      }
+    }
+
+    // fallback: fabricate local room to avoid UI dead end
+    return {
+      id: `local-${Date.now()}`,
+      participants: [target],
+      title: options?.title || '새 대화',
+      isFallback: true,
+    };
+  },
+
+  async getPointProducts() {
+    const endpoints = [
+      '/store/point-products',
+      '/store/products',
+      '/shop/points',
+      '/payments/products',
+    ];
+    let lastErr;
+    for (const path of endpoints) {
+      try {
+        const { data } = await client.get(path);
+        if (Array.isArray(data?.items)) return data.items;
+        if (Array.isArray(data?.data)) return data.data;
+        if (Array.isArray(data)) return data;
+      } catch (err) {
+        const status = err?.response?.status;
+        if (status === 404 || status === 405) {
+          lastErr = err;
+          continue;
+        }
+        throw normalizeError(err);
+      }
+    }
+    if (lastErr) throw normalizeError(lastErr);
+    return [];
+  },
+
+  async confirmPurchase(payload = {}) {
+    const body = {
+      productId: payload?.productId,
+      transactionId: payload?.transactionId,
+      receipt: payload?.receipt,
+      platform: payload?.platform,
+    };
+    const endpoints = [
+      '/store/purchases/confirm',
+      '/payments/confirm',
+      '/iap/confirm',
+    ];
+    let lastErr;
+    for (const path of endpoints) {
+      try {
+        const { data } = await client.post(path, body);
+        return data;
+      } catch (err) {
+        const status = err?.response?.status;
+        if (status === 404 || status === 405) {
+          lastErr = err;
+          continue;
+        }
+        throw normalizeError(err);
+      }
+    }
+    throw normalizeError(lastErr || new Error('구매 확인에 실패했습니다.'));
+  },
+
   async getMe() {
     try { const { data } = await client.get('/users/me'); return data; }
     catch (e) { throw normalizeError(e); }

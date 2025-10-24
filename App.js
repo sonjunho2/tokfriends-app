@@ -2,7 +2,7 @@
 import 'react-native-gesture-handler';
 import React from 'react';
 import { View, ActivityIndicator, StyleSheet, StatusBar } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import {
   useFonts,
   NotoSansKR_400Regular,
@@ -32,12 +32,12 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
         <StatusBar barStyle="dark-content" backgroundColor={colors.backgroundSecondary} />
         <AuthProvider>
           <Navigation />
         </AuthProvider>
-      </View>
+      </SafeAreaView>
     </SafeAreaProvider>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -6,31 +6,160 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  ActivityIndicator,
+  Platform,
 } from 'react-native';
 import colors from '../../theme/colors';
 import { useAuth } from '../../context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
+import * as InAppPurchases from 'expo-in-app-purchases';
+import { apiClient } from '../../api/client';
 
-const POINT_PACKAGES = [
-  { id: 'p300', label: '300P', price: '5,900원' },
-  { id: 'p600', label: '600P', price: '11,000원' },
-  { id: 'p1200', label: '1200P', price: '17,000원' },
-  { id: 'p2700', label: '2700P', price: '31,000원', recommended: true },
-  { id: 'p9000', label: '9000P', price: '89,000원' },
-  { id: 'p20000', label: '20000P', price: '180,000원' },
+const FALLBACK_PACKAGES = [
+  { id: 'p300', label: '300P', price: '5,900원', points: 300 },
+  { id: 'p600', label: '600P', price: '11,000원', points: 600 },
+  { id: 'p1200', label: '1200P', price: '17,000원', points: 1200 },
+  { id: 'p2700', label: '2700P', price: '31,000원', points: 2700, recommended: true },
+  { id: 'p9000', label: '9000P', price: '89,000원', points: 9000 },
+  { id: 'p20000', label: '20000P', price: '180,000원', points: 20000 },
 ];
 
 export default function ShopScreen() {
   const { user } = useAuth();
+  const [packages, setPackages] = useState([]);
+  const [iapProducts, setIapProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [purchaseProcessing, setPurchaseProcessing] = useState(false);
+
   const balance = useMemo(() => {
-    // user?.points 또는 user?.balance 값이 있으면 사용, 없으면 0
     const p = user?.points ?? user?.balance ?? 0;
     return typeof p === 'number' ? p : parseInt(String(p).replace(/\D/g, ''), 10) || 0;
   }, [user]);
 
+    useEffect(() => {
+    let mounted = true;
+    let subscription;
+
+    const initialize = async () => {
+      try {
+        await InAppPurchases.connectAsync();
+        subscription = InAppPurchases.setPurchaseListener(
+          async ({ responseCode, results, errorCode }) => {
+            if (!mounted) return;
+
+            if (responseCode === InAppPurchases.IAPResponseCode.OK) {
+              if (Array.isArray(results)) {
+                for (const purchase of results) {
+                  if (
+                    purchase?.purchaseState === InAppPurchases.InAppPurchaseState.PURCHASED &&
+                    !purchase?.acknowledged
+                  ) {
+                    try {
+                      await apiClient.confirmPurchase({
+                        productId: purchase.productId,
+                        transactionId: purchase.orderId || purchase.transactionId,
+                        receipt: purchase.transactionReceipt || purchase.receipt,
+                        platform: Platform.OS,
+                      });
+                      await InAppPurchases.finishTransactionAsync(purchase, false);
+                      Alert.alert('구매 완료', '결제가 정상적으로 처리되었습니다.');
+                    } catch (confirmError) {
+                      Alert.alert(
+                        '구매 확인 실패',
+                        confirmError?.message || '결제 검증에 실패했습니다. 고객센터로 문의해 주세요.',
+                      );
+                    }
+                  }
+                }
+              }
+              setPurchaseProcessing(false);
+            } else if (responseCode === InAppPurchases.IAPResponseCode.USER_CANCELED) {
+              setPurchaseProcessing(false);
+            } else {
+              setPurchaseProcessing(false);
+              const code = errorCode ? ` (code: ${errorCode})` : '';
+              Alert.alert('결제 오류', `결제 처리 중 문제가 발생했습니다${code}. 잠시 후 다시 시도해 주세요.`);
+            }
+          },
+        );
+
+        const fetched = await apiClient.getPointProducts();
+        if (!mounted) return;
+        const normalized = Array.isArray(fetched)
+          ? fetched.map((item, index) => ({
+              id: item?.id || item?.productId || `pkg-${index + 1}`,
+              productId: item?.productId || item?.sku,
+              label: item?.label || item?.title || `${item?.points || ''}P`,
+              price: item?.priceText || item?.price || '',
+              points: item?.points || Number.parseInt(item?.label, 10) || null,
+              recommended: Boolean(item?.recommended),
+            }))
+          : [];
+        setPackages(normalized);
+
+        const productIds = normalized
+          .map((pkg) => pkg.productId)
+          .filter((id) => typeof id === 'string' && id.length > 0);
+        if (productIds.length > 0) {
+          const { responseCode, results } = await InAppPurchases.getProductsAsync(productIds);
+          if (responseCode === InAppPurchases.IAPResponseCode.OK && Array.isArray(results)) {
+            setIapProducts(results);
+          }
+        }
+      } catch (initError) {
+        if (!mounted) return;
+        console.warn('Shop init failed', initError);
+        setError(initError?.message || '상품 정보를 불러오지 못했습니다.');
+      } finally {
+        if (mounted) {
+          setLoading(false);
+        }
+      }
+    };
+
+    initialize();
+
+    return () => {
+      mounted = false;
+      if (subscription) subscription.remove();
+      InAppPurchases.disconnectAsync().catch(() => {});
+    };
+  }, []);
+
+  const displayPackages = useMemo(() => (packages.length > 0 ? packages : FALLBACK_PACKAGES), [packages]);
+
+  const getPriceLabel = useCallback(
+    (item) => {
+      if (!item?.productId) return item?.price || '가격 정보 없음';
+      const meta = iapProducts.find((p) => p.productId === item.productId);
+      if (meta?.priceString) return meta.priceString;
+      if (meta?.price) return `${meta.price} ${meta.currencyCode || ''}`.trim();
+      return item?.price || '가격 정보 없음';
+    },
+    [iapProducts],
+  );
+
+  const handlePurchase = useCallback(
+    async (item) => {
+      if (purchaseProcessing) return;
+      if (!item?.productId) {
+        Alert.alert('준비중', '이 상품은 아직 스토어 상품ID가 연결되지 않았습니다. 관리자에서 설정해 주세요.');
+        return;
+      }
+      try {
+        setPurchaseProcessing(true);
+        await InAppPurchases.requestPurchaseAsync(item.productId);
+      } catch (err) {
+        setPurchaseProcessing(false);
+        Alert.alert('결제 요청 실패', err?.message || '결제를 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.');
+      }
+    },
+    [purchaseProcessing],
+  );
+
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.headerRow}>
         <Text style={styles.title}>상점</Text>
         <View style={styles.pointBadge}>
@@ -39,12 +168,19 @@ export default function ShopScreen() {
         </View>
       </View>
 
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={{ paddingBottom: 24 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Promo Banner */}
+      <ScrollView style={styles.scroll} contentContainerStyle={{ paddingBottom: 24 }} showsVerticalScrollIndicator={false}>
+        {loading ? (
+          <View style={styles.loadingBox}>
+            <ActivityIndicator size="large" color={colors.primary} />
+          </View>
+        ) : null}
+
+        {!!error && !loading && (
+          <View style={styles.errorBox}>
+            <Text style={styles.errorText}>{error}</Text>
+          </View>
+        )}
+
         <View style={styles.banner}>
           <View style={{ flex: 1 }}>
             <Text style={styles.bannerSmall}>+50%의 추가 혜택</Text>
@@ -62,12 +198,11 @@ export default function ShopScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Product List */}
         <View style={{ gap: 14 }}>
-          {POINT_PACKAGES.map((item) => (
+          {displayPackages.map((item) => (
             <View key={item.id} style={styles.row}>
               <View style={styles.rowLeft}>
-                    <View style={styles.pointImg}>
+                <View style={styles.pointImg}>
                   <Ionicons
                     name={item.recommended ? 'sparkles' : 'ellipse'}
                     size={26}
@@ -83,11 +218,10 @@ export default function ShopScreen() {
               <TouchableOpacity
                 style={styles.buyBtn}
                 activeOpacity={0.9}
-                onPress={() => {
-                  Alert.alert('준비중', '포인트 충전 결제 기능을 준비중입니다.');
-                }}
+                onPress={() => handlePurchase(item)}
+                disabled={purchaseProcessing}
               >
-                <Text style={styles.buyBtnText}>{item.price}</Text>
+                <Text style={styles.buyBtnText}>{getPriceLabel(item)}</Text>
               </TouchableOpacity>
             </View>
           ))}
@@ -139,6 +273,23 @@ const styles = StyleSheet.create({
   },
   scroll: {
     paddingHorizontal: 16,
+  },
+    loadingBox: {
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  errorBox: {
+    backgroundColor: '#FEE2E2',
+    borderRadius: 12,
+    padding: 14,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#FCA5A5',
+  },
+  errorText: {
+    color: '#B91C1C',
+    fontWeight: '700',
+    textAlign: 'center',
   },
   banner: {
     backgroundColor: '#D9ECFF',
@@ -222,18 +373,13 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   buyBtn: {
-    minWidth: 120,
+    paddingHorizontal: 18,
     paddingVertical: 10,
-    paddingHorizontal: 14,
     borderRadius: 999,
-    borderWidth: 2,
-    borderColor: colors.primary || '#7B61FF',
-    backgroundColor: 'transparent',
+    backgroundColor: colors.primary || '#7B61FF',
   },
   buyBtnText: {
-    textAlign: 'center',
-    fontSize: 16,
-    fontWeight: '800',
-    color: colors.primary || '#7B61FF',
+    color: '#fff',
+    fontWeight: '700',
   },
 });

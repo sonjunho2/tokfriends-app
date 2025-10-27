@@ -1,0 +1,12 @@
+diff --git a/node_modules/expo-av/android/build.gradle b/node_modules/expo-av/android/build.gradle
+index 1f9bbfb..d5a3d31 100644
+--- a/node_modules/expo-av/android/build.gradle
++++ b/node_modules/expo-av/android/build.gradle
+@@
+-  implementation 'com.facebook.react:react-android'
+-
+-  compileOnly 'com.facebook.fbjni:fbjni:0.3.0'
++  implementation 'com.facebook.react:react-android'
++  implementation 'com.facebook.fbjni:fbjni:0.6.0'
+
+   api 'com.google.android.exoplayer:exoplayer:2.18.1'

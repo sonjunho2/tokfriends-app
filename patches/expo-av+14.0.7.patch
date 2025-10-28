@@ -11,3 +11,46 @@ index 749f6bdfd9fb06b33047a56859b57fe18699c391..f810e10b1e7c017e877d37b7e5b7dd5b
 
    api 'com.google.android.exoplayer:exoplayer:2.18.1'
    api 'com.google.android.exoplayer:extension-okhttp:2.18.1'
+
+diff --git a/node_modules/expo-av/android/CMakeLists.txt b/node_modules/expo-av/android/CMakeLists.txt
+index 8c166d8fb0b09ebc7d124320f8726df9d0652809..34125d4412b79a2f65a8df4d612aee9f9f306dff 100644
+--- a/node_modules/expo-av/android/CMakeLists.txt
++++ b/node_modules/expo-av/android/CMakeLists.txt
+@@
+-find_package(ReactAndroid REQUIRED CONFIG)
+-
+-find_package(fbjni REQUIRED CONFIG)
+-
+-# linking
+-
+-target_link_libraries(
+-        ${PACKAGE_NAME}
+-        ${LOG_LIB}
+-        fbjni::fbjni
+-        ReactAndroid::jsi
+-        ReactAndroid::reactnativejni
+-        android
+-)
++find_package(ReactAndroid REQUIRED CONFIG)
++
++find_package(fbjni REQUIRED CONFIG)
++
++set(REACT_NATIVE_JNI_TARGET ReactAndroid::reactnativejni)
++if(NOT TARGET ReactAndroid::reactnativejni)
++        if(TARGET ReactAndroid::reactnative)
++                set(REACT_NATIVE_JNI_TARGET ReactAndroid::reactnative)
++        else()
++                message(FATAL_ERROR "Failed to locate a React Native JNI target. Expected ReactAndroid::reactnativejni or ReactAndroid::reactnative to be exported.")
++        endif()
++endif()
++
++# linking
++
++target_link_libraries(
++        ${PACKAGE_NAME}
++        ${LOG_LIB}
++        fbjni::fbjni
++        ReactAndroid::jsi
++        ${REACT_NATIVE_JNI_TARGET}
++        android
++)

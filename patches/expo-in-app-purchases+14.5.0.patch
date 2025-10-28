@@ -1,6 +1,6 @@
 diff --git a/node_modules/expo-in-app-purchases/android/src/main/java/expo/modules/inapppurchases/InAppPurchasesModule.java b/node_modules/expo-in-app-purchases/android/src/main/java/expo/modules/inapppurchases/InAppPurchasesModule.java
 deleted file mode 100644
-index 5e8df99..0000000
+index f763c17..0000000
 --- a/node_modules/expo-in-app-purchases/android/src/main/java/expo/modules/inapppurchases/InAppPurchasesModule.java
 +++ /dev/null
 @@ -1,98 +0,0 @@
@@ -104,10 +104,10 @@ index 5e8df99..0000000
 -}
 diff --git a/node_modules/expo-in-app-purchases/android/src/main/java/expo/modules/inapppurchases/InAppPurchasesModule.kt b/node_modules/expo-in-app-purchases/android/src/main/java/expo/modules/inapppurchases/InAppPurchasesModule.kt
 new file mode 100644
-index 0000000..3097d25
+index 0000000..ce997cf
 --- /dev/null
 +++ b/node_modules/expo-in-app-purchases/android/src/main/java/expo/modules/inapppurchases/InAppPurchasesModule.kt
-@@ -0,0 +118 @@
+@@ -0,0 +1,114 @@
 +package expo.modules.inapppurchases
 +
 +import android.app.Activity
@@ -223,10 +223,10 @@ index 0000000..3097d25
 +  }
 +}
 diff --git a/node_modules/expo-in-app-purchases/android/src/main/java/expo/modules/inapppurchases/InAppPurchasesPackage.java b/node_modules/expo-in-app-purchases/android/src/main/java/expo/modules/inapppurchases/InAppPurchasesPackage.java
-index 46d6d46..89b0032 100644
+index 663bf07..4c2dc57 100644
 --- a/node_modules/expo-in-app-purchases/android/src/main/java/expo/modules/inapppurchases/InAppPurchasesPackage.java
 +++ b/node_modules/expo-in-app-purchases/android/src/main/java/expo/modules/inapppurchases/InAppPurchasesPackage.java
-@@ -1,16 +1,6 @@
+@@ -1,16 +1,5 @@
  package expo.modules.inapppurchases;
  
 -import android.content.Context;
@@ -236,12 +236,11 @@ index 46d6d46..89b0032 100644
 -
  import expo.modules.core.BasePackage;
 -import expo.modules.core.ExportedModule;
--
+ 
 -public class InAppPurchasesPackage extends BasePackage {
 -  @Override
 -  public List<ExportedModule> createExportedModules(Context context) {
 -    return Collections.singletonList((ExportedModule) new InAppPurchasesModule(context));
 -  }
 -}
-+
 +public class InAppPurchasesPackage extends BasePackage {}

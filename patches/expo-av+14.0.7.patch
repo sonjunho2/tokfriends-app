@@ -2,39 +2,26 @@ diff --git a/node_modules/expo-av/android/build.gradle b/node_modules/expo-av/an
 index 749f6bdfd9fb06b33047a56859b57fe18699c391..f810e10b1e7c017e877d37b7e5b7dd5bd141b67e 100644
 --- a/node_modules/expo-av/android/build.gradle
 +++ b/node_modules/expo-av/android/build.gradle
-@@ -82,7 +82,7 @@
- dependencies {
+@@ -82,7 +82,7 @@ dependencies {
    implementation 'com.facebook.react:react-android'
-
--  compileOnly 'com.facebook.fbjni:fbjni:0.3.0'
+ 
+-  implementation 'com.facebook.fbjni:fbjni:0.6.0'
 +  compileOnly 'com.facebook.fbjni:fbjni:0.6.0'
-
+ 
    api 'com.google.android.exoplayer:exoplayer:2.18.1'
    api 'com.google.android.exoplayer:extension-okhttp:2.18.1'
-
+ 
 diff --git a/node_modules/expo-av/android/CMakeLists.txt b/node_modules/expo-av/android/CMakeLists.txt
 index 8c166d8fb0b09ebc7d124320f8726df9d0652809..34125d4412b79a2f65a8df4d612aee9f9f306dff 100644
 --- a/node_modules/expo-av/android/CMakeLists.txt
 +++ b/node_modules/expo-av/android/CMakeLists.txt
-@@
--find_package(ReactAndroid REQUIRED CONFIG)
--
--find_package(fbjni REQUIRED CONFIG)
--
--# linking
--
--target_link_libraries(
--        ${PACKAGE_NAME}
--        ${LOG_LIB}
--        fbjni::fbjni
--        ReactAndroid::jsi
--        ReactAndroid::reactnativejni
--        android
--)
-+find_package(ReactAndroid REQUIRED CONFIG)
-+
-+find_package(fbjni REQUIRED CONFIG)
-+
+@@ -33,11 +33,22 @@ find_library(LOG_LIB log)
+ 
+ find_package(ReactAndroid REQUIRED CONFIG)
+ 
+ find_package(fbjni REQUIRED CONFIG)
+ 
++# Determine the proper React Native JNI target.
 +set(REACT_NATIVE_JNI_TARGET ReactAndroid::reactnativejni)
 +if(NOT TARGET ReactAndroid::reactnativejni)
 +        if(TARGET ReactAndroid::reactnative)
@@ -44,13 +31,14 @@ index 8c166d8fb0b09ebc7d124320f8726df9d0652809..34125d4412b79a2f65a8df4d612aee9f
 +        endif()
 +endif()
 +
-+# linking
-+
-+target_link_libraries(
-+        ${PACKAGE_NAME}
-+        ${LOG_LIB}
-+        fbjni::fbjni
-+        ReactAndroid::jsi
+ # linking
+ 
+ target_link_libraries(
+         ${PACKAGE_NAME}
+         ${LOG_LIB}
+         fbjni::fbjni
+         ReactAndroid::jsi
+-        ReactAndroid::reactnativejni
 +        ${REACT_NATIVE_JNI_TARGET}
-+        android
-+)
+         android
+ )

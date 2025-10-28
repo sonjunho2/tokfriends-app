@@ -1,21 +1,8 @@
-diff --git a/node_modules/expo-av/android/build.gradle b/node_modules/expo-av/android/build.gradle
-index f336bb84b16d3dcb53590c7d6dcd1882194a68ee..042ad97f2fcb88994d48d6ddeb8022b58f75e2b3 100644
---- a/node_modules/expo-av/android/build.gradle
-+++ b/node_modules/expo-av/android/build.gradle
-@@ -82,7 +82,7 @@ dependencies {
-   implementation 'com.facebook.react:react-android'
- 
--  implementation 'com.facebook.fbjni:fbjni:0.6.0'
-+  compileOnly 'com.facebook.fbjni:fbjni:0.6.0'
- 
-   api 'com.google.android.exoplayer:exoplayer:2.18.1'
-   api 'com.google.android.exoplayer:extension-okhttp:2.18.1'
- 
 diff --git a/node_modules/expo-av/android/CMakeLists.txt b/node_modules/expo-av/android/CMakeLists.txt
-index e55dbb237d4a14f54aece1ae8cd685a2aa385179..76fb44f81860e0203731372bd949f5fbb7c89384 100644
+index 0000000000000000000000000000000000000000..1111111111111111111111111111111111111111 100644
 --- a/node_modules/expo-av/android/CMakeLists.txt
 +++ b/node_modules/expo-av/android/CMakeLists.txt
-@@ -36,6 +36,16 @@ find_package(ReactAndroid REQUIRED CONFIG)
+@@ -36,6 +36,16 @@
  
  find_package(fbjni REQUIRED CONFIG)
  
@@ -32,7 +19,7 @@ index e55dbb237d4a14f54aece1ae8cd685a2aa385179..76fb44f81860e0203731372bd949f5fb
  # linking
  
  target_link_libraries(
-         ${PACKAGE_NAME}
+@@ -43,6 +53,6 @@
          ${LOG_LIB}
          fbjni::fbjni
          ReactAndroid::jsi

@@ -1,5 +1,5 @@
 diff --git a/node_modules/expo-av/android/build.gradle b/node_modules/expo-av/android/build.gradle
-index 749f6bdfd9fb06b33047a56859b57fe18699c391..f810e10b1e7c017e877d37b7e5b7dd5bd141b67e 100644
+index f336bb84b16d3dcb53590c7d6dcd1882194a68ee..042ad97f2fcb88994d48d6ddeb8022b58f75e2b3 100644
 --- a/node_modules/expo-av/android/build.gradle
 +++ b/node_modules/expo-av/android/build.gradle
 @@ -82,7 +82,7 @@ dependencies {
@@ -12,12 +12,10 @@ index 749f6bdfd9fb06b33047a56859b57fe18699c391..f810e10b1e7c017e877d37b7e5b7dd5b
    api 'com.google.android.exoplayer:extension-okhttp:2.18.1'
  
 diff --git a/node_modules/expo-av/android/CMakeLists.txt b/node_modules/expo-av/android/CMakeLists.txt
-index 8c166d8fb0b09ebc7d124320f8726df9d0652809..34125d4412b79a2f65a8df4d612aee9f9f306dff 100644
+index e55dbb237d4a14f54aece1ae8cd685a2aa385179..76fb44f81860e0203731372bd949f5fbb7c89384 100644
 --- a/node_modules/expo-av/android/CMakeLists.txt
 +++ b/node_modules/expo-av/android/CMakeLists.txt
-@@ -33,11 +33,22 @@ find_library(LOG_LIB log)
- 
- find_package(ReactAndroid REQUIRED CONFIG)
+@@ -36,6 +36,16 @@ find_package(ReactAndroid REQUIRED CONFIG)
  
  find_package(fbjni REQUIRED CONFIG)
  

@@ -1,8 +1,9 @@
 diff --git a/node_modules/expo-av/android/build.gradle b/node_modules/expo-av/android/build.gradle
-index 11e7574a92f6baeed488f288484e7ec74dfd5a9d..f336bb84b16d3dcb53590c7d6dcd1882194a68ee 100644
+index 749f6bdfd9fb06b33047a56859b57fe18699c391..f810e10b1e7c017e877d37b7e5b7dd5bd141b67e 100644
 --- a/node_modules/expo-av/android/build.gradle
 +++ b/node_modules/expo-av/android/build.gradle
-@@ -82,9 +82,9 @@ dependencies {
+@@ -82,7 +82,7 @@
+ dependencies {
    implementation 'com.facebook.react:react-android'
  
 -  compileOnly 'com.facebook.fbjni:fbjni:0.3.0'
@@ -10,5 +11,3 @@ index 11e7574a92f6baeed488f288484e7ec74dfd5a9d..f336bb84b16d3dcb53590c7d6dcd1882
 
    api 'com.google.android.exoplayer:exoplayer:2.18.1'
    api 'com.google.android.exoplayer:extension-okhttp:2.18.1'
- 
-   api "com.squareup.okhttp3:okhttp:3.14.9"

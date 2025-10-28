@@ -1,6 +1,6 @@
 diff --git a/node_modules/expo-in-app-purchases/android/src/main/java/expo/modules/inapppurchases/InAppPurchasesModule.java b/node_modules/expo-in-app-purchases/android/src/main/java/expo/modules/inapppurchases/InAppPurchasesModule.java
 deleted file mode 100644
-index f763c17..0000000
+index 1111111111111111111111111111111111111111..0000000000000000000000000000000000000000 100644
 --- a/node_modules/expo-in-app-purchases/android/src/main/java/expo/modules/inapppurchases/InAppPurchasesModule.java
 +++ /dev/null
 @@ -1,98 +0,0 @@
@@ -104,10 +104,10 @@ index f763c17..0000000
 -}
 diff --git a/node_modules/expo-in-app-purchases/android/src/main/java/expo/modules/inapppurchases/InAppPurchasesModule.kt b/node_modules/expo-in-app-purchases/android/src/main/java/expo/modules/inapppurchases/InAppPurchasesModule.kt
 new file mode 100644
-index 0000000..ce997cf
+index 0000000000000000000000000000000000000000..1111111111111111111111111111111111111111 100644
 --- /dev/null
 +++ b/node_modules/expo-in-app-purchases/android/src/main/java/expo/modules/inapppurchases/InAppPurchasesModule.kt
-@@ -0,0 +1,114 @@
+@@ -0,0 +1,125 @@
 +package expo.modules.inapppurchases
 +
 +import android.app.Activity
@@ -234,7 +234,7 @@ index 0000000..ce997cf
 +  }
 +}
 diff --git a/node_modules/expo-in-app-purchases/android/src/main/java/expo/modules/inapppurchases/InAppPurchasesPackage.java b/node_modules/expo-in-app-purchases/android/src/main/java/expo/modules/inapppurchases/InAppPurchasesPackage.java
-index 663bf07..4c2dc57 100644
+index 1111111111111111111111111111111111111111..2222222222222222222222222222222222222222 100644
 --- a/node_modules/expo-in-app-purchases/android/src/main/java/expo/modules/inapppurchases/InAppPurchasesPackage.java
 +++ b/node_modules/expo-in-app-purchases/android/src/main/java/expo/modules/inapppurchases/InAppPurchasesPackage.java
 @@ -1,16 +1,5 @@

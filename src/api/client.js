@@ -180,33 +180,27 @@ export const apiClient = {
       bio: userData?.bio ?? undefined,
     };
 
-    const jsonCandidates = [
-      '/auth/signup/email',
-      '/auth/signup',
-      '/auth/register',
-      '/signup',
-      '/register',
-      '/users/signup',
-      '/users/register',
-      '/users',
-    ];
-
-    const formCandidates = [
-      '/auth/signup/email',
-      '/auth/signup',
-      '/auth/register',
-      '/signup',
-      '/register',
-      '/users/signup',
-      '/users/register',
-      '/users',
-    ];
-
     try {
-      return await tryPostJsonSequential(jsonCandidates, body);
-    } catch (e) {
-      // JSON 전부 실패 시, 동일 경로들을 form-urlencoded 로 재시도
-      return await tryPostFormSequential(formCandidates, body);
+      const { data } = await client.post('/auth/signup/email', body, {
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        transformRequest: [
+          (payload, headers) => {
+            if (headers && 'Authorization' in headers) delete headers.Authorization;
+            return JSON.stringify(payload);
+          },
+        ],
+      });
+      return data;
+    } catch (err) {
+      if (err?.response?.status === 410) {
+        const goneError = new Error('회원가입이 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
+        goneError.status = 410;
+        throw goneError;
+      }
+      throw normalizeError(err);
     }
   },
 

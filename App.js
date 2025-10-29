@@ -1,28 +1,38 @@
 // App.js
 import 'react-native-gesture-handler';
 import 'react-native-reanimated';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet, StatusBar } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
-import {
-  useFonts,
-  NotoSansKR_400Regular,
-  NotoSansKR_500Medium,
-  NotoSansKR_700Bold,
-} from '@expo-google-fonts/noto-sans-kr';
+import { useFonts } from 'expo-font';
 
 import Navigation from './src/navigation';
 import colors from './src/theme/colors';
 import { AuthProvider } from './src/context/AuthContext';
 
-export default function App() {
-  const [fontsLoaded] = useFonts({
-    NotoSansKR_400Regular,
-    NotoSansKR_500Medium,
-    NotoSansKR_700Bold,
-  });
+const FONT_MAP = {
+  NotoSansKR_400Regular: require('./assets/fonts/NotoSansKR_400Regular.ttf'),
+  NotoSansKR_500Medium: require('./assets/fonts/NotoSansKR_500Medium.ttf'),
+  NotoSansKR_700Bold: require('./assets/fonts/NotoSansKR_700Bold.ttf'),
+};
 
-  if (!fontsLoaded) {
+export default function App() {
+  const [fontsLoaded, fontError] = useFonts(FONT_MAP);
+  const [shouldRenderApp, setShouldRenderApp] = useState(false);
+
+  useEffect(() => {
+    if (fontsLoaded || fontError) {
+      setShouldRenderApp(true);
+    }
+  }, [fontsLoaded, fontError]);
+
+  useEffect(() => {
+    if (fontError) {
+      console.error('Failed to load fonts, falling back to system fonts.', fontError);
+    }
+  }, [fontError]);
+
+  if (!shouldRenderApp) {
     return (
       <View style={styles.loadingContainer}>
         <StatusBar barStyle="dark-content" backgroundColor={colors.background} />

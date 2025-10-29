@@ -1,5 +1,6 @@
 // App.js
 import 'react-native-gesture-handler';
+import 'react-native-reanimated';
 import React from 'react';
 import { View, ActivityIndicator, StyleSheet, StatusBar } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';

@@ -121,7 +121,7 @@ export const apiClient = {
     try { return await client.delete(url, config); }
     catch (e) { throw normalizeError(e); }
   },
-  
+
   async health() {
     try { const { data } = await client.get('/health'); return data; }
     catch (e) { throw normalizeError(e); }
@@ -204,7 +204,6 @@ export const apiClient = {
     }
   },
 
-  // ⬇️⬇️⬇️ 추가: 채팅방 생성 (여러 경로 시도 + 폴백)
   async createRoom(payload = {}) {
     const body = {
       title: String(payload?.title || '').trim(),
@@ -214,32 +213,20 @@ export const apiClient = {
       throw normalizeError(new Error('방 제목을 입력해 주세요.'));
     }
 
-    const candidates = [
-      '/chats/rooms',
-      '/chat/rooms',
-      '/rooms',
-      '/conversations',
-    ];
-
-    // 1) JSON 경로들 순차 시도
     try {
-      return await tryPostJsonSequential(candidates, body);
-    } catch (e) {
-      // 2) 실패 시 동일 경로들로 form 재시도
-      try {
-        return await tryPostFormSequential(candidates, body);
-      } catch {
-        // 3) 최종 폴백: UI 흐름을 막지 않도록 임시 객체 반환
-        return {
-          id: Date.now(),
-          title: body.title,
-          category: body.category,
-          _localFallback: true,
-        };
+      const { data } = await client.post('/chats/rooms', body, {
+        headers: { 'Content-Type': 'application/json' },
+      });
+      return data;
+    } catch (err) {
+      if (err?.response?.status === 410) {
+        const goneError = new Error('채팅방 생성이 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
+        goneError.status = 410;
+        throw goneError;
       }
+      throw normalizeError(err);
     }
   },
-  // ⬆️⬆️⬆️ 여기까지 추가
 
   async requestPhoneOtp(payload = {}) {
     const digits = String(payload?.phone || '')
@@ -510,6 +497,7 @@ export const apiClient = {
   async createPost(postData) { const { data } = await client.post('/posts', postData); return data; },
   async reportUser(reportData) { const { data } = await client.post('/community/report', reportData); return data; },
   async blockUser(blockData) { const { data } = await client.post('/community/block', blockData); return data; },
+
   async getGiftOptions() {
     try {
       const { data } = await client.get('/gifts');

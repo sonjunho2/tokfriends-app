@@ -128,44 +128,32 @@ export const apiClient = {
   },
 
   async login(email, password) {
-    const jsonBody = {
+    const payload = {
       email: String(email || '').trim().toLowerCase(),
       password: String(password || ''),
     };
+    
     try {
-      const { data } = await client.post('/auth/login/email', jsonBody, { headers: { 'Content-Type': 'application/json' } });
+      const { data } = await client.post('/auth/login/email', payload, {
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        transformRequest: [
+          (body, headers) => {
+            if (headers && 'Authorization' in headers) delete headers.Authorization;
+            return JSON.stringify(body);
+          },
+        ],
+      });
       return data;
-    } catch (err1) {
-      const status1 = err1?.response?.status;
-      if (status1 === 404) {
-        try {
-          const { data } = await client.post('/auth/login', jsonBody, { headers: { 'Content-Type': 'application/json' } });
-          return data;
-        } catch (err2) {
-          try {
-            const form = new URLSearchParams();
-            form.append('email', jsonBody.email);
-            form.append('password', jsonBody.password);
-            const { data } = await client.post('/auth/login/email', form, {
-              headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            });
-            return data;
-          } catch (err3) {
-            throw normalizeError(err3);
-          }
-        }
+    } catch (err) {
+      if (err?.response?.status === 410) {
+        const goneError = new Error('이메일 로그인 기능이 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
+        goneError.status = 410;
+        throw goneError;
       }
-      try {
-        const form = new URLSearchParams();
-        form.append('email', jsonBody.email);
-        form.append('password', jsonBody.password);
-        const { data } = await client.post('/auth/login/email', form, {
-          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        });
-        return data;
-      } catch (err4) {
-        throw normalizeError(err4);
-      }
+      throw normalizeError(err);
     }
   },
 

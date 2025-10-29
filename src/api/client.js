@@ -132,7 +132,7 @@ export const apiClient = {
       email: String(email || '').trim().toLowerCase(),
       password: String(password || ''),
     };
-    
+
     try {
       const { data } = await client.post('/auth/login/email', payload, {
         headers: {
@@ -229,29 +229,28 @@ export const apiClient = {
       countryCode: payload?.countryCode || 'KR',
     };
 
-    const endpoints = [
-      '/auth/phone/request-otp',
-      '/auth/phone/send-otp',
-      '/auth/otp/request',
-      '/otp/request',
-      '/otp/send',
-    ];
-
-    let lastErr;
-    for (const path of endpoints) {
-      try {
-        const { data } = await client.post(path, body);
-        return data;
-      } catch (err) {
-        const status = err?.response?.status;
-        if (status === 404 || status === 405) {
-          lastErr = err;
-          continue;
-        }
-        throw normalizeError(err);
+    try {
+      const { data } = await client.post('/auth/phone/request-otp', body, {
+        headers: {
+          'Content-Type': 'application/json',
+          Accept: 'application/json',
+        },
+        transformRequest: [
+          (payload, headers) => {
+            if (headers && 'Authorization' in headers) delete headers.Authorization;
+            return JSON.stringify(payload);
+          },
+        ],
+      });
+      return data;
+    } catch (err) {
+      if (err?.response?.status === 410) {
+        const goneError = new Error('휴대폰 인증번호 요청이 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
+        goneError.status = 410;
+        throw goneError;
       }
+      throw normalizeError(err);
     }
-    throw normalizeError(lastErr || new Error('인증번호 전송 경로가 존재하지 않습니다.'));
   },
 
   async verifyPhoneOtp(payload = {}) {

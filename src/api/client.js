@@ -123,21 +123,16 @@ export const apiClient = {
       throw normalizeError(new Error('삭제할 경로가 필요합니다.'));
     }
 
-    if (/^\/posts\/[^/]+\/like$/.test(target)) {
-      const goneError = new Error('게시글 좋아요 취소 기능이 더 이상 지원되지 않습니다. 최신 공지사항을 확인해 주세요.');
-      goneError.status = 410;
-      throw goneError;
+    try {
+      return await client.delete(target, config);
+    } catch (err) {
+      if (err?.response?.status === 410) {
+        const goneError = new Error('요청하신 리소스가 더 이상 제공되지 않습니다. 고객센터로 문의해 주세요.');
+        goneError.status = 410;
+        throw goneError;
+      }
+      throw normalizeError(err);
     }
-
-    if (/^\/posts\/[^/]+$/.test(target)) {
-      const goneError = new Error('게시글 삭제 기능이 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
-      goneError.status = 410;
-      throw goneError;
-    }
-
-    const unsupportedError = new Error('지원되지 않는 삭제 요청입니다. 최신 버전을 사용 중인지 확인해 주세요.');
-    unsupportedError.status = 400;
-    throw unsupportedError;
   },
 
   async health() {
@@ -498,7 +493,8 @@ export const apiClient = {
 
   async getTopics() { const { data } = await client.get('/topics'); return data; },
   async getPosts(params = {}) { const { data } = await client.get('/posts', { params }); return data; },
-  async getTopicPosts(topicId, params = {}) { const { data } = await client.get(`/topics/${topicId}/posts`, { params }); return data; },
+  async getTopicPosts(topicId, params = {}) { const { data } = await client.get(`/topics/${topicId}/posts`, { params }); return
+data; },
   async createPost(postData) { const { data } = await client.post('/posts', postData); return data; },
   async reportUser(reportData) { const { data } = await client.post('/community/report', reportData); return data; },
   async blockUser(blockData) { const { data } = await client.post('/community/block', blockData); return data; },

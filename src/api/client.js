@@ -18,18 +18,40 @@ export const setAuthToken = (token) => {
   }
 };
 
-const unauthJsonConfig = () => ({
-  __unauth: true,
-  headers: {
-    'Content-Type': 'application/json',
-    Accept: 'application/json',
-  },
-  transformRequest: [
-    (payload, headers) => {
-      if (headers && 'Authorization' in headers) delete headers.Authorization;
-      return typeof payload === 'string' ? payload : JSON.stringify(payload);
+const unauthJsonConfig = (overrides = {}) => {
+  const baseTransform = (
+    payload,
+    headers,
+  ) => {
+    if (headers && 'Authorization' in headers) delete headers.Authorization;
+    return typeof payload === 'string' ? payload : JSON.stringify(payload);
+  };
+
+  const extraTransforms = overrides.transformRequest
+    ? Array.isArray(overrides.transformRequest)
+      ? overrides.transformRequest
+      : [overrides.transformRequest]
+    : [];
+
+  return {
+    __unauth: true,
+    ...overrides,
+    headers: {
+      'Content-Type': 'application/json',
+      Accept: 'application/json',
+      ...(overrides.headers || {}),
     },
-  ],
+    transformRequest: [baseTransform, ...extraTransforms],
+  };
+};
+
+const unauthConfig = (overrides = {}) => ({
+  __unauth: true,
+    ...overrides,
+  headers: {
+    Accept: 'application/json',
+    ...(overrides.headers || {}),
+  },
 });
 
 export const getStoredToken = async () => {
@@ -163,7 +185,7 @@ export const apiClient = {
   },
 
   async health() {
-    try { const { data } = await client.get('/health'); return data; }
+    try { const { data } = await client.get('/health', unauthConfig()); return data; }
     catch (e) { throw normalizeError(e); }
   },
 
@@ -248,7 +270,7 @@ export const apiClient = {
     };
 
     try {
-      const { data } = await client.post('/auth/phone/request-otp', body, unauthJsonConfig());
+      const { data } = await client.post('/auth/otp/request', body, unauthJsonConfig());
       return data;
     } catch (err) {
       if (err?.response?.status === 410) {
@@ -275,28 +297,17 @@ export const apiClient = {
       requestId: payload?.requestId || payload?.verificationId || undefined,
     };
 
-    const endpoints = [
-      '/auth/phone/verify',
-      '/auth/phone/confirm',
-      '/auth/otp/verify',
-      '/otp/verify',
-    ];
-
-    let lastErr;
-    for (const path of endpoints) {
-      try {
-        const { data } = await client.post(path, body, unauthJsonConfig());
-        return data;
-      } catch (err) {
-        const status = err?.response?.status;
-        if (status === 404 || status === 405) {
-          lastErr = err;
-          continue;
-        }
-        throw normalizeError(err);
+    try {
+      const { data } = await client.post('/auth/otp/verify', body, unauthJsonConfig());
+      return data;
+    } catch (err) {
+      if (err?.response?.status === 410) {
+        const goneError = new Error('휴대폰 인증번호 확인이 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
+        goneError.status = 410;
+        throw goneError;
       }
+      throw normalizeError(err);
     }
-    throw normalizeError(lastErr || new Error('인증번호 확인 경로가 존재하지 않습니다.'));
   },
 
   async completePhoneSignup(payload = {}) {
@@ -319,28 +330,21 @@ export const apiClient = {
       throw normalizeError(new Error('필수 가입 정보를 모두 입력해 주세요.'));
     }
 
-    const endpoints = [
-      '/auth/phone/complete-profile',
-      '/auth/phone/signup',
-      '/auth/signup/phone',
-      '/users/signup/phone',
-    ];
-
-    let lastErr;
-    for (const path of endpoints) {
-      try {
-        const { data } = await client.post(path, body, unauthJsonConfig());
-        return data;
-      } catch (err) {
-        const status = err?.response?.status;
-        if (status === 404 || status === 405) {
-          lastErr = err;
-          continue;
-        }
-        throw normalizeError(err);
+    try {
+      const { data } = await client.post(
+        '/auth/phone/complete-profile',
+        body,
+        unauthJsonConfig()
+      );
+      return data;
+    } catch (err) {
+      if (err?.response?.status === 410) {
+        const goneError = new Error('휴대폰 기반 가입 절차가 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
+        goneError.status = 410;
+        throw goneError; 
       }
+      throw normalizeError(err);
     }
-    throw normalizeError(lastErr || new Error('휴대폰 기반 가입 처리에 실패했습니다.'));
   },
 
   async getLegalDocument(slug) {
@@ -381,37 +385,27 @@ export const apiClient = {
       participantId: target,
     };
 
-    const endpoints = [
-      '/chats/direct',
-      '/chat/direct',
-      '/chats/rooms/direct',
-      '/chat/rooms/direct',
-      '/conversations/direct',
-    ];
-
-    let lastErr;
-    for (const path of endpoints) {
-      try {
-        const { data } = await client.post(path, body);
-        if (data?.room) return data.room;
-        return data;
-      } catch (err) {
-        const status = err?.response?.status;
-        if (status === 404 || status === 405) {
-          lastErr = err;
-          continue;
-        }
-        throw normalizeError(err);
+    try {
+      const { data } = await client.post('/chat/direct', body);
+      if (data?.room) return data.room;
+      return data;
+    } catch (err) {
+      const status = err?.response?.status;
+      if (status === 404) {
+        return {
+          id: `local-${Date.now()}`,
+          participants: [target],
+          title: options?.title || '새 대화',
+          isFallback: true,
+        };
       }
+      if (status === 410) {
+        const goneError = new Error('1:1 대화 생성이 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
+        goneError.status = 410;
+        throw goneError;
+      }
+      throw normalizeError(err);
     }
-
-    // fallback: fabricate local room to avoid UI dead end
-    return {
-      id: `local-${Date.now()}`,
-      participants: [target],
-      title: options?.title || '새 대화',
-      isFallback: true,
-    };
   },
 
   async getPointProducts() {

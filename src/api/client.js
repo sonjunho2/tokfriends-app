@@ -12,10 +12,25 @@ const client = axios.create({
 let currentToken = null;
 
 export const setAuthToken = (token) => {
-  currentToken = token;
-  if (token) client.defaults.headers.common.Authorization = `Bearer ${token}`;
-  else delete client.defaults.headers.common.Authorization;
+  currentToken = token || null;
+  if (client?.defaults?.headers?.common) {
+    delete client.defaults.headers.common.Authorization;
+  }
 };
+
+const unauthJsonConfig = () => ({
+  __unauth: true,
+  headers: {
+    'Content-Type': 'application/json',
+    Accept: 'application/json',
+  },
+  transformRequest: [
+    (payload, headers) => {
+      if (headers && 'Authorization' in headers) delete headers.Authorization;
+      return typeof payload === 'string' ? payload : JSON.stringify(payload);
+    },
+  ],
+});
 
 export const getStoredToken = async () => {
   try { return await AsyncStorage.getItem(STORAGE_TOKEN_KEY); }
@@ -38,7 +53,19 @@ client.interceptors.request.use(
       const storedToken = await getStoredToken();
       if (storedToken) setAuthToken(storedToken);
     }
-    return config;
+
+    const workingConfig = config;
+    const headers = workingConfig.headers || (workingConfig.headers = {});
+
+    if (workingConfig.__unauth === true) {
+      delete headers.Authorization;
+      if (headers.common) delete headers.common.Authorization;
+      if (headers.post) delete headers.post.Authorization;
+    } else if (currentToken && !headers.Authorization) {
+      headers.Authorization = `Bearer ${currentToken}`;
+    }
+
+    return workingConfig;
   },
   (error) => Promise.reject(error)
 );
@@ -147,18 +174,7 @@ export const apiClient = {
     };
 
     try {
-      const { data } = await client.post('/auth/login/email', payload, {
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        transformRequest: [
-          (body, headers) => {
-            if (headers && 'Authorization' in headers) delete headers.Authorization;
-            return JSON.stringify(body);
-          },
-        ],
-      });
+      const { data } = await client.post('/auth/login/email', payload, unauthJsonConfig());
       return data;
     } catch (err) {
       if (err?.response?.status === 410) {
@@ -182,18 +198,7 @@ export const apiClient = {
     };
 
     try {
-      const { data } = await client.post('/auth/signup/email', body, {
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        transformRequest: [
-          (payload, headers) => {
-            if (headers && 'Authorization' in headers) delete headers.Authorization;
-            return JSON.stringify(payload);
-          },
-        ],
-      });
+      const { data } = await client.post('/auth/signup/email', body, unauthJsonConfig());
       return data;
     } catch (err) {
       if (err?.response?.status === 410) {
@@ -243,18 +248,7 @@ export const apiClient = {
     };
 
     try {
-      const { data } = await client.post('/auth/otp/request', body, {
-        headers: {
-          'Content-Type': 'application/json',
-          Accept: 'application/json',
-        },
-        transformRequest: [
-          (payload, headers) => {
-            if (headers && 'Authorization' in headers) delete headers.Authorization;
-            return JSON.stringify(payload);
-          },
-        ],
-      });
+      const { data } = await client.post('/auth/otp/request', body, unauthJsonConfig());
       return data;
     } catch (err) {
       if (err?.response?.status === 410) {
@@ -291,7 +285,7 @@ export const apiClient = {
     let lastErr;
     for (const path of endpoints) {
       try {
-        const { data } = await client.post(path, body);
+        const { data } = await client.post(path, body, unauthJsonConfig());
         return data;
       } catch (err) {
         const status = err?.response?.status;
@@ -335,7 +329,7 @@ export const apiClient = {
     let lastErr;
     for (const path of endpoints) {
       try {
-        const { data } = await client.post(path, body);
+        const { data } = await client.post(path, body, unauthJsonConfig());
         return data;
       } catch (err) {
         const status = err?.response?.status;

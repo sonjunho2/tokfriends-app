@@ -1,1018 +1,406 @@
 {
-  "generatedAt": "2025-10-29T05:48:03.641065+00:00",
+  "generatedAt": "2025-10-30T03:05:04.698Z",
   "summary": {
-    "totalCallsAnalyzed": 141,
-    "matched": 35,
-    "missing": 106,
-    "mismatchedAuth": 13,
-    "unusedApiOperations": 36
+    "totalCallsAnalyzed": 77,
+    "matched": 26,
+    "missing": 51,
+    "mismatchedAuth": 6,
+    "unusedApiOperations": 35
   },
   "missingCalls": [
     {
       "source": "app",
-      "file": "src/api/client.js",
-      "context": "tryPostJsonSequential",
-      "method": "POST",
-      "path": "{p}",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "tryPostFormSequential",
-      "method": "POST",
-      "path": "{p}",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:100",
-      "method": "GET",
-      "path": "{url}",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:105",
-      "method": "POST",
-      "path": "{url}",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:110",
-      "method": "PUT",
-      "path": "{url}",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:115",
-      "method": "PATCH",
-      "path": "{url}",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:120",
       "method": "DELETE",
       "path": "{url}",
-      "auth": "auto-bearer"
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:120"
     },
     {
       "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:130",
-      "method": "POST",
-      "path": "/auth/login",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:172",
-      "method": "POST",
-      "path": "/auth/signup",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:172",
-      "method": "POST",
-      "path": "/auth/register",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:172",
-      "method": "POST",
-      "path": "/signup",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:172",
-      "method": "POST",
-      "path": "/register",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:172",
-      "method": "POST",
-      "path": "/users/signup",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:172",
-      "method": "POST",
-      "path": "/users/register",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:172",
-      "method": "POST",
-      "path": "/users",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:172",
-      "method": "POST",
-      "path": "/auth/signup",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:172",
-      "method": "POST",
-      "path": "/auth/register",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:172",
-      "method": "POST",
-      "path": "/signup",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:172",
-      "method": "POST",
-      "path": "/register",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:172",
-      "method": "POST",
-      "path": "/users/signup",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:172",
-      "method": "POST",
-      "path": "/users/register",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:172",
-      "method": "POST",
-      "path": "/users",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:214",
-      "method": "POST",
-      "path": "/chat/rooms",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:214",
-      "method": "POST",
-      "path": "/rooms",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:214",
-      "method": "POST",
-      "path": "/conversations",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:214",
-      "method": "POST",
-      "path": "/chat/rooms",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:214",
-      "method": "POST",
-      "path": "/rooms",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:214",
-      "method": "POST",
-      "path": "/conversations",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:250",
-      "method": "POST",
-      "path": "/auth/phone/send-otp",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:250",
-      "method": "POST",
-      "path": "/auth/otp/request",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:250",
-      "method": "POST",
-      "path": "/otp/request",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:250",
-      "method": "POST",
-      "path": "/otp/send",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:288",
-      "method": "POST",
-      "path": "/auth/phone/confirm",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:288",
-      "method": "POST",
-      "path": "/auth/otp/verify",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:288",
-      "method": "POST",
-      "path": "/otp/verify",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:327",
-      "method": "POST",
-      "path": "/auth/phone/signup",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:327",
-      "method": "POST",
-      "path": "/auth/signup/phone",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:327",
-      "method": "POST",
-      "path": "/users/signup/phone",
-      "auth": "none"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:371",
       "method": "GET",
-      "path": "/legal-documents/{key}",
-      "auth": "auto-bearer"
+      "path": "{url}",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:100"
     },
     {
       "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:371",
-      "method": "GET",
-      "path": "/legal/{key}",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:371",
-      "method": "GET",
-      "path": "/policies/{key}",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:371",
       "method": "GET",
       "path": "/cms/pages/{key}",
-      "auth": "auto-bearer"
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:371"
     },
     {
       "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:399",
-      "method": "POST",
-      "path": "/chat/direct",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:399",
-      "method": "POST",
-      "path": "/chats/rooms/direct",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:399",
-      "method": "POST",
-      "path": "/chat/rooms/direct",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:399",
-      "method": "POST",
-      "path": "/conversations/direct",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:442",
       "method": "GET",
-      "path": "/store/products",
-      "auth": "auto-bearer"
+      "path": "/legal/{key}",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:371"
     },
     {
       "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:442",
-      "method": "GET",
-      "path": "/shop/points",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:442",
       "method": "GET",
       "path": "/payments/products",
-      "auth": "auto-bearer"
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:442"
     },
     {
       "source": "app",
+      "method": "GET",
+      "path": "/policies/{key}",
+      "auth": "auto-bearer",
       "file": "src/api/client.js",
-      "context": "anonymous@client.js:469",
+      "context": "anonymous@client.js:371"
+    },
+    {
+      "source": "app",
+      "method": "GET",
+      "path": "/shop/points",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:442"
+    },
+    {
+      "source": "app",
+      "method": "GET",
+      "path": "/store/products",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:442"
+    },
+    {
+      "source": "app",
+      "method": "GET",
+      "path": "https://manage.tokfriends.app/api/fonts/latest",
+      "auth": "none",
+      "file": "src/screens/my/SettingsScreen.js",
+      "context": "anonymous@SettingsScreen.js:123"
+    },
+    {
+      "source": "app",
+      "method": "PATCH",
+      "path": "{url}",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:115"
+    },
+    {
+      "source": "app",
       "method": "POST",
-      "path": "/payments/confirm",
-      "auth": "auto-bearer"
+      "path": "{p}",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "tryPostJsonSequential"
     },
     {
       "source": "app",
+      "method": "POST",
+      "path": "{url}",
+      "auth": "auto-bearer",
       "file": "src/api/client.js",
-      "context": "anonymous@client.js:469",
+      "context": "anonymous@client.js:105"
+    },
+    {
+      "source": "app",
+      "method": "POST",
+      "path": "/auth/login",
+      "auth": "none",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:130"
+    },
+    {
+      "source": "app",
+      "method": "POST",
+      "path": "/auth/otp/request",
+      "auth": "none",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:250"
+    },
+    {
+      "source": "app",
+      "method": "POST",
+      "path": "/auth/otp/verify",
+      "auth": "none",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:288"
+    },
+    {
+      "source": "app",
+      "method": "POST",
+      "path": "/auth/phone/confirm",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:288"
+    },
+    {
+      "source": "app",
+      "method": "POST",
+      "path": "/auth/phone/send-otp",
+      "auth": "none",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:250"
+    },
+    {
+      "source": "app",
+      "method": "POST",
+      "path": "/auth/phone/signup",
+      "auth": "none",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:327"
+    },
+    {
+      "source": "app",
+      "method": "POST",
+      "path": "/auth/register",
+      "auth": "none",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:172"
+    },
+    {
+      "source": "app",
+      "method": "POST",
+      "path": "/auth/signup",
+      "auth": "none",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:172"
+    },
+    {
+      "source": "app",
+      "method": "POST",
+      "path": "/auth/signup/phone",
+      "auth": "none",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:327"
+    },
+    {
+      "source": "app",
+      "method": "POST",
+      "path": "/chat/direct",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:399"
+    },
+    {
+      "source": "app",
+      "method": "POST",
+      "path": "/chat/rooms",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:214"
+    },
+    {
+      "source": "app",
+      "method": "POST",
+      "path": "/chat/rooms/direct",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:399"
+    },
+    {
+      "source": "app",
+      "method": "POST",
+      "path": "/chats/rooms/direct",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:399"
+    },
+    {
+      "source": "app",
+      "method": "POST",
+      "path": "/conversations",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:214"
+    },
+    {
+      "source": "app",
+      "method": "POST",
+      "path": "/conversations/direct",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:399"
+    },
+    {
+      "source": "app",
       "method": "POST",
       "path": "/iap/confirm",
-      "auth": "auto-bearer"
-    },
-    {
-      "source": "app",
+      "auth": "auto-bearer",
       "file": "src/api/client.js",
-      "context": "anonymous@client.js:503",
-      "method": "GET",
-      "path": "/users/{userId}",
-      "auth": "auto-bearer"
+      "context": "anonymous@client.js:469"
     },
     {
       "source": "app",
+      "method": "POST",
+      "path": "/otp/request",
+      "auth": "none",
       "file": "src/api/client.js",
-      "context": "anonymous@client.js:515",
-      "method": "GET",
-      "path": "/topics/{topicId}/posts",
-      "auth": "auto-bearer"
+      "context": "anonymous@client.js:250"
     },
     {
       "source": "app",
-      "file": "src/screens/my/SettingsScreen.js",
-      "context": "anonymous@SettingsScreen.js:123",
-      "method": "GET",
-      "path": "https:/manage.tokfriends.app/api/fonts/latest",
-      "auth": "none"
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/components/recent-reports.tsx",
-      "context": "RecentReports > (anonymous) > run",
-      "method": "GET",
-      "path": "url",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "postJson",
       "method": "POST",
-      "path": "url",
-      "auth": null
+      "path": "/otp/send",
+      "auth": "none",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:250"
     },
     {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "postForm",
+      "source": "app",
       "method": "POST",
-      "path": "url",
-      "auth": null
+      "path": "/otp/verify",
+      "auth": "none",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:288"
     },
     {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "loginWithPhone",
+      "source": "app",
       "method": "POST",
-      "path": "/auth/login/phone",
-      "auth": null
+      "path": "/payments/confirm",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:469"
     },
     {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "getUserById",
-      "method": "GET",
-      "path": "/users/{userId}",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "updateUserProfile",
-      "method": "PATCH",
-      "path": "/users/{userId}",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "listTopicPosts",
-      "method": "GET",
-      "path": "/topics/{topicId}/posts",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "updatePost",
-      "method": "PATCH",
-      "path": "/posts/{postId}",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "deletePost",
-      "method": "DELETE",
-      "path": "/posts/{postId}",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "createAnnouncement",
+      "source": "app",
       "method": "POST",
-      "path": "/announcements",
-      "auth": null
+      "path": "/register",
+      "auth": "none",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:172"
     },
     {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "updateAnnouncement",
-      "method": "PATCH",
-      "path": "/announcements/{announcementId}",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "createGift",
+      "source": "app",
       "method": "POST",
-      "path": "/gifts",
-      "auth": null
+      "path": "/rooms",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:214"
     },
     {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "updateGift",
-      "method": "PATCH",
-      "path": "/gifts/{giftId}",
-      "auth": null
+      "source": "app",
+      "method": "POST",
+      "path": "/signup",
+      "auth": "none",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:172"
     },
     {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "deleteGift",
-      "method": "DELETE",
-      "path": "/gifts/{giftId}",
-      "auth": null
+      "source": "app",
+      "method": "POST",
+      "path": "/users",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:172"
     },
     {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "getLegalDocument",
-      "method": "GET",
-      "path": "/legal-documents/{slug}",
-      "auth": null
+      "source": "app",
+      "method": "POST",
+      "path": "/users/register",
+      "auth": "none",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:172"
     },
     {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "saveLegalDocument",
+      "source": "app",
+      "method": "POST",
+      "path": "/users/signup",
+      "auth": "none",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:172"
+    },
+    {
+      "source": "app",
+      "method": "POST",
+      "path": "/users/signup/phone",
+      "auth": "none",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:327"
+    },
+    {
+      "source": "app",
       "method": "PUT",
-      "path": "/legal-documents/{slug}",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "getPhoneOtpLogs",
-      "method": "GET",
-      "path": "/verifications/phone/otp-logs",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "getPendingPhoneVerifications",
-      "method": "GET",
-      "path": "/verifications/phone/pending",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "resendPhoneOtp",
-      "method": "POST",
-      "path": "/verifications/phone/{verificationId}/resend",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "approvePhoneVerification",
-      "method": "POST",
-      "path": "/verifications/phone/{verificationId}/approve",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "expirePhoneVerificationSession",
-      "method": "POST",
-      "path": "/verifications/phone/{verificationId}/expire",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "completePhoneVerificationProfile",
-      "method": "POST",
-      "path": "/verifications/phone/manual-complete",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "createPointProduct",
-      "method": "POST",
-      "path": "/store/point-products",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "updatePointProduct",
-      "method": "PUT",
-      "path": "/store/point-products/{productId}",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "deletePointProduct",
-      "method": "DELETE",
-      "path": "/store/point-products/{productId}",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "syncPointProductOrder",
-      "method": "POST",
-      "path": "/store/point-products/reorder",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "getMatchControlPanelSnapshot",
-      "method": "GET",
-      "path": "/matches/control-panel",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "updateMatchPreset",
-      "method": "PATCH",
-      "path": "/matches/presets/{presetId}",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "activateMatchPreset",
-      "method": "POST",
-      "path": "/matches/presets/{presetId}/activate",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "duplicateMatchPreset",
-      "method": "POST",
-      "path": "/matches/presets/{presetId}/duplicate",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "createMatchQuickFilter",
-      "method": "POST",
-      "path": "/matches/quick-filters",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "deleteMatchQuickFilter",
-      "method": "DELETE",
-      "path": "/matches/quick-filters/{filterId}",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "updateMatchRecommendationPool",
-      "method": "PATCH",
-      "path": "/matches/recommendation-pools/{poolId}",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "saveMatchHeatMemo",
-      "method": "POST",
-      "path": "/matches/heat-map/memo",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "getChatSafetySnapshot",
-      "method": "GET",
-      "path": "/chats/control-panel",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "updateChatRoom",
-      "method": "PATCH",
-      "path": "/chats/rooms/{roomId}",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "resolveChatReport",
-      "method": "POST",
-      "path": "/chats/reports/{reportId}/resolve",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "updateChatPolicyRule",
-      "method": "PATCH",
-      "path": "/chats/policy-rules/{ruleId}",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "saveChatSafetyMemo",
-      "method": "POST",
-      "path": "/chats/control-panel/memo",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "getAnalyticsOverview",
-      "method": "GET",
-      "path": "/analytics/overview",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "updateAnalyticsMetric",
-      "method": "PATCH",
-      "path": "/analytics/metrics/{metricId}",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "createAnalyticsMetric",
-      "method": "POST",
-      "path": "/analytics/metrics",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "updateAnalyticsReportJob",
-      "method": "PATCH",
-      "path": "/analytics/report-jobs/{jobId}",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "toggleAnalyticsReportJob",
-      "method": "POST",
-      "path": "/analytics/report-jobs/{jobId}/{active-activate-deactivate-}",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "createAnalyticsExport",
-      "method": "POST",
-      "path": "/analytics/exports",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "getAdminSettingsSnapshot",
-      "method": "GET",
-      "path": "/admin/settings/snapshot",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "createAdminTeamMember",
-      "method": "POST",
-      "path": "/admin/settings/team",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "updateAdminTeamMember",
-      "method": "PATCH",
-      "path": "/admin/settings/team/{memberId}",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "deleteAdminTeamMember",
-      "method": "DELETE",
-      "path": "/admin/settings/team/{memberId}",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "updateAdminFeatureFlag",
-      "method": "PATCH",
-      "path": "/admin/settings/feature-flags/{flagId}",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "updateAdminIntegrationSetting",
-      "method": "PATCH",
-      "path": "/admin/settings/integrations/{settingId}",
-      "auth": null
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "saveAdminAuditMemo",
-      "method": "POST",
-      "path": "/admin/settings/audit-log",
-      "auth": null
+      "path": "{url}",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:110"
     }
   ],
   "mismatchedAuth": [
     {
       "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:125",
-      "method": "GET",
-      "path": "/health",
-      "auth": "auto-bearer",
-      "api_path": "/health",
-      "api_method": "GET",
-      "api_requires_auth": false,
-      "note": "Client sends auth but API declares no auth"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:288",
-      "method": "POST",
-      "path": "/auth/phone/verify",
-      "auth": "auto-bearer",
-      "api_path": "/auth/phone/verify",
-      "api_method": "POST",
-      "api_requires_auth": false,
-      "note": "Client sends auth but API declares no auth"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:327",
-      "method": "POST",
-      "path": "/auth/phone/complete-profile",
-      "auth": "auto-bearer",
-      "api_path": "/auth/phone/complete-profile",
-      "api_method": "POST",
-      "api_requires_auth": false,
-      "note": "Client sends auth but API declares no auth"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:442",
-      "method": "GET",
-      "path": "/store/point-products",
-      "auth": "auto-bearer",
-      "api_path": "/store/point-products",
-      "api_method": "GET",
-      "api_requires_auth": false,
-      "note": "Client sends auth but API declares no auth"
-    },
-    {
-      "source": "app",
-      "file": "src/api/client.js",
-      "context": "anonymous@client.js:519",
       "method": "GET",
       "path": "/gifts",
       "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:519",
       "api_path": "/gifts",
       "api_method": "GET",
       "api_requires_auth": false,
-      "note": "Client sends auth but API declares no auth"
+      "note": "Client sends bearer token but API declares no auth"
     },
     {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "getDashboardMetrics",
+      "source": "app",
       "method": "GET",
-      "path": "/metrics/dashboard",
-      "auth": null,
-      "api_path": "/metrics/dashboard",
+      "path": "/health",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:125",
+      "api_path": "/health",
       "api_method": "GET",
-      "api_requires_auth": true,
-      "note": "Client sends no auth but API requires auth"
+      "api_requires_auth": false,
+      "note": "Client sends bearer token but API declares no auth"
     },
     {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "searchUsers",
+      "source": "app",
       "method": "GET",
-      "path": "/users/search",
-      "auth": null,
-      "api_path": "/users/search",
+      "path": "/legal-documents/{key}",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:371",
+      "api_path": "/legal-documents/{slug}",
       "api_method": "GET",
-      "api_requires_auth": true,
-      "note": "Client sends no auth but API requires auth"
+      "api_requires_auth": false,
+      "note": "Client sends bearer token but API declares no auth"
     },
     {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "submitUserReport",
+      "source": "app",
+      "method": "GET",
+      "path": "/store/point-products",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:442",
+      "api_path": "/store/point-products",
+      "api_method": "GET",
+      "api_requires_auth": false,
+      "note": "Client sends bearer token but API declares no auth"
+    },
+    {
+      "source": "app",
       "method": "POST",
-      "path": "/community/report",
-      "auth": null,
-      "api_path": "/community/report",
+      "path": "/auth/phone/complete-profile",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:327",
+      "api_path": "/auth/phone/complete-profile",
       "api_method": "POST",
-      "api_requires_auth": true,
-      "note": "Client sends no auth but API requires auth"
+      "api_requires_auth": false,
+      "note": "Client sends bearer token but API declares no auth"
     },
     {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "submitUserBlock",
+      "source": "app",
       "method": "POST",
-      "path": "/community/block",
-      "auth": null,
-      "api_path": "/community/block",
+      "path": "/auth/phone/verify",
+      "auth": "auto-bearer",
+      "file": "src/api/client.js",
+      "context": "anonymous@client.js:288",
+      "api_path": "/auth/phone/verify",
       "api_method": "POST",
-      "api_requires_auth": true,
-      "note": "Client sends no auth but API requires auth"
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "listTopics",
-      "method": "GET",
-      "path": "/topics",
-      "auth": null,
-      "api_path": "/topics",
-      "api_method": "GET",
-      "api_requires_auth": true,
-      "note": "Client sends no auth but API requires auth"
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "listPosts",
-      "method": "GET",
-      "path": "/posts",
-      "auth": null,
-      "api_path": "/posts",
-      "api_method": "GET",
-      "api_requires_auth": true,
-      "note": "Client sends no auth but API requires auth"
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "getAnnouncements",
-      "method": "GET",
-      "path": "/announcements",
-      "auth": null,
-      "api_path": "/announcements",
-      "api_method": "GET",
-      "api_requires_auth": true,
-      "note": "Client sends no auth but API requires auth"
-    },
-    {
-      "source": "admin",
-      "file": "admin-web/src/lib/api.ts",
-      "context": "getActiveAnnouncements",
-      "method": "GET",
-      "path": "/announcements/active",
-      "auth": null,
-      "api_path": "/announcements/active",
-      "api_method": "GET",
-      "api_requires_auth": true,
-      "note": "Client sends no auth but API requires auth"
+      "api_requires_auth": false,
+      "note": "Client sends bearer token but API declares no auth"
     }
   ],
   "unusedApiOperations": [
@@ -1020,111 +408,6 @@
       "method": "GET",
       "path": "/",
       "summary": "Redirect to docs"
-    },
-    {
-      "method": "POST",
-      "path": "/auth/apple",
-      "summary": "Apple login"
-    },
-    {
-      "method": "PATCH",
-      "path": "/users/{id}",
-      "summary": "Update profile"
-    },
-    {
-      "method": "GET",
-      "path": "/users/{id}",
-      "summary": "Get user"
-    },
-    {
-      "method": "GET",
-      "path": "/admin/users",
-      "summary": "Admin list users"
-    },
-    {
-      "method": "GET",
-      "path": "/admin/users/{id}",
-      "summary": "Admin user detail"
-    },
-    {
-      "method": "PATCH",
-      "path": "/admin/users/{id}",
-      "summary": "Admin update user"
-    },
-    {
-      "method": "PATCH",
-      "path": "/admin/users/{id}/status",
-      "summary": "Admin update status"
-    },
-    {
-      "method": "POST",
-      "path": "/admin/users/{id}/notes",
-      "summary": "Admin add note"
-    },
-    {
-      "method": "POST",
-      "path": "/admin/users/{id}/actions/resend-verification",
-      "summary": "Log resend verification"
-    },
-    {
-      "method": "POST",
-      "path": "/admin/users/{id}/actions/password-reset",
-      "summary": "Log password reset"
-    },
-    {
-      "method": "POST",
-      "path": "/admin/users/{id}/actions/escalate",
-      "summary": "Log escalate"
-    },
-    {
-      "method": "GET",
-      "path": "/topics/{id}/posts",
-      "summary": "Posts by topic"
-    },
-    {
-      "method": "GET",
-      "path": "/discover",
-      "summary": "Discover users"
-    },
-    {
-      "method": "POST",
-      "path": "/friendships",
-      "summary": "Send friend request"
-    },
-    {
-      "method": "GET",
-      "path": "/friendships",
-      "summary": "List friend requests"
-    },
-    {
-      "method": "POST",
-      "path": "/friendships/{id}/accept",
-      "summary": "Accept friend"
-    },
-    {
-      "method": "POST",
-      "path": "/friendships/{id}/decline",
-      "summary": "Decline friend"
-    },
-    {
-      "method": "POST",
-      "path": "/friendships/{id}/cancel",
-      "summary": "Cancel friend"
-    },
-    {
-      "method": "GET",
-      "path": "/chats",
-      "summary": "List chats"
-    },
-    {
-      "method": "POST",
-      "path": "/chats/message",
-      "summary": "Send message"
-    },
-    {
-      "method": "GET",
-      "path": "/legal-documents/{slug}",
-      "summary": "Get legal document"
     },
     {
       "method": "GET",
@@ -1137,44 +420,14 @@
       "summary": "Create announcement"
     },
     {
-      "method": "PATCH",
-      "path": "/admin/announcements/{id}",
-      "summary": "Update announcement"
-    },
-    {
       "method": "DELETE",
       "path": "/admin/announcements/{id}",
       "summary": "Delete announcement"
     },
     {
-      "method": "GET",
-      "path": "/admin/reports",
-      "summary": "Admin list reports"
-    },
-    {
-      "method": "GET",
-      "path": "/admin/reports/recent",
-      "summary": "Recent reports"
-    },
-    {
-      "method": "GET",
-      "path": "/metrics",
-      "summary": "Metrics summary"
-    },
-    {
-      "method": "POST",
-      "path": "/translate",
-      "summary": "Translate text"
-    },
-    {
-      "method": "GET",
-      "path": "/icebreakers",
-      "summary": "Get icebreakers"
-    },
-    {
       "method": "PATCH",
-      "path": "/admin/users/{id}/role",
-      "summary": "Set user role"
+      "path": "/admin/announcements/{id}",
+      "summary": "Update announcement"
     },
     {
       "method": "GET",
@@ -1195,6 +448,136 @@
       "method": "PATCH",
       "path": "/admin/refunds/{id}/deny",
       "summary": "Deny refund"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/reports",
+      "summary": "Admin list reports"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/reports/recent",
+      "summary": "Recent reports"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users",
+      "summary": "Admin list users"
+    },
+    {
+      "method": "GET",
+      "path": "/admin/users/{id}",
+      "summary": "Admin user detail"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/users/{id}",
+      "summary": "Admin update user"
+    },
+    {
+      "method": "POST",
+      "path": "/admin/users/{id}/actions/escalate",
+      "summary": "Log escalate"
+    },
+    {
+      "method": "POST",
+      "path": "/admin/users/{id}/actions/password-reset",
+      "summary": "Log password reset"
+    },
+    {
+      "method": "POST",
+      "path": "/admin/users/{id}/actions/resend-verification",
+      "summary": "Log resend verification"
+    },
+    {
+      "method": "POST",
+      "path": "/admin/users/{id}/notes",
+      "summary": "Admin add note"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/users/{id}/role",
+      "summary": "Set user role"
+    },
+    {
+      "method": "PATCH",
+      "path": "/admin/users/{id}/status",
+      "summary": "Admin update status"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/apple",
+      "summary": "Apple login"
+    },
+    {
+      "method": "GET",
+      "path": "/chats",
+      "summary": "List chats"
+    },
+    {
+      "method": "POST",
+      "path": "/chats/message",
+      "summary": "Send message"
+    },
+    {
+      "method": "GET",
+      "path": "/discover",
+      "summary": "Discover users"
+    },
+    {
+      "method": "GET",
+      "path": "/friendships",
+      "summary": "List friend requests"
+    },
+    {
+      "method": "POST",
+      "path": "/friendships",
+      "summary": "Send friend request"
+    },
+    {
+      "method": "POST",
+      "path": "/friendships/{id}/accept",
+      "summary": "Accept friend"
+    },
+    {
+      "method": "POST",
+      "path": "/friendships/{id}/cancel",
+      "summary": "Cancel friend"
+    },
+    {
+      "method": "POST",
+      "path": "/friendships/{id}/decline",
+      "summary": "Decline friend"
+    },
+    {
+      "method": "GET",
+      "path": "/icebreakers",
+      "summary": "Get icebreakers"
+    },
+    {
+      "method": "GET",
+      "path": "/metrics",
+      "summary": "Metrics summary"
+    },
+    {
+      "method": "GET",
+      "path": "/metrics/dashboard",
+      "summary": "Metrics dashboard"
+    },
+    {
+      "method": "POST",
+      "path": "/translate",
+      "summary": "Translate text"
+    },
+    {
+      "method": "PATCH",
+      "path": "/users/{id}",
+      "summary": "Update profile"
+    },
+    {
+      "method": "GET",
+      "path": "/users/search",
+      "summary": "Search users"
     }
   ]
 }

@@ -248,7 +248,7 @@ export const apiClient = {
     };
 
     try {
-      const { data } = await client.post('/auth/otp/request', body, unauthJsonConfig());
+      const { data } = await client.post('/auth/phone/request-otp', body, unauthJsonConfig());
       return data;
     } catch (err) {
       if (err?.response?.status === 410) {

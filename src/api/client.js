@@ -118,8 +118,26 @@ export const apiClient = {
   },
 
   async delete(url, config) {
-    try { return await client.delete(url, config); }
-    catch (e) { throw normalizeError(e); }
+    const target = typeof url === 'string' ? url.trim() : '';
+    if (!target) {
+      throw normalizeError(new Error('삭제할 경로가 필요합니다.'));
+    }
+
+    if (/^\/posts\/[^/]+\/like$/.test(target)) {
+      const goneError = new Error('게시글 좋아요 취소 기능이 더 이상 지원되지 않습니다. 최신 공지사항을 확인해 주세요.');
+      goneError.status = 410;
+      throw goneError;
+    }
+
+    if (/^\/posts\/[^/]+$/.test(target)) {
+      const goneError = new Error('게시글 삭제 기능이 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
+      goneError.status = 410;
+      throw goneError;
+    }
+
+    const unsupportedError = new Error('지원되지 않는 삭제 요청입니다. 최신 버전을 사용 중인지 확인해 주세요.');
+    unsupportedError.status = 400;
+    throw unsupportedError;
   },
 
   async health() {

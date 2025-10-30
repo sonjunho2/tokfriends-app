@@ -243,7 +243,7 @@ export const apiClient = {
     };
 
     try {
-      const { data } = await client.post('/auth/phone/request-otp', body, {
+      const { data } = await client.post('/auth/otp/request', body, {
         headers: {
           'Content-Type': 'application/json',
           Accept: 'application/json',
@@ -493,8 +493,7 @@ export const apiClient = {
 
   async getTopics() { const { data } = await client.get('/topics'); return data; },
   async getPosts(params = {}) { const { data } = await client.get('/posts', { params }); return data; },
-  async getTopicPosts(topicId, params = {}) { const { data } = await client.get(`/topics/${topicId}/posts`, { params }); return
-data; },
+  async getTopicPosts(topicId, params = {}) { const { data } = await client.get(`/topics/${topicId}/posts`, { params }); return data; },
   async createPost(postData) { const { data } = await client.post('/posts', postData); return data; },
   async reportUser(reportData) { const { data } = await client.post('/community/report', reportData); return data; },
   async blockUser(blockData) { const { data } = await client.post('/community/block', blockData); return data; },

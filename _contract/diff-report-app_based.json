@@ -1,27 +1,13 @@
 {
-  "generatedAt": "2025-10-30T03:35:11.108455Z",
+  "generatedAt": "2025-10-30T04:27:42.919Z",
   "summary": {
     "totalCallsAnalyzed": 62,
-    "matched": 22,
-    "missing": 40,
+    "matched": 23,
+    "missing": 39,
     "mismatchedAuth": 5,
     "unusedApiOperations": 43
   },
   "missingCalls": [
-    {
-      "source": "app",
-      "method": "POST",
-      "path": "/auth/otp/request",
-      "auths": [
-        "none"
-      ],
-      "examples": [
-        [
-          "src/api/client.js",
-          "anonymous@client.js:250"
-        ]
-      ]
-    },
     {
       "source": "app",
       "method": "POST",

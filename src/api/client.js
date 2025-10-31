@@ -2,7 +2,8 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL, REQUEST_TIMEOUT_MS, STORAGE_TOKEN_KEY } from '../config/env';
-import { applyRouteMapToAxiosConfig } from './routeMap'; // ★ 추가
+import { applyRouteMapToAxiosConfig } from './routeMap';
+import { normalizeAxiosResponse, normalizeAxiosError } from './normalize';
 
 const client = axios.create({
   baseURL: API_BASE_URL,
@@ -20,10 +21,7 @@ export const setAuthToken = (token) => {
 };
 
 const unauthJsonConfig = (overrides = {}) => {
-  const baseTransform = (
-    payload,
-    headers,
-  ) => {
+  const baseTransform = (payload, headers) => {
     if (headers && 'Authorization' in headers) delete headers.Authorization;
     return typeof payload === 'string' ? payload : JSON.stringify(payload);
   };
@@ -77,11 +75,10 @@ client.interceptors.request.use(
       if (storedToken) setAuthToken(storedToken);
     }
 
-    // ★ 경로 자동 매핑 추가 (여기 한 줄이 핵심)
+    // ★ 경로 자동 매핑
     let workingConfig = applyRouteMapToAxiosConfig(config);
 
     const headers = workingConfig.headers || (workingConfig.headers = {});
-
     if (workingConfig.__unauth === true) {
       delete headers.Authorization;
       if (headers.common) delete headers.common.Authorization;
@@ -95,25 +92,24 @@ client.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
+// ★ 응답 인터셉터: 모든 성공 응답을 표준 포맷으로 노멀라이즈
 client.interceptors.response.use(
-  (res) => res,
+  (res) => normalizeAxiosResponse(res),
   async (error) => {
     if (error?.response?.status === 401) await clearToken();
-    return Promise.reject(error);
+    // 에러도 표준 포맷 메시지로 변환
+    throw normalizeAxiosError(error);
   }
 );
 
 const normalizeError = (err) => {
-  const msg =
-    err?.response?.data?.message ||
-    err?.response?.data?.error ||
-    err?.message ||
-    '요청 처리 중 오류가 발생했습니다.';
-  const e = new Error(typeof msg === 'string' ? msg : JSON.stringify(msg));
-  e.status = err?.response?.status;
+  // 이미 normalizeAxiosError를 쓰지만, 기존 apiClient 내부에서 호출하는 경우 호환 유지
+  const e = new Error(err?.message || '요청 처리 중 오류가 발생했습니다.');
+  e.status = err?.status || err?.response?.status;
   return e;
 };
 
+// 순차 시도 유틸 (기존 로직 보존)
 async function tryPostJsonSequential(paths, body) {
   let lastErr;
   for (const p of paths) {
@@ -121,7 +117,7 @@ async function tryPostJsonSequential(paths, body) {
       const { data } = await client.post(p, body, { headers: { 'Content-Type': 'application/json' } });
       return data;
     } catch (e) {
-      const s = e?.response?.status;
+      const s = e?.status || e?.response?.status;
       if (s === 404 || s === 405) { lastErr = e; continue; }
       throw normalizeError(e);
     }
@@ -140,7 +136,7 @@ async function tryPostFormSequential(paths, body) {
       const { data } = await client.post(p, form, { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
       return data;
     } catch (e) {
-      const s = e?.response?.status;
+      const s = e?.status || e?.response?.status;
       if (s === 404 || s === 405) { lastErr = e; continue; }
       throw normalizeError(e);
     }
@@ -178,7 +174,7 @@ export const apiClient = {
     try {
       return await client.delete(target, config);
     } catch (err) {
-      if (err?.response?.status === 410) {
+      if ((err?.status || err?.response?.status) === 410) {
         const goneError = new Error('요청하신 리소스가 더 이상 제공되지 않습니다. 고객센터로 문의해 주세요.');
         goneError.status = 410;
         throw goneError;
@@ -202,7 +198,7 @@ export const apiClient = {
       const { data } = await client.post('/auth/login/email', payload, unauthJsonConfig());
       return data;
     } catch (err) {
-      if (err?.response?.status === 410) {
+      if ((err?.status || err?.response?.status) === 410) {
         const goneError = new Error('이메일 로그인 기능이 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
         goneError.status = 410;
         throw goneError;
@@ -226,7 +222,7 @@ export const apiClient = {
       const { data } = await client.post('/auth/signup/email', body, unauthJsonConfig());
       return data;
     } catch (err) {
-      if (err?.response?.status === 410) {
+      if ((err?.status || err?.response?.status) === 410) {
         const goneError = new Error('회원가입이 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
         goneError.status = 410;
         throw goneError;
@@ -250,7 +246,7 @@ export const apiClient = {
       });
       return data;
     } catch (err) {
-      if (err?.response?.status === 410) {
+      if ((err?.status || err?.response?.status) === 410) {
         const goneError = new Error('채팅방 생성이 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
         goneError.status = 410;
         throw goneError;
@@ -276,7 +272,7 @@ export const apiClient = {
       const { data } = await client.post('/auth/otp/request', body, unauthJsonConfig());
       return data;
     } catch (err) {
-      if (err?.response?.status === 410) {
+      if ((err?.status || err?.response?.status) === 410) {
         const goneError = new Error('휴대폰 인증번호 요청이 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
         goneError.status = 410;
         throw goneError;
@@ -304,7 +300,7 @@ export const apiClient = {
       const { data } = await client.post('/auth/otp/verify', body, unauthJsonConfig());
       return data;
     } catch (err) {
-      if (err?.response?.status === 410) {
+      if ((err?.status || err?.response?.status) === 410) {
         const goneError = new Error('휴대폰 인증번호 확인이 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
         goneError.status = 410;
         throw goneError;
@@ -341,7 +337,7 @@ export const apiClient = {
       );
       return data;
     } catch (err) {
-      if (err?.response?.status === 410) {
+      if ((err?.status || err?.response?.status) === 410) {
         const goneError = new Error('휴대폰 기반 가입 절차가 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
         goneError.status = 410;
         throw goneError; 
@@ -367,7 +363,7 @@ export const apiClient = {
         const { data } = await client.get(path);
         return data;
       } catch (err) {
-        const status = err?.response?.status;
+        const status = err?.status || err?.response?.status;
         if (status === 404 || status === 405) {
           lastErr = err;
           continue;
@@ -390,10 +386,11 @@ export const apiClient = {
 
     try {
       const { data } = await client.post('/chat/direct', body);
+      if (data?.data?.room) return data.data.room;
       if (data?.room) return data.room;
-      return data;
+      return data?.data ?? data;
     } catch (err) {
-      const status = err?.response?.status;
+      const status = err?.status || err?.response?.status;
       if (status === 404) {
         return {
           id: `local-${Date.now()}`,
@@ -422,11 +419,12 @@ export const apiClient = {
     for (const path of endpoints) {
       try {
         const { data } = await client.get(path);
+        if (Array.isArray(data?.data?.items)) return data.data.items;
         if (Array.isArray(data?.items)) return data.items;
         if (Array.isArray(data?.data)) return data.data;
         if (Array.isArray(data)) return data;
       } catch (err) {
-        const status = err?.response?.status;
+        const status = err?.status || err?.response?.status;
         if (status === 404 || status === 405) {
           lastErr = err;
           continue;
@@ -456,7 +454,7 @@ export const apiClient = {
         const { data } = await client.post(path, body);
         return data;
       } catch (err) {
-        const status = err?.response?.status;
+        const status = err?.status || err?.response?.status;
         if (status === 404 || status === 405) {
           lastErr = err;
           continue;
@@ -494,7 +492,7 @@ export const apiClient = {
       const { data } = await client.get('/gifts');
       return data;
     } catch (err) {
-      if (err?.response?.status === 404) {
+      if ((err?.status || err?.response?.status) === 404) {
         return [];
       }
       throw normalizeError(err);

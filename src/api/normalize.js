@@ -54,13 +54,14 @@ function unwrapCommonEnvelopes(raw) {
 function extractPageInfo(extra) {
   const c = shallowCamelize(extra || {});
   // page/limit/total
-  const page = c.page ?? c.currentPage ?? undefined;
-  const limit = c.limit ?? c.pageSize ?? c.perPage ?? undefined;
-  const total = c.total ?? c.totalCount ?? undefined;
+  const meta = isPlainObject(c.meta) ? shallowCamelize(c.meta) : null;
+  const page = c.page ?? c.currentPage ?? meta?.page ?? meta?.currentPage ?? undefined;
+  const limit = c.limit ?? c.pageSize ?? c.perPage ?? meta?.limit ?? meta?.pageSize ?? undefined;
+  const total = c.total ?? c.totalCount ?? meta?.total ?? meta?.totalCount ?? undefined;  const meta = isPlainObject(c.meta) ? shallowCamelize(c.meta) : null;
 
   // cursor 류
-  const nextCursor = c.nextCursor ?? c.next ?? undefined;
-  const prevCursor = c.prevCursor ?? c.prev ?? undefined;
+  const nextCursor = c.nextCursor ?? c.next ?? meta?.nextCursor ?? undefined;
+  const prevCursor = c.prevCursor ?? c.prev ?? meta?.prevCursor ?? undefined;
 
   if (
     page !== undefined || limit !== undefined || total !== undefined ||
@@ -132,7 +133,7 @@ function normalizeByEndpoint(urlPath, method, data) {
 
 // 5) 최종 노멀라이저: Axios 응답 객체 → 표준 형태
 export function normalizeAxiosResponse(axiosResponse) {
-  const { data: raw, config, status } = axiosResponse || {};
+  const { data: raw, config, status, headers } = axiosResponse || {};
   const url = (config?.url || '').toString();
   const method = (config?.method || 'get').toLowerCase();
 
@@ -155,10 +156,12 @@ export function normalizeAxiosResponse(axiosResponse) {
   const normalizedData = normalizeByEndpoint(path, method, unwrapped.data);
 
   // 최종 표준 포맷
-    const envelope = {
+  const envelope = {
     ok: unwrapped.ok && status >= 200 && status < 300,
     data: normalizedData,
     error: null,
+    ...(status !== undefined ? { httpStatus: status } : {}),
+    ...(headers ? { responseHeaders: headers } : {}),
     ...(pageInfo ? { pageInfo } : {}),
   };
 
@@ -172,7 +175,7 @@ export function normalizeAxiosResponse(axiosResponse) {
 
   return {
     ...axiosResponse,
-    data: envelope,
+
   };
 }
 
@@ -200,5 +203,8 @@ export function normalizeAxiosError(axiosError) {
   const err = new Error(message);
   err.status = status;
   err.code = code;
+  err.response = axiosError?.response;
+  err.data = payload;
+  err.originalError = axiosError;
   return err;
 }

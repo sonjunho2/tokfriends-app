@@ -2,6 +2,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL, REQUEST_TIMEOUT_MS, STORAGE_TOKEN_KEY } from '../config/env';
+import { applyRouteMapToAxiosConfig } from './routeMap'; // ★ 추가
 
 const client = axios.create({
   baseURL: API_BASE_URL,
@@ -47,7 +48,7 @@ const unauthJsonConfig = (overrides = {}) => {
 
 const unauthConfig = (overrides = {}) => ({
   __unauth: true,
-    ...overrides,
+  ...overrides,
   headers: {
     Accept: 'application/json',
     ...(overrides.headers || {}),
@@ -76,7 +77,9 @@ client.interceptors.request.use(
       if (storedToken) setAuthToken(storedToken);
     }
 
-    const workingConfig = config;
+    // ★ 경로 자동 매핑 추가 (여기 한 줄이 핵심)
+    let workingConfig = applyRouteMapToAxiosConfig(config);
+
     const headers = workingConfig.headers || (workingConfig.headers = {});
 
     if (workingConfig.__unauth === true) {

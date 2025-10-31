@@ -8,7 +8,7 @@
 - /store/purchases/confirm -> /payments/confirm
 */
 
-const PATH_MAP = [
+export const PATH_MAP = [
   { from: /^\/auth\/otp\/request\/?$/, to: '/auth/phone/request-otp' },
   { from: /^\/auth\/otp\/verify\/?$/,  to: '/auth/phone/verify' },
   { from: /^\/chat\/direct\/?$/,       to: '/chats/direct' },
@@ -17,10 +17,22 @@ const PATH_MAP = [
 
 export function mapPath(original) {
   if (!original || typeof original !== 'string') return original;
+  const hashIndex = original.indexOf('#');
+  const hash = hashIndex >= 0 ? original.slice(hashIndex) : '';
+  const pathAndQuery = hashIndex >= 0 ? original.slice(0, hashIndex) : original;
+  const queryIndex = pathAndQuery.indexOf('?');
+  const query = queryIndex >= 0 ? pathAndQuery.slice(queryIndex) : '';
+  const pathOnly = queryIndex >= 0 ? pathAndQuery.slice(0, queryIndex) : pathAndQuery;
+
+  let rewritten = pathOnly;
   for (const rule of PATH_MAP) {
-    if (rule.from.test(original)) return original.replace(rule.from, rule.to);
+    if (rule.from.test(pathOnly)) {
+      rewritten = pathOnly.replace(rule.from, rule.to);
+      break;
+    }
   }
-  return original;
+  if (rewritten === pathOnly) return original;
+  return `${rewritten}${query}${hash}`;
 }
 
 export function applyRouteMapToAxiosConfig(config) {
@@ -28,12 +40,16 @@ export function applyRouteMapToAxiosConfig(config) {
   try {
     const isAbsolute = /^https?:\/\//i.test(config.url);
     if (!isAbsolute) {
-      config.url = mapPath(config.url);
+      const mapped = mapPath(config.url);
+      if (mapped) config.url = mapped;
       return config;
     }
-    const u = new URL(config.url);
-    u.pathname = mapPath(u.pathname);
-    config.url = u.toString();
+    const parsed = new URL(config.url);
+    const mappedPath = mapPath(parsed.pathname);
+    if (mappedPath !== parsed.pathname) {
+      parsed.pathname = mappedPath;
+      config.url = parsed.toString();
+    }
     return config;
   } catch {
     return config;

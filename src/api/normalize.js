@@ -104,6 +104,29 @@ function normalizeByEndpoint(urlPath, method, data) {
     d = { ...c, success, orderId };
   }
 
+    // d) 이메일/휴대폰 가입·로그인 토큰 필드 통합
+  if (
+    method === 'post' &&
+    /^\/auth\/(login\/email|signup\/email|phone\/complete-profile)$/i.test(urlPath)
+  ) {
+    const c = shallowCamelize(d || {});
+    const accessToken = c.accessToken ?? c.access_token ?? c.token ?? null;
+    const token = c.token ?? accessToken ?? null;
+    const user = c.user ?? c.profile ?? null;
+    const normalized = { ...c };
+    if (accessToken != null) {
+      normalized.accessToken = accessToken;
+      normalized.access_token = accessToken;
+    }
+    if (token != null) {
+      normalized.token = token;
+    }
+    if (user != null) {
+      normalized.user = user;
+    }
+    d = normalized;
+  }
+
   return d;
 }
 
@@ -132,14 +155,24 @@ export function normalizeAxiosResponse(axiosResponse) {
   const normalizedData = normalizeByEndpoint(path, method, unwrapped.data);
 
   // 최종 표준 포맷
+    const envelope = {
+    ok: unwrapped.ok && status >= 200 && status < 300,
+    data: normalizedData,
+    error: null,
+    ...(pageInfo ? { pageInfo } : {}),
+  };
+
+  if (isPlainObject(normalizedData)) {
+    for (const [key, value] of Object.entries(normalizedData)) {
+      if (!(key in envelope)) {
+        envelope[key] = value;
+      }
+    }
+  }
+
   return {
     ...axiosResponse,
-    data: {
-      ok: unwrapped.ok && status >= 200 && status < 300,
-      data: normalizedData,
-      error: null,
-      ...(pageInfo ? { pageInfo } : {}),
-    },
+    data: envelope,
   };
 }
 

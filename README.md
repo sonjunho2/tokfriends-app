@@ -54,16 +54,26 @@ npm run ios
 # Android 에뮬레이터  
 npm run android
 환경 변수
-Backend (.env)
+
+### Expo 앱 (.env / app.config.js)
+
+```bash
+# .env
+EXPO_PUBLIC_API_BASE_URL=https://tok-friends-api.onrender.com
+```
+
+- `EXPO_PUBLIC_API_BASE_URL`: API 서버 기본 URL. 배포/테스트 환경별로 값을 바꿔 주세요.
+- 기본값은 `src/config/env.js` 에 정의되어 있으며, `.env` 값을 지정하면 우선합니다.
+
+### Backend (.env)
+
+```bash
 DATABASE_URL=postgresql://...
 JWT_SECRET=your_secret_key
 CORS_ORIGIN=https://your-frontend.com
-App (app.json extra)
-json{
-  "extra": {
-    "apiBaseUrl": "https://your-api.koyeb.app"
-  }
-}
+```
+
+> ⚠️ 민감한 값은 Git 저장소에 커밋하지 말고, 배포 환경의 비밀 변수로 관리하세요.
 EAS Build
 사전 준비
 

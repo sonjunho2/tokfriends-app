@@ -57,7 +57,7 @@ function extractPageInfo(extra) {
   const meta = isPlainObject(c.meta) ? shallowCamelize(c.meta) : null;
   const page = c.page ?? c.currentPage ?? meta?.page ?? meta?.currentPage ?? undefined;
   const limit = c.limit ?? c.pageSize ?? c.perPage ?? meta?.limit ?? meta?.pageSize ?? undefined;
-  const total = c.total ?? c.totalCount ?? meta?.total ?? meta?.totalCount ?? undefined;  const meta = isPlainObject(c.meta) ? shallowCamelize(c.meta) : null;
+  const total = c.total ?? c.totalCount ?? meta?.total ?? meta?.totalCount ?? undefined;
 
   // cursor 류
   const nextCursor = c.nextCursor ?? c.next ?? meta?.nextCursor ?? undefined;
@@ -105,7 +105,7 @@ function normalizeByEndpoint(urlPath, method, data) {
     d = { ...c, success, orderId };
   }
 
-    // d) 이메일/휴대폰 가입·로그인 토큰 필드 통합
+  // d) 이메일/휴대폰 가입·로그인 토큰 필드 통합
   if (
     method === 'post' &&
     /^\/auth\/(login\/email|signup\/email|phone\/complete-profile)$/i.test(urlPath)
@@ -156,10 +156,11 @@ export function normalizeAxiosResponse(axiosResponse) {
   const normalizedData = normalizeByEndpoint(path, method, unwrapped.data);
 
   // 최종 표준 포맷
+  const isHttpOk = status === undefined ? true : status >= 200 && status < 300;
   const envelope = {
-    ok: unwrapped.ok && status >= 200 && status < 300,
+    ok: (unwrapped.ok ?? true) && isHttpOk,
     data: normalizedData,
-    error: null,
+    error: unwrapped.error ?? null,
     ...(status !== undefined ? { httpStatus: status } : {}),
     ...(headers ? { responseHeaders: headers } : {}),
     ...(pageInfo ? { pageInfo } : {}),
@@ -175,7 +176,7 @@ export function normalizeAxiosResponse(axiosResponse) {
 
   return {
     ...axiosResponse,
-
+    data: envelope,
   };
 }
 

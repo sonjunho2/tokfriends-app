@@ -4,6 +4,12 @@ export default ({ config }) => ({
     ...(config.android ?? {}),
     package: 'com.sonjunho.ddakchin',
   },
+  updates: {
+    ...(config.updates ?? {}),
+    enabled: true,
+    checkAutomatically: 'NEVER',
+  },
+  runtimeVersion: config.runtimeVersion ?? { policy: 'sdkVersion' },
   plugins: [
     ...(config.plugins ?? []),
     [

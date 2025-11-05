@@ -12,7 +12,10 @@ import {
 import colors from '../../theme/colors';
 import { useAuth } from '../../context/AuthContext';
 import { Ionicons } from '@expo/vector-icons';
-import * as InAppPurchases from 'expo-in-app-purchases';
+import InAppPurchases, {
+  IAP_UNAVAILABLE_MESSAGE,
+  isIapAvailable,
+} from '../../utils/inAppPurchases';
 import { apiClient } from '../../api/client';
 
 const FALLBACK_PACKAGES = [
@@ -37,52 +40,54 @@ export default function ShopScreen() {
     return typeof p === 'number' ? p : parseInt(String(p).replace(/\D/g, ''), 10) || 0;
   }, [user]);
 
-    useEffect(() => {
+  useEffect(() => {
     let mounted = true;
     let subscription;
 
     const initialize = async () => {
       try {
-        await InAppPurchases.connectAsync();
-        subscription = InAppPurchases.setPurchaseListener(
-          async ({ responseCode, results, errorCode }) => {
-            if (!mounted) return;
+        if (isIapAvailable) {
+          await InAppPurchases.connectAsync();
+          subscription = InAppPurchases.setPurchaseListener(
+            async ({ responseCode, results, errorCode }) => {
+              if (!mounted) return;
 
-            if (responseCode === InAppPurchases.IAPResponseCode.OK) {
-              if (Array.isArray(results)) {
-                for (const purchase of results) {
-                  if (
-                    purchase?.purchaseState === InAppPurchases.InAppPurchaseState.PURCHASED &&
-                    !purchase?.acknowledged
-                  ) {
-                    try {
-                      await apiClient.confirmPurchase({
-                        productId: purchase.productId,
-                        transactionId: purchase.orderId || purchase.transactionId,
-                        receipt: purchase.transactionReceipt || purchase.receipt,
-                        platform: Platform.OS,
-                      });
-                      await InAppPurchases.finishTransactionAsync(purchase, false);
-                      Alert.alert('구매 완료', '결제가 정상적으로 처리되었습니다.');
-                    } catch (confirmError) {
-                      Alert.alert(
-                        '구매 확인 실패',
-                        confirmError?.message || '결제 검증에 실패했습니다. 고객센터로 문의해 주세요.',
-                      );
+              if (responseCode === InAppPurchases.IAPResponseCode.OK) {
+                if (Array.isArray(results)) {
+                  for (const purchase of results) {
+                    if (
+                      purchase?.purchaseState === InAppPurchases.InAppPurchaseState.PURCHASED &&
+                      !purchase?.acknowledged
+                    ) {
+                      try {
+                        await apiClient.confirmPurchase({
+                          productId: purchase.productId,
+                          transactionId: purchase.orderId || purchase.transactionId,
+                          receipt: purchase.transactionReceipt || purchase.receipt,
+                          platform: Platform.OS,
+                        });
+                        await InAppPurchases.finishTransactionAsync(purchase, false);
+                        Alert.alert('구매 완료', '결제가 정상적으로 처리되었습니다.');
+                      } catch (confirmError) {
+                        Alert.alert(
+                          '구매 확인 실패',
+                          confirmError?.message || '결제 검증에 실패했습니다. 고객센터로 문의해 주세요.',
+                        );
+                      }
                     }
                   }
                 }
+                setPurchaseProcessing(false);
+              } else if (responseCode === InAppPurchases.IAPResponseCode.USER_CANCELED) {
+                setPurchaseProcessing(false);
+              } else {
+                setPurchaseProcessing(false);
+                const code = errorCode ? ` (code: ${errorCode})` : '';
+                Alert.alert('결제 오류', `결제 처리 중 문제가 발생했습니다${code}. 잠시 후 다시 시도해 주세요.`);
               }
-              setPurchaseProcessing(false);
-            } else if (responseCode === InAppPurchases.IAPResponseCode.USER_CANCELED) {
-              setPurchaseProcessing(false);
-            } else {
-              setPurchaseProcessing(false);
-              const code = errorCode ? ` (code: ${errorCode})` : '';
-              Alert.alert('결제 오류', `결제 처리 중 문제가 발생했습니다${code}. 잠시 후 다시 시도해 주세요.`);
-            }
-          },
-        );
+            },
+          );
+        }
 
         const fetched = await apiClient.getPointProducts();
         if (!mounted) return;
@@ -101,11 +106,14 @@ export default function ShopScreen() {
         const productIds = normalized
           .map((pkg) => pkg.productId)
           .filter((id) => typeof id === 'string' && id.length > 0);
-        if (productIds.length > 0) {
+        if (isIapAvailable && productIds.length > 0) {
           const { responseCode, results } = await InAppPurchases.getProductsAsync(productIds);
           if (responseCode === InAppPurchases.IAPResponseCode.OK && Array.isArray(results)) {
             setIapProducts(results);
           }
+        }
+        if (!isIapAvailable) {
+          setError(IAP_UNAVAILABLE_MESSAGE);
         }
       } catch (initError) {
         if (!mounted) return;
@@ -123,9 +131,11 @@ export default function ShopScreen() {
     return () => {
       mounted = false;
       if (subscription) subscription.remove();
-      InAppPurchases.disconnectAsync().catch(() => {});
+      if (isIapAvailable) {
+        InAppPurchases.disconnectAsync().catch(() => {});
+      }
     };
-  }, []);
+  }, [isIapAvailable]);
 
   const displayPackages = useMemo(() => (packages.length > 0 ? packages : FALLBACK_PACKAGES), [packages]);
 
@@ -143,6 +153,10 @@ export default function ShopScreen() {
   const handlePurchase = useCallback(
     async (item) => {
       if (purchaseProcessing) return;
+      if (!isIapAvailable) {
+        Alert.alert('지원되지 않음', IAP_UNAVAILABLE_MESSAGE);
+        return;
+      }
       if (!item?.productId) {
         Alert.alert('준비중', '이 상품은 아직 스토어 상품ID가 연결되지 않았습니다. 관리자에서 설정해 주세요.');
         return;
@@ -155,7 +169,7 @@ export default function ShopScreen() {
         Alert.alert('결제 요청 실패', err?.message || '결제를 시작하지 못했습니다. 잠시 후 다시 시도해 주세요.');
       }
     },
-    [purchaseProcessing],
+    [isIapAvailable, purchaseProcessing],
   );
 
   return (

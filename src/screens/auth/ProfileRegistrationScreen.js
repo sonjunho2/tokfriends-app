@@ -145,9 +145,6 @@ export default function ProfileRegistrationScreen({ navigation, route }) {
           showsVerticalScrollIndicator={false}
         >
           <Text style={styles.title}>프로필을 입력해 주세요</Text>
-          <Text style={styles.subtitle}>
-            {formattedPhone || phone} 번호로 가입을 진행합니다. 한 화면에서 기본 정보를 모두 입력하고 바로 시작해 보세요.
-          </Text>
 
           <TouchableOpacity style={styles.avatarWrap} onPress={handlePickImage} activeOpacity={0.85}>
             {imageUri ? (
@@ -191,6 +188,9 @@ export default function ProfileRegistrationScreen({ navigation, route }) {
                   <Text style={styles.errorText}>올바른 연도를 입력해 주세요.</Text>
                 )}
               </View>
+              <View style={{ width: 16 }} />
+              <View style={[styles.field, { flex: 1 }]}>
+                <Text style={styles.label}>거주 지역</Text>
                 <TouchableOpacity
                   style={[styles.input, styles.selectInput]}
                   activeOpacity={0.8}
@@ -267,40 +267,40 @@ export default function ProfileRegistrationScreen({ navigation, route }) {
             loading={submitting}
             style={{ marginTop: 32 }}
           />
-          <Modal
-            visible={regionModalVisible}
-            transparent
-            animationType="fade"
-            onRequestClose={() => setRegionModalVisible(false)}
-          >
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalCard}>
-                <Text style={styles.modalTitle}>거주 지역 선택</Text>
-                <ScrollView style={styles.modalList}>
-                  {REGION_OPTIONS.map((option) => (
-                    <TouchableOpacity
-                      key={option}
-                      style={styles.modalOption}
-                      onPress={() => {
-                        setRegion(option);
-                        setRegionModalVisible(false);
-                      }}
-                    >
-                      <Text style={styles.modalOptionText}>{option}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-                <TouchableOpacity
-                  style={styles.modalCloseButton}
-                  onPress={() => setRegionModalVisible(false)}
-                >
-                  <Text style={styles.modalCloseText}>닫기</Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-          </Modal>
         </ScrollView>
       </KeyboardAvoidingView>
+      <Modal
+        visible={regionModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setRegionModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalCard}>
+            <Text style={styles.modalTitle}>거주 지역 선택</Text>
+            <ScrollView style={styles.modalList}>
+              {REGION_OPTIONS.map((option) => (
+                <TouchableOpacity
+                  key={option}
+                  style={styles.modalOption}
+                  onPress={() => {
+                    setRegion(option);
+                    setRegionModalVisible(false);
+                  }}
+                >
+                  <Text style={styles.modalOptionText}>{option}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => setRegionModalVisible(false)}
+            >
+              <Text style={styles.modalCloseText}>닫기</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

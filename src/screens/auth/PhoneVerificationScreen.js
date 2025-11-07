@@ -51,9 +51,10 @@ export default function PhoneVerificationScreen({ navigation, route }) {
         code: digits,
         requestId,
       });
-      const needsProfile = response?.needsProfile ?? response?.isNewUser ?? !response?.token;
-      if (response?.token) {
-        const result = await authenticateWithToken(response.token, response?.user || null);
+      const token = response?.token || response?.accessToken || response?.access_token;
+      const needsProfile = response?.needsProfile ?? response?.isNewUser ?? !token;
+      if (token) {
+        const result = await authenticateWithToken(token, response?.user || null);
         if (!result.success) {
           throw new Error(result.error || '세션 생성 실패');
         }

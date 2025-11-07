@@ -13,6 +13,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import colors from '../../theme/colors';
 import ButtonPrimary from '../../components/ButtonPrimary';
+import { apiClient } from '../../api/client';
 
 function sanitizePhone(input) {
   return String(input || '')
@@ -43,10 +44,14 @@ export default function PhoneEntryScreen({ navigation }) {
     if (loading) return;
     setLoading(true);
     try {
-      navigation.navigate('Agreement', {
+      const response = await apiClient.requestPhoneOtp({ phone: digits });
+      const requestId = response?.requestId || response?.id || response?.request_id;
+      const expiresIn = response?.expiresIn ?? response?.expires_in;
+      navigation.navigate('PhoneVerification', {
         phone: digits,
         formattedPhone: formatted,
-        verificationId: 'local-test-verification',
+        requestId,
+        expiresIn,
       });
     } catch (error) {
       Alert.alert('전송 실패', error?.message || '인증번호를 전송하지 못했습니다. 잠시 후 다시 시도해 주세요.');

@@ -203,7 +203,7 @@ export default function ProfileRegistrationScreen({ navigation, route }) {
                       !region ? styles.selectInputPlaceholder : null,
                     ]}
                   >
-                    {region || '거주 지역을 선택하세요'}
+                    {region || '지역선택'}
                   </Text>
                 </TouchableOpacity>
               </View>

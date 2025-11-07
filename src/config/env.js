@@ -4,7 +4,7 @@ import Constants from 'expo-constants';
 const fromPublic = process.env.EXPO_PUBLIC_API_BASE_URL;
 const fromExtra = Constants?.expoConfig?.extra?.apiBaseUrl || Constants?.manifest?.extra?.apiBaseUrl;
 
-export const API_BASE_URL = (fromPublic || fromExtra || 'https://tok-friends-api.onrender.com').replace(/\/$/, '');
+export const API_BASE_URL = (process.env.TOK_API_BASE_URL || appConfig?.extra?.TOK_API_BASE_URL || 'https://tok-friends-api.onrender.com').replace(/\/$/, '');
 export const REQUEST_TIMEOUT_MS = 10000;
 export const STORAGE_TOKEN_KEY = 'tokfriends_access_token';
 

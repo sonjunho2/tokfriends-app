@@ -10,6 +10,7 @@
     "doctor": "expo doctor",
     "check:api": "node scripts/checkApi.js",
     "postinstall": "patch-package"
+    "admin:otp": "node scripts/admin/generateAdminOtp.js",
   },
   "dependencies": {
     "expo": "~53.0.0",

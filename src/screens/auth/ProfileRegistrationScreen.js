@@ -117,7 +117,8 @@ export default function ProfileRegistrationScreen({ navigation, route }) {
         avatarUri: imageUri || undefined,
       };
       const response = await apiClient.completePhoneSignup(payload);
-      const token = response?.token || response?.accessToken;
+      const token =
+        response?.token || response?.accessToken || response?.access_token;
       if (!token) {
         throw new Error('토큰이 응답에 없습니다.');
       }

@@ -108,7 +108,7 @@ module.exports = ({ config }) => {
       ...(resolvedConfig.extra ?? {}),
       apiBaseUrl:
         process.env.TOK_API_BASE_URL ??
-        resolvedConfig?.extra?.apiBaseUrl ??
+        resolvedConfig?.extra?.TOK_API_BASE_URL ??
         'https://tok-friends-api.onrender.com',
       eas: {
         projectId: 'eb3c1b74-5c41-4ce0-9574-d0d3eb932d72',

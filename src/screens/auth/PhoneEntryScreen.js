@@ -1,5 +1,5 @@
 // src/screens/auth/PhoneEntryScreen.js
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -14,6 +14,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import colors from '../../theme/colors';
 import ButtonPrimary from '../../components/ButtonPrimary';
 import { apiClient } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
+import { ADMIN_OVERRIDE_CODES } from '../../config/env';
 
 function sanitizePhone(input) {
   return String(input || '')
@@ -32,11 +34,57 @@ function formatPhone(input) {
 export default function PhoneEntryScreen({ navigation }) {
   const [phoneRaw, setPhoneRaw] = useState('');
   const [loading, setLoading] = useState(false);
+  const [verificationLoading, setVerificationLoading] = useState(false);
+  const [otpRequested, setOtpRequested] = useState(false);
+  const [requestId, setRequestId] = useState(null);
+  const [codeInput, setCodeInput] = useState('');
   const formatted = useMemo(() => formatPhone(phoneRaw), [phoneRaw]);
   const digits = useMemo(() => sanitizePhone(phoneRaw), [phoneRaw]);
+  const codeDigits = useMemo(
+    () => String(codeInput || '').replace(/\D/g, '').slice(0, 6),
+    [codeInput],
+  );
+  const adminOverrideMatch = useMemo(
+    () => ADMIN_OVERRIDE_CODES.includes(codeDigits),
+    [codeDigits, ADMIN_OVERRIDE_CODES],
+  );
   const valid = digits.length >= 10 && digits.length <= 11;
+  const canVerify =
+    otpRequested && (codeDigits.length >= 4 || adminOverrideMatch) && !verificationLoading;
+  const { authenticateWithToken } = useAuth();
+  
+  useEffect(() => {
+    setOtpRequested(false);
+    setCodeInput('');
+    setRequestId(null);
+  }, [digits]);
 
-  const handleNext = async () => {
+  const completeVerification = async (response, { override = false } = {}) => {
+    const token = response?.token || response?.accessToken || response?.access_token;
+    const needsProfile =
+      override || (response?.needsProfile ?? response?.isNewUser ?? !token);
+    if (token) {
+      const result = await authenticateWithToken(token, response?.user || null);
+      if (!result.success) {
+        throw new Error(result.error || '세션 생성 실패');
+      }
+      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+      return;
+    }
+    if (needsProfile) {
+      navigation.replace('Agreement', {
+        phone: digits,
+        formattedPhone: formatted,
+        verificationId:
+          response?.verificationId || response?.sessionId || requestId || `admin-${Date.now()}`,
+        adminOverride: override,
+      });
+      return;
+    }
+    Alert.alert('안내', '추가 정보가 필요합니다. 다시 시도해 주세요.');
+  };
+
+  const handleRequestOtp = async () => {
     if (!valid) {
       Alert.alert('안내', '휴대폰 번호를 정확히 입력해 주세요.');
       return;
@@ -45,18 +93,50 @@ export default function PhoneEntryScreen({ navigation }) {
     setLoading(true);
     try {
       const response = await apiClient.requestPhoneOtp({ phone: digits });
-      const requestId = response?.requestId || response?.id || response?.request_id;
-      const expiresIn = response?.expiresIn ?? response?.expires_in;
-      navigation.navigate('PhoneVerification', {
-        phone: digits,
-        formattedPhone: formatted,
-        requestId,
-        expiresIn,
-      });
+      const nextRequestId = response?.requestId || response?.id || response?.request_id;
+      setRequestId(nextRequestId || requestId || null);
+      setOtpRequested(true);
+      setCodeInput('');
+      Alert.alert('전송 완료', '인증번호를 전송했어요. 메시지를 확인해 주세요.');
     } catch (error) {
       Alert.alert('전송 실패', error?.message || '인증번호를 전송하지 못했습니다. 잠시 후 다시 시도해 주세요.');
     } finally {
       setLoading(false);
+    }
+  };
+
+    const handleVerify = async () => {
+    if (!valid) {
+      Alert.alert('안내', '휴대폰 번호를 정확히 입력해 주세요.');
+      return;
+    }
+    if (!otpRequested) {
+      Alert.alert('안내', '먼저 인증번호를 전송해 주세요.');
+      return;
+    }
+    const adminOverride = adminOverrideMatch;
+    if (!adminOverride && codeDigits.length < 4) {
+      Alert.alert('안내', '인증번호를 정확히 입력해 주세요.');
+      return;
+    }
+    if (verificationLoading) return;
+    setVerificationLoading(true);
+    try {
+      if (adminOverride) {
+        Alert.alert('관리자 인증', '관리자 인증번호로 인증을 완료했어요.');
+        await completeVerification({ verificationId: `admin-${Date.now()}` }, { override: true });
+        return;
+      }
+      const response = await apiClient.verifyPhoneOtp({
+        phone: digits,
+        code: codeDigits,
+        requestId,
+      });
+      await completeVerification(response);
+    } catch (error) {
+      Alert.alert('인증 실패', error?.message || '인증번호가 올바르지 않아요. 다시 확인해 주세요.');
+    } finally {
+      setVerificationLoading(false);
     }
   };
 
@@ -81,27 +161,57 @@ export default function PhoneEntryScreen({ navigation }) {
               keyboardType="phone-pad"
               value={formatted}
               onChangeText={(next) => setPhoneRaw(next)}
-              editable={!loading}
+              editable={!loading && !verificationLoading}
               returnKeyType="done"
-              onSubmitEditing={handleNext}
+              onSubmitEditing={handleRequestOtp}
             />
             <TouchableOpacity
               style={styles.clearButton}
               onPress={() => setPhoneRaw('')}
-              disabled={loading || !digits}
+              disabled={loading || verificationLoading || !digits}
             >
               <Text style={[styles.clearText, (!digits || loading) && { opacity: 0.4 }]}>지우기</Text>
             </TouchableOpacity>
           </View>
 
+          {otpRequested && (
+            <View style={styles.codeCard}>
+              <Text style={styles.label}>인증번호</Text>
+              <TextInput
+                style={styles.codeInput}
+                keyboardType="number-pad"
+                value={codeDigits}
+                onChangeText={(next) => setCodeInput(String(next || '').replace(/\D/g, ''))}
+                placeholder="000000"
+                placeholderTextColor={colors.textTertiary}
+                maxLength={6}
+                editable={!verificationLoading}
+                returnKeyType="done"
+                onSubmitEditing={handleVerify}
+              />
+              {ADMIN_OVERRIDE_CODES.length > 0 && (
+                <Text style={styles.hint}>관리자 인증번호 입력 시 자동 인증돼요.</Text>
+              )}
+            </View>
+          )}
+
           <View style={{ flex: 1 }} />
 
           <ButtonPrimary
-            title="인증번호 보내기"
-            onPress={handleNext}
-            disabled={!valid || loading}
+            title={otpRequested ? '인증번호 다시 보내기' : '인증번호 보내기'}
+            onPress={handleRequestOtp}
+            disabled={!valid || loading || verificationLoading}
             loading={loading}
           />
+                    {otpRequested && (
+            <ButtonPrimary
+              style={styles.verifyButton}
+              title="인증하기"
+              onPress={handleVerify}
+              disabled={!canVerify}
+              loading={verificationLoading}
+            />
+          )}
         </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -170,5 +280,37 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: colors.textSecondary,
     fontWeight: '600',
+  },
+    codeCard: {
+    marginTop: 24,
+    backgroundColor: colors.backgroundSecondary,
+    borderRadius: 20,
+    padding: 20,
+    shadowColor: '#0F172A',
+    shadowOpacity: 0.04,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 1,
+    gap: 12,
+  },
+  codeInput: {
+    height: 56,
+    borderRadius: 14,
+    backgroundColor: '#fff',
+    paddingHorizontal: 18,
+    fontSize: 22,
+    fontWeight: '700',
+    color: colors.text,
+    borderWidth: 1,
+    borderColor: colors.primary,
+    letterSpacing: 6,
+  },
+  hint: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    fontWeight: '500',
+  },
+  verifyButton: {
+    marginTop: 16,
   },
 });

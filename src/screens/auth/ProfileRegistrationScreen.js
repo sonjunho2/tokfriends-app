@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
@@ -23,21 +24,41 @@ import { useAuth } from '../../context/AuthContext';
 const GENDER_OPTIONS = [
   { key: 'female', label: '여성' },
   { key: 'male', label: '남성' },
-  { key: 'other', label: '기타' },
+];
+
+const REGION_OPTIONS = [
+  '서울특별시',
+  '부산광역시',
+  '대구광역시',
+  '인천광역시',
+  '광주광역시',
+  '대전광역시',
+  '울산광역시',
+  '세종특별자치시',
+  '경기도',
+  '강원특별자치도',
+  '충청북도',
+  '충청남도',
+  '전북특별자치도',
+  '전라남도',
+  '경상북도',
+  '경상남도',
+  '제주특별자치도',
 ];
 
 export default function ProfileRegistrationScreen({ navigation, route }) {
   const { authenticateWithToken } = useAuth();
-  const { phone, verificationId, formattedPhone } = route.params || {};
+  const { phone, verificationId } = route.params || {};
 
   const [nickname, setNickname] = useState('');
   const [birthYear, setBirthYear] = useState('');
-  const [gender, setGender] = useState('other');
+  const [gender, setGender] = useState('');
   const [region, setRegion] = useState('');
   const [headline, setHeadline] = useState('');
   const [bio, setBio] = useState('');
   const [imageUri, setImageUri] = useState(null);
   const [submitting, setSubmitting] = useState(false);
+  const [regionModalVisible, setRegionModalVisible] = useState(false);
 
   const birthYearValid = useMemo(() => {
     const numeric = parseInt(birthYear, 10);
@@ -123,7 +144,7 @@ export default function ProfileRegistrationScreen({ navigation, route }) {
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
-          <Text style={styles.title}>프로필 정보를 입력해 주세요</Text>
+          <Text style={styles.title}>프로필을 입력해 주세요</Text>
           <Text style={styles.subtitle}>
             {formattedPhone || phone} 번호로 가입을 진행합니다. 한 화면에서 기본 정보를 모두 입력하고 바로 시작해 보세요.
           </Text>
@@ -170,17 +191,21 @@ export default function ProfileRegistrationScreen({ navigation, route }) {
                   <Text style={styles.errorText}>올바른 연도를 입력해 주세요.</Text>
                 )}
               </View>
-              <View style={{ width: 16 }} />
-              <View style={[styles.field, { flex: 1 }]}>
-                <Text style={styles.label}>거주 지역</Text>
-                <TextInput
-                  style={styles.input}
-                  placeholder="예) 서울시 강남구"
-                  placeholderTextColor={colors.textTertiary}
-                  value={region}
-                  onChangeText={setRegion}
-                  editable={!submitting}
-                />
+                <TouchableOpacity
+                  style={[styles.input, styles.selectInput]}
+                  activeOpacity={0.8}
+                  onPress={() => !submitting && setRegionModalVisible(true)}
+                  disabled={submitting}
+                >
+                  <Text
+                    style={[
+                      styles.selectInputText,
+                      !region ? styles.selectInputPlaceholder : null,
+                    ]}
+                  >
+                    {region || '거주 지역을 선택하세요'}
+                  </Text>
+                </TouchableOpacity>
               </View>
             </View>
 
@@ -242,6 +267,38 @@ export default function ProfileRegistrationScreen({ navigation, route }) {
             loading={submitting}
             style={{ marginTop: 32 }}
           />
+          <Modal
+            visible={regionModalVisible}
+            transparent
+            animationType="fade"
+            onRequestClose={() => setRegionModalVisible(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalCard}>
+                <Text style={styles.modalTitle}>거주 지역 선택</Text>
+                <ScrollView style={styles.modalList}>
+                  {REGION_OPTIONS.map((option) => (
+                    <TouchableOpacity
+                      key={option}
+                      style={styles.modalOption}
+                      onPress={() => {
+                        setRegion(option);
+                        setRegionModalVisible(false);
+                      }}
+                    >
+                      <Text style={styles.modalOptionText}>{option}</Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+                <TouchableOpacity
+                  style={styles.modalCloseButton}
+                  onPress={() => setRegionModalVisible(false)}
+                >
+                  <Text style={styles.modalCloseText}>닫기</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Modal>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -262,13 +319,6 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: colors.text,
     textAlign: 'center',
-  },
-  subtitle: {
-    marginTop: 12,
-    fontSize: 14,
-    color: colors.textSecondary,
-    textAlign: 'center',
-    lineHeight: 20,
   },
   avatarWrap: {
     marginTop: 28,
@@ -333,6 +383,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
   },
+  selectInput: {
+    justifyContent: 'center',
+  },
+  selectInputText: {
+    fontSize: 16,
+    color: colors.text,
+  },
+  selectInputPlaceholder: {
+    color: colors.textTertiary,
+  },
   multiline: {
     height: 150,
     paddingVertical: 14,
@@ -376,5 +436,53 @@ const styles = StyleSheet.create({
     marginTop: 6,
     fontSize: 12,
     color: colors.error || '#EF4444',
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(15, 23, 42, 0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 24,
+  },
+  modalCard: {
+    width: '100%',
+    maxWidth: 360,
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 16,
+    textAlign: 'center',
+  },
+  modalList: {
+    maxHeight: 320,
+  },
+  modalOption: {
+    paddingVertical: 12,
+  },
+  modalOptionText: {
+    fontSize: 16,
+    color: colors.text,
+    textAlign: 'center',
+  },
+  modalCloseButton: {
+    marginTop: 12,
+    alignSelf: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 999,
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  modalCloseText: {
+    fontSize: 14,
+    color: colors.textSecondary,
+    fontWeight: '600',
   },
 });

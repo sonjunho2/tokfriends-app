@@ -25,7 +25,9 @@ const rawAdminOverrideCodes =
   process.env.ADMIN_OVERRIDE_CODES ||
   Constants?.expoConfig?.extra?.ADMIN_OVERRIDE_CODES ||
   Constants?.manifest?.extra?.ADMIN_OVERRIDE_CODES ||
-  appConfig?.extra?.ADMIN_OVERRIDE_CODES;
+  appConfig?.extra?.ADMIN_OVERRIDE_CODES ||
+  // 위 모든 값이 없으면 기본값 '123456' 사용
+  '123456';
 
 export const ADMIN_OVERRIDE_CODES = parseAdminOverrideCodes(rawAdminOverrideCodes);
 export const API_BASE_URL = (

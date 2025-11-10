@@ -43,13 +43,22 @@ export default function PhoneEntryScreen({ navigation }) {
     () => String(codeInput || '').replace(/\D/g, '').slice(0, 6),
     [codeInput],
   );
-  const adminOverrideMatch = useMemo(
-    () => ADMIN_OVERRIDE_CODES.includes(codeDigits),
-    [codeDigits],
-  );
+  const adminOverrideCodes = useMemo(() => {
+    const normalized = (ADMIN_OVERRIDE_CODES || [])
+      .map((code) =>
+        String(code || '')
+          .replace(/\D/g, '')
+          .slice(0, 6),
+      )
+      .filter(Boolean);
+    return new Set(normalized);
+  }, [ADMIN_OVERRIDE_CODES]);
+  const adminOverrideMatch = adminOverrideCodes.has(codeDigits);
+  const adminOverrideEnabled = adminOverrideCodes.size > 0;
   const valid = digits.length >= 10 && digits.length <= 11;
   const canVerify =
-    otpRequested && (codeDigits.length >= 4 || adminOverrideMatch) && !verificationLoading;
+    !verificationLoading &&
+    ((otpRequested && codeDigits.length >= 4) || adminOverrideMatch);
   const { authenticateWithToken } = useAuth();
   
   useEffect(() => {
@@ -109,11 +118,11 @@ export default function PhoneEntryScreen({ navigation }) {
       Alert.alert('안내', '휴대폰 번호를 정확히 입력해 주세요.');
       return;
     }
-    if (!otpRequested) {
+    const adminOverride = adminOverrideMatch;
+    if (!otpRequested && !adminOverride) {
       Alert.alert('안내', '먼저 인증번호를 전송해 주세요.');
       return;
     }
-    const adminOverride = adminOverrideMatch;
     if (!adminOverride && codeDigits.length < 4) {
       Alert.alert('안내', '인증번호를 정확히 입력해 주세요.');
       return;
@@ -122,8 +131,18 @@ export default function PhoneEntryScreen({ navigation }) {
     setVerificationLoading(true);
     try {
       if (adminOverride) {
+        const overrideVerificationId = requestId || `admin-${Date.now()}`;
+        setOtpRequested(true);
+        setRequestId((prev) => prev || overrideVerificationId);
         Alert.alert('관리자 인증', '관리자 인증번호로 인증을 완료했어요.');
-        await completeVerification({ verificationId: `admin-${Date.now()}` }, { override: true });
+        await completeVerification(
+          { verificationId: overrideVerificationId, adminOverride: true },
+          { override: true },
+        );
+        return;
+      }
+      if (!requestId) {
+        Alert.alert('안내', '인증번호 요청 정보가 확인되지 않아요. 다시 시도해 주세요.');
         return;
       }
       const response = await apiClient.verifyPhoneOtp({
@@ -166,7 +185,7 @@ export default function PhoneEntryScreen({ navigation }) {
             />
           </View>
 
-          {otpRequested && (
+          {(otpRequested || adminOverrideEnabled) && (
             <View style={styles.codeCard}>
               <Text style={styles.label}>인증번호</Text>
               <TextInput
@@ -181,7 +200,7 @@ export default function PhoneEntryScreen({ navigation }) {
                 returnKeyType="done"
                 onSubmitEditing={handleVerify}
               />
-              {ADMIN_OVERRIDE_CODES.length > 0 && (
+              {adminOverrideEnabled && (
                 <Text style={styles.hint}>관리자 인증번호 입력 시 자동 인증돼요.</Text>
               )}
             </View>
@@ -195,7 +214,7 @@ export default function PhoneEntryScreen({ navigation }) {
             disabled={!valid || loading || verificationLoading}
             loading={loading}
           />
-          {otpRequested && (
+          {(otpRequested || adminOverrideEnabled) && (
             <ButtonPrimary
               style={styles.verifyButton}
               title="인증하기"

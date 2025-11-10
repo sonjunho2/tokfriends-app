@@ -131,9 +131,11 @@ export default function PhoneEntryScreen({ navigation }) {
     setVerificationLoading(true);
     try {
       if (adminOverride) {
-        const overrideVerificationId = requestId || `admin-${Date.now()}`;
-        setOtpRequested(true);
-        setRequestId((prev) => prev || overrideVerificationId);
+        let overrideVerificationId = requestId;
+        if (!overrideVerificationId) {
+          overrideVerificationId = `admin-${Date.now()}`;
+          setRequestId(overrideVerificationId);
+        }
         Alert.alert('관리자 인증', '관리자 인증번호로 인증을 완료했어요.');
         await completeVerification(
           { verificationId: overrideVerificationId, adminOverride: true },

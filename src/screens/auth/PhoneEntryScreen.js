@@ -5,7 +5,6 @@ import {
   Text,
   StyleSheet,
   TextInput,
-  TouchableOpacity,
   Alert,
   KeyboardAvoidingView,
   Platform,
@@ -46,7 +45,7 @@ export default function PhoneEntryScreen({ navigation }) {
   );
   const adminOverrideMatch = useMemo(
     () => ADMIN_OVERRIDE_CODES.includes(codeDigits),
-    [codeDigits, ADMIN_OVERRIDE_CODES],
+    [codeDigits],
   );
   const valid = digits.length >= 10 && digits.length <= 11;
   const canVerify =
@@ -91,12 +90,12 @@ export default function PhoneEntryScreen({ navigation }) {
     }
     if (loading) return;
     setLoading(true);
+    setOtpRequested(true);
+    setCodeInput('');
     try {
       const response = await apiClient.requestPhoneOtp({ phone: digits });
       const nextRequestId = response?.requestId || response?.id || response?.request_id;
       setRequestId(nextRequestId || requestId || null);
-      setOtpRequested(true);
-      setCodeInput('');
       Alert.alert('전송 완료', '인증번호를 전송했어요. 메시지를 확인해 주세요.');
     } catch (error) {
       Alert.alert('전송 실패', error?.message || '인증번호를 전송하지 못했습니다. 잠시 후 다시 시도해 주세요.');
@@ -105,7 +104,7 @@ export default function PhoneEntryScreen({ navigation }) {
     }
   };
 
-    const handleVerify = async () => {
+  const handleVerify = async () => {
     if (!valid) {
       Alert.alert('안내', '휴대폰 번호를 정확히 입력해 주세요.');
       return;
@@ -165,13 +164,6 @@ export default function PhoneEntryScreen({ navigation }) {
               returnKeyType="done"
               onSubmitEditing={handleRequestOtp}
             />
-            <TouchableOpacity
-              style={styles.clearButton}
-              onPress={() => setPhoneRaw('')}
-              disabled={loading || verificationLoading || !digits}
-            >
-              <Text style={[styles.clearText, (!digits || loading) && { opacity: 0.4 }]}>지우기</Text>
-            </TouchableOpacity>
           </View>
 
           {otpRequested && (
@@ -203,7 +195,7 @@ export default function PhoneEntryScreen({ navigation }) {
             disabled={!valid || loading || verificationLoading}
             loading={loading}
           />
-                    {otpRequested && (
+          {otpRequested && (
             <ButtonPrimary
               style={styles.verifyButton}
               title="인증하기"
@@ -270,18 +262,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
   },
-  clearButton: {
-    alignSelf: 'flex-end',
-    marginTop: 12,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
-  },
-  clearText: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    fontWeight: '600',
-  },
-    codeCard: {
+  codeCard: {
     marginTop: 24,
     backgroundColor: colors.backgroundSecondary,
     borderRadius: 20,

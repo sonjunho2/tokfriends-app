@@ -48,7 +48,7 @@ const REGION_OPTIONS = [
 
 export default function ProfileRegistrationScreen({ navigation, route }) {
   const { authenticateWithToken } = useAuth();
-  const { phone, verificationId } = route.params || {};
+  const { phone, verificationId, adminOverride } = route.params || {};
 
   const [nickname, setNickname] = useState('');
   const [birthYear, setBirthYear] = useState('');
@@ -115,6 +115,10 @@ export default function ProfileRegistrationScreen({ navigation, route }) {
         headline: headline.trim(),
         bio: bio.trim(),
         avatarUri: imageUri || undefined,
+                // adminOverride가 true이거나 verificationId 접두사가 'admin-'인 경우에만 adminOverride 플래그 전달
+        ...(adminOverride || String(verificationId || '').startsWith('admin-')
+          ? { adminOverride: true }
+          : {}),
       };
       const response = await apiClient.completePhoneSignup(payload);
       const token =

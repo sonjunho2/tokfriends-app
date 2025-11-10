@@ -320,6 +320,7 @@ export const apiClient = {
       headline: payload?.headline || '',
       bio: payload?.bio || '',
       avatarUri: payload?.avatarUri || undefined,
+      ...(payload?.adminOverride ? { adminOverride: true } : {}),
     };
 
     if (!body.phone || !body.verificationId) {

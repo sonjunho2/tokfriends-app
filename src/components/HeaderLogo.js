@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Text } from 'react-native';
 
 export default function HeaderLogo({ size = 'medium', style }) {
   const height =
@@ -11,16 +11,20 @@ export default function HeaderLogo({ size = 'medium', style }) {
       ? 40
       : 28;
 
-  const width = Math.round(height * 3.2);
-
   return (
     <View style={[styles.wrap, style]}>
-      <Image
-        source={require('../../assets/logo.png')}
-        style={{ width, height, resizeMode: 'contain' }}
+      {/* Snack에서 큰 이미지 업로드를 피하기 위해 텍스트 로고로 대체합니다 */}
+      <Text
         accessible
-        accessibilityLabel="딱친 로고"
-      />
+        accessibilityRole="header"
+        style={{
+          fontSize: height * 0.8,
+          fontWeight: 'bold',
+          color: '#333',
+        }}
+      >
+        딱친
+      </Text>
     </View>
   );
 }

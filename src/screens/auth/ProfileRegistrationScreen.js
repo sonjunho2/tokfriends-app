@@ -120,17 +120,19 @@ export default function ProfileRegistrationScreen({ navigation, route }) {
           ? { adminOverride: true }
           : {}),
       };
-      const response = await apiClient.completePhoneSignup(payload);
-      const token =
-        response?.token || response?.accessToken || response?.access_token;
-      if (!token) {
-        throw new Error('토큰이 응답에 없습니다.');
-      }
-      const authResult = await authenticateWithToken(token, response?.user || null);
-      if (!authResult.success) {
-        throw new Error(authResult.error || '로그인에 실패했습니다.');
-      }
-      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+  const response = await apiClient.completePhoneSignup(payload);
+  const token =
+    response?.token || response?.accessToken || response?.access_token;
+  if (!token) {
+    Alert.alert('가입 실패', response?.error?.message || '서버에서 토큰을 받지 못했습니다. 잠시 후 다시 시도해 주세요.');
+    return;
+  }
+  const authResult = await authenticateWithToken(token, response?.user || null);
+  if (!authResult.success) {
+    Alert.alert('로그인 실패', authResult.error || '세션을 생성하지 못했습니다.');
+    return;
+  }
+  navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     } catch (error) {
       Alert.alert('가입 실패', error?.message || '회원가입 처리 중 문제가 발생했습니다.');
     } finally {

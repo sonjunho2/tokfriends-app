@@ -78,11 +78,12 @@ export default function AgreementScreen({ navigation, route }) {
       Alert.alert('오류', '인증 정보가 만료되었습니다. 처음부터 다시 진행해 주세요.');
       return;
     }
-    navigation.navigate('ProfileRegistration', {
-      phone,
-      verificationId,
-      formattedPhone,
-    });
+  navigation.navigate('ProfileRegistration', {
+    phone,
+    verificationId,
+    formattedPhone,
+    adminOverride: route?.params?.adminOverride || false,
+  });
   };
 
   return (

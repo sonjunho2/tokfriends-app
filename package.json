@@ -11,7 +11,7 @@
     "check:api": "node scripts/checkApi.js",
     "postinstall": "patch-package",
     "admin:otp": "node scripts/admin/generateAdminOtp.js",
-    "admin:workspace": "node scripts/admin/manageAdminWorkspace.js",
+    "admin:workspace": "node scripts/admin/manageAdminWorkspace.js"
   },
   "dependencies": {
     "expo": "~53.0.0",

@@ -310,18 +310,20 @@ export const apiClient = {
   },
 
   async completePhoneSignup(payload = {}) {
-    const body = {
-      phone: String(payload?.phone || '').replace(/[^0-9]/g, ''),
-      verificationId: payload?.verificationId,
-      nickname: String(payload?.nickname || '').trim(),
-      birthYear: payload?.birthYear,
-      gender: payload?.gender || 'other',
-      region: payload?.region || null,
-      headline: payload?.headline || '',
-      bio: payload?.bio || '',
-      avatarUri: payload?.avatarUri || undefined,
-      ...(payload?.adminOverride ? { adminOverride: true } : {}),
-    };
+  // null/undefined 필드를 제외하고 전송할 객체를 만듭니다.
+  const rawRegion = payload?.region ?? '';
+  const body = {
+    phone: String(payload?.phone || '').replace(/[^0-9]/g, ''),
+    verificationId: payload?.verificationId,
+    nickname: String(payload?.nickname || '').trim(),
+    birthYear: payload?.birthYear,
+    gender: payload?.gender || 'other',
+    ...(rawRegion ? { region: String(rawRegion).trim() } : {}),
+    ...(payload?.headline ? { headline: String(payload.headline).trim() } : {}),
+    ...(payload?.bio ? { bio: String(payload.bio).trim() } : {}),
+    ...(payload?.avatarUri ? { avatarUri: payload.avatarUri } : {}),
+    ...(payload?.adminOverride ? { adminOverride: true } : {}),
+  };
 
     if (!body.phone || !body.verificationId) {
       throw normalizeError(new Error('인증 정보가 누락되었습니다.'));

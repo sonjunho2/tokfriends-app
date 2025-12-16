@@ -37,10 +37,21 @@ export const API_BASE_URL = (
 ).replace(/\/$/, '');
 export const REQUEST_TIMEOUT_MS = 10000;
 export const STORAGE_TOKEN_KEY = 'tokfriends_access_token';
+// Added: Support disabling authentication and payment for local testing.
+export const USE_DUMMY_AUTH = (() => {
+  const val =
+    process.env.EXPO_PUBLIC_DISABLE_AUTH ||
+    process.env.DISABLE_AUTH_AND_PAYMENT ||
+    process.env.EXPO_PUBLIC_USE_DUMMY_AUTH;
+  if (val === undefined || val === null) return false;
+  const lowered = String(val).toLowerCase();
+  return lowered === '1' || lowered === 'true' || lowered === 'yes';
+})();
 
 export default {
   API_BASE_URL,
   REQUEST_TIMEOUT_MS,
   STORAGE_TOKEN_KEY,
+  USE_DUMMY_AUTH,
   ADMIN_OVERRIDE_CODES,
 };

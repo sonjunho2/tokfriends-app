@@ -139,9 +139,10 @@ module.exports = ({ config }) => {
         process.env.EXPO_PUBLIC_API_BASE_URL ??
         resolvedConfig?.extra?.TOK_API_BASE_URL ??
         'https://tok-friends-api.onrender.com',
-      ADMIN_OVERRIDE_CODES: adminOverrideCodes,
-      eas: {
-        projectId: 'eb3c1b74-5c41-4ce0-9574-d0d3eb932d72',
+ADMIN_OVERRIDE_CODES:
+  adminOverrideCodes && adminOverrideCodes.length > 0
+    ? adminOverrideCodes
+    : ['123456'],
       },
     },
   };

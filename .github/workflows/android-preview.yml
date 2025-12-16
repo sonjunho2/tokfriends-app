@@ -5,6 +5,7 @@ on:
 
 env:
   EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+  TOK_API_BASE_URL: https://tok-friends-api.onrender.com
 
 jobs:
   android-preview:

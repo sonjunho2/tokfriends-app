@@ -1,7 +1,7 @@
 // src/api/client.js
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL, REQUEST_TIMEOUT_MS, STORAGE_TOKEN_KEY } from '../config/env';
+import { API_BASE_URL, REQUEST_TIMEOUT_MS, STORAGE_TOKEN_KEY, USE_DUMMY_AUTH } from '../config/env';
 import { applyRouteMapToAxiosConfig } from './routeMap';
 import { normalizeAxiosResponse, normalizeAxiosError } from './normalize';
 
@@ -189,6 +189,11 @@ export const apiClient = {
   },
 
   async login(email, password) {
+        // Return dummy token when authentication is disabled for local testing
+    if (USE_DUMMY_AUTH) {
+      return { access_token: 'dummy-token' };
+    }
+
     const payload = {
       email: String(email || '').trim().toLowerCase(),
       password: String(password || ''),
@@ -208,6 +213,11 @@ export const apiClient = {
   },
 
   async signup(userData) {
+        // In dummy mode, mimic a successful signup by returning an empty object
+    if (USE_DUMMY_AUTH) {
+      return {};
+    }
+
     const body = {
       email: String(userData?.email || '').trim().toLowerCase(),
       password: String(userData?.password || ''),
@@ -412,6 +422,14 @@ export const apiClient = {
   },
 
   async getPointProducts() {
+        // In dummy mode, return a static set of products without network calls
+    if (USE_DUMMY_AUTH) {
+      return [
+        { id: 'dummy1', name: '테스트 상품 1', price: 0 },
+        { id: 'dummy2', name: '테스트 상품 2', price: 1000 },
+      ];
+    }
+
     const endpoints = [
       '/store/point-products',
       '/store/products',
@@ -440,6 +458,11 @@ export const apiClient = {
   },
 
   async confirmPurchase(payload = {}) {
+        // In dummy mode, immediately resolve purchase without contacting the server
+    if (USE_DUMMY_AUTH) {
+      return { success: true, message: 'Dummy purchase confirmed', data: { purchased: true } };
+    }
+
     const body = {
       productId: payload?.productId,
       transactionId: payload?.transactionId,
@@ -469,6 +492,15 @@ export const apiClient = {
   },
 
   async getMe() {
+        // When dummy auth is enabled, return a fake user profile
+    if (USE_DUMMY_AUTH) {
+      return {
+        id: 'dummy-user',
+        email: 'test@example.com',
+        displayName: '테스트 사용자',
+      };
+    }
+
     try { const { data } = await client.get('/users/me'); return data; }
     catch (e) { throw normalizeError(e); }
   },

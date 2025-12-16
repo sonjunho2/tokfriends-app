@@ -133,13 +133,12 @@ module.exports = ({ config }) => {
     extra: {
       ...(resolvedConfig.extra ?? {}),
       // 통일된 API 주소 키
-      // API 주소는 반드시 환경변수로 주입되어야 합니다. 없으면 오류를 던집니다.
+      // 우선순위: TOK_API_BASE_URL > EXPO_PUBLIC_API_BASE_URL > resolvedConfig.extra > 기본값
       TOK_API_BASE_URL:
         process.env.TOK_API_BASE_URL ??
+        process.env.EXPO_PUBLIC_API_BASE_URL ??
         resolvedConfig?.extra?.TOK_API_BASE_URL ??
-        (() => {
-          throw new Error('TOK_API_BASE_URL is not defined. Set it in your .env file.');
-        })(),
+        'https://tok-friends-api.onrender.com',
       ADMIN_OVERRIDE_CODES: adminOverrideCodes,
       eas: {
         projectId: 'eb3c1b74-5c41-4ce0-9574-d0d3eb932d72',

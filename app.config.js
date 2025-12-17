@@ -131,10 +131,8 @@ module.exports = ({ config }) => {
     runtimeVersion: resolvedConfig.runtimeVersion ?? { policy: 'sdkVersion' },
     plugins,
     extra: {
-      // 기존 extra 값들을 펼칩니다.
       ...(resolvedConfig.extra ?? {}),
-      // 통일된 API 주소 키
-      // 우선순위: TOK_API_BASE_URL > EXPO_PUBLIC_API_BASE_URL > resolvedConfig.extra > 기본값
+      // API 기본 주소: 환경변수 → Expo extra → 기본값 순
       TOK_API_BASE_URL:
         process.env.TOK_API_BASE_URL ??
         process.env.EXPO_PUBLIC_API_BASE_URL ??
@@ -145,7 +143,7 @@ module.exports = ({ config }) => {
         adminOverrideCodes && adminOverrideCodes.length > 0
           ? adminOverrideCodes
           : ['123456'],
-      // EAS 빌드용 프로젝트 ID
+      // EAS 빌드용 프로젝트 ID 그대로 유지
       eas: {
         projectId: 'eb3c1b74-5c41-4ce0-9574-d0d3eb932d72',
       },

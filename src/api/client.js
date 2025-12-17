@@ -265,28 +265,28 @@ export const apiClient = {
     }
   },
 
-async requestPhoneOtp(payload = {}) {
-  // 더미 모드에서는 실제 서버를 호출하지 않고 바로 requestId를 반환합니다.
-  if (USE_DUMMY_AUTH) {
-    return { requestId: `dummy-${Date.now()}` };
-  }
+  async requestPhoneOtp(payload = {}) {
+    // 더미 모드: 서버 호출 없이 임의의 requestId 반환
+    if (USE_DUMMY_AUTH) {
+      return { requestId: `dummy-${Date.now()}` };
+    }
 
-  const digits = String(payload?.phone || '')
-    .replace(/[^0-9]/g, '')
-    .replace(/^82/, '0');
-  if (!digits) {
-    throw normalizeError(new Error('휴대폰 번호를 입력해 주세요.'));
-  }
+    const digits = String(payload?.phone || '')
+      .replace(/[^0-9]/g, '')
+      .replace(/^82/, '0');
+    if (!digits) {
+      throw normalizeError(new Error('휴대폰 번호를 입력해 주세요.'));
+    }
 
-  const body = {
-    phone: digits,
-    countryCode: payload?.countryCode || 'KR',
-  };
+    const body = {
+      phone: digits,
+      countryCode: payload?.countryCode || 'KR',
+    };
 
-  try {
-    const { data } = await client.post('/auth/otp/request', body, unauthJsonConfig());
-    return data;
-  } catch (err) {
+    try {
+      const { data } = await client.post('/auth/otp/request', body, unauthJsonConfig());
+      return data;
+    } catch (err) {
       if ((err?.status || err?.response?.status) === 410) {
         const goneError = new Error('휴대폰 인증번호 요청이 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
         goneError.status = 410;
@@ -296,30 +296,30 @@ async requestPhoneOtp(payload = {}) {
     }
   },
 
-async verifyPhoneOtp(payload = {}) {
-  // 더미 모드에서는 서버를 호출하지 않고 바로 토큰을 반환합니다.
-  if (USE_DUMMY_AUTH) {
-    return { token: 'dummy-token', adminOverride: true };
-  }
+  async verifyPhoneOtp(payload = {}) {
+    // 더미 모드: 즉시 토큰 반환
+    if (USE_DUMMY_AUTH) {
+      return { token: 'dummy-token', adminOverride: true };
+    }
 
-  const digits = String(payload?.phone || '')
-    .replace(/[^0-9]/g, '')
-    .replace(/^82/, '0');
-  const code = String(payload?.code || '').replace(/\D/g, '');
-  if (!digits || code.length < 4) {
-    throw normalizeError(new Error('휴대폰 번호와 인증번호를 확인해 주세요.'));
-  }
+    const digits = String(payload?.phone || '')
+      .replace(/[^0-9]/g, '')
+      .replace(/^82/, '0');
+    const code = String(payload?.code || '').replace(/\D/g, '');
+    if (!digits || code.length < 4) {
+      throw normalizeError(new Error('휴대폰 번호와 인증번호를 확인해 주세요.'));
+    }
 
-  const body = {
-    phone: digits,
-    code,
-    requestId: payload?.requestId || payload?.verificationId || undefined,
-  };
+    const body = {
+      phone: digits,
+      code,
+      requestId: payload?.requestId || payload?.verificationId || undefined,
+    };
 
-  try {
-    const { data } = await client.post('/auth/otp/verify', body, unauthJsonConfig());
-    return data;
-  } catch (err) {
+    try {
+      const { data } = await client.post('/auth/otp/verify', body, unauthJsonConfig());
+      return data;
+    } catch (err) {
       if ((err?.status || err?.response?.status) === 410) {
         const goneError = new Error('휴대폰 인증번호 확인이 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
         goneError.status = 410;
@@ -329,67 +329,67 @@ async verifyPhoneOtp(payload = {}) {
     }
   },
 
-async completePhoneSignup(payload = {}) {
-  // null/undefined 필드를 제외하고 전송할 객체를 만듭니다.
-  const rawRegion = payload?.region ?? '';
-  const body = {
-    phone: String(payload?.phone || '').replace(/[^0-9]/g, ''),
-    verificationId: payload?.verificationId,
-    nickname: String(payload?.nickname || '').trim(),
-    birthYear: payload?.birthYear,
-    gender: payload?.gender || 'other',
-    ...(rawRegion ? { region: String(rawRegion).trim() } : {}),
-    ...(payload?.headline ? { headline: String(payload.headline).trim() } : {}),
-    ...(payload?.bio ? { bio: String(payload.bio).trim() } : {}),
-    ...(payload?.avatarUri ? { avatarUri: payload.avatarUri } : {}),
-    ...(payload?.adminOverride ? { adminOverride: true } : {}),
-  };
-
-  // 필수 입력값이 모두 채워졌는지 검증
-  if (!body.nickname || !body.birthYear || !body.headline || !body.bio) {
-    throw normalizeError(new Error('필수 가입 정보를 모두 입력해 주세요.'));
-  }
-
-  // 더미 모드에서는 서버를 호출하지 않고 즉시 성공 처리
-  if (USE_DUMMY_AUTH) {
-    return {
-      token: 'dummy-token',
-      user: {
-        id: 'dummy-user',
-        phone: body.phone,
-        nickname: body.nickname,
-        birthYear: body.birthYear,
-        gender: body.gender,
-        region: body.region || null,
-        headline: body.headline,
-        bio: body.bio,
-        avatarUri: body.avatarUri,
-      },
-      needsProfile: false,
+  async completePhoneSignup(payload = {}) {
+    // null/undefined 필드를 제외하고 전송할 객체를 만듭니다.
+    const rawRegion = payload?.region ?? '';
+    const body = {
+      phone: String(payload?.phone || '').replace(/[^0-9]/g, ''),
+      verificationId: payload?.verificationId,
+      nickname: String(payload?.nickname || '').trim(),
+      birthYear: payload?.birthYear,
+      gender: payload?.gender || 'other',
+      ...(rawRegion ? { region: String(rawRegion).trim() } : {}),
+      ...(payload?.headline ? { headline: String(payload.headline).trim() } : {}),
+      ...(payload?.bio ? { bio: String(payload.bio).trim() } : {}),
+      ...(payload?.avatarUri ? { avatarUri: payload.avatarUri } : {}),
+      ...(payload?.adminOverride ? { adminOverride: true } : {}),
     };
-  }
 
-  // 실제 API 호출 전에 인증 정보가 있는지 확인
-  if (!body.phone || !body.verificationId) {
-    throw normalizeError(new Error('인증 정보가 누락되었습니다.'));
-  }
-
-  try {
-    const { data } = await client.post(
-      '/auth/phone/complete-profile',
-      body,
-      unauthJsonConfig()
-    );
-    return data;
-  } catch (err) {
-    if ((err?.status || err?.response?.status) === 410) {
-      const goneError = new Error('휴대폰 기반 가입 절차가 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
-      goneError.status = 410;
-      throw goneError;
+    // 필수 입력값이 모두 채워졌는지 검증
+    if (!body.nickname || !body.birthYear || !body.headline || !body.bio) {
+      throw normalizeError(new Error('필수 가입 정보를 모두 입력해 주세요.'));
     }
-    throw normalizeError(err);
-  }
-},
+
+    // 더미 모드에서는 서버를 호출하지 않고 즉시 성공 처리
+    if (USE_DUMMY_AUTH) {
+      return {
+        token: 'dummy-token',
+        user: {
+          id: 'dummy-user',
+          phone: body.phone,
+          nickname: body.nickname,
+          birthYear: body.birthYear,
+          gender: body.gender,
+          region: body.region || null,
+          headline: body.headline,
+          bio: body.bio,
+          avatarUri: body.avatarUri,
+        },
+        needsProfile: false,
+      };
+    }
+
+    // 실제 API 호출 전에 인증 정보가 있는지 확인
+    if (!body.phone || !body.verificationId) {
+      throw normalizeError(new Error('인증 정보가 누락되었습니다.'));
+    }
+
+    try {
+      const { data } = await client.post(
+        '/auth/phone/complete-profile',
+        body,
+        unauthJsonConfig()
+      );
+      return data;
+    } catch (err) {
+      if ((err?.status || err?.response?.status) === 410) {
+        const goneError = new Error('휴대폰 기반 가입 절차가 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
+        goneError.status = 410;
+        throw goneError;
+      }
+      throw normalizeError(err);
+    }
+  },
 
   async getLegalDocument(slug) {
     const key = String(slug || '').replace(/[^0-9a-zA-Z-_]/g, '').toLowerCase();

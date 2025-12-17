@@ -99,12 +99,12 @@ export default function ProfileRegistrationScreen({ navigation, route }) {
     let verificationId = initialVerificationId;
     let overrideFlag = adminOverride;
 
-    // 더미 모드에서는 verificationId 없이도 진행하도록 기본값 설정
+    // 더미 모드에서는 verificationId 없이도 진행
     if (USE_DUMMY_AUTH) {
       if (!verificationId) {
-        verificationId = 'admin-override';
+        verificationId = 'admin-override';  // dummy verificationId
       }
-      overrideFlag = true;
+      overrideFlag = true;  // 관리자 우회
     }
 
     if (!verificationId) {
@@ -127,13 +127,10 @@ export default function ProfileRegistrationScreen({ navigation, route }) {
         headline: headline.trim(),
         bio: bio.trim(),
         avatarUri: imageUri || undefined,
-        // dummy 모드이거나 adminOverride가 true이거나 verificationId 접두사가 'admin-'인 경우 adminOverride 플래그 전달
-        ...(
-          overrideFlag ||
-          String(verificationId).startsWith('admin-')
-            ? { adminOverride: true }
-            : {}
-        ),
+        // dummy 모드이거나 adminOverride가 true이거나 verificationId 접두사가 'admin-'인 경우 adminOverride 전달
+        ...(overrideFlag || String(verificationId).startsWith('admin-')
+          ? { adminOverride: true }
+          : {}),
       };
       const response = await apiClient.completePhoneSignup(payload);
       const token =

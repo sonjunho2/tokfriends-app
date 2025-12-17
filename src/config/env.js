@@ -1,35 +1,26 @@
 import Constants from 'expo-constants';
 
 const parseAdminOverrideCodes = (input) => {
-  if (!input) {
-    return [];
-  }
+  if (!input) return [];
   if (Array.isArray(input)) {
-    return input
-      .map((value) => String(value || '').trim())
-      .filter(Boolean);
+    return input.map((v) => String(v || '').trim()).filter(Boolean);
   }
   if (typeof input === 'string') {
-    return input
-      .split(',')
-      .map((value) => value.trim())
-      .filter(Boolean);
+    return input.split(',').map((v) => v.trim()).filter(Boolean);
   }
   return [];
 };
 
 // 환경변수 우선순위: EXPO_PUBLIC_ > 일반 환경변수 > Expo extra > 기본값
-const rawAdminOverrideCodes =
+const rawAdminCodes =
   process.env.EXPO_PUBLIC_ADMIN_OVERRIDE_CODES ||
   process.env.ADMIN_OVERRIDE_CODES ||
   Constants?.expoConfig?.extra?.ADMIN_OVERRIDE_CODES ||
   Constants?.manifest?.extra?.ADMIN_OVERRIDE_CODES ||
-  // 모든 값이 없으면 기본값 '123456' 사용
   '123456';
 
-export const ADMIN_OVERRIDE_CODES = parseAdminOverrideCodes(rawAdminOverrideCodes);
+export const ADMIN_OVERRIDE_CODES = parseAdminOverrideCodes(rawAdminCodes);
 
-// API 주소 우선순위: TOK_API_BASE_URL > EXPO_PUBLIC_API_BASE_URL > Expo extra > 기본값
 const rawApiBaseUrl =
   process.env.TOK_API_BASE_URL ||
   process.env.EXPO_PUBLIC_API_BASE_URL ||

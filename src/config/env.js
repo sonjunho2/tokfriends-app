@@ -11,7 +11,6 @@ const parseAdminOverrideCodes = (input) => {
   return [];
 };
 
-// 환경변수 우선순위: EXPO_PUBLIC_ > 일반 환경변수 > Expo extra > 기본값
 const rawAdminCodes =
   process.env.EXPO_PUBLIC_ADMIN_OVERRIDE_CODES ||
   process.env.ADMIN_OVERRIDE_CODES ||
@@ -32,7 +31,6 @@ export const API_BASE_URL = rawApiBaseUrl.replace(/\/$/, '');
 export const REQUEST_TIMEOUT_MS = 10000;
 export const STORAGE_TOKEN_KEY = 'tokfriends_access_token';
 
-// Added: Support disabling authentication and payment for local testing.
 export const USE_DUMMY_AUTH = (() => {
   const val =
     process.env.EXPO_PUBLIC_DISABLE_AUTH ||

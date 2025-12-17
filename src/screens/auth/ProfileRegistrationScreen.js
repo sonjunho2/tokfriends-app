@@ -1,4 +1,3 @@
-// src/screens/auth/ProfileRegistrationScreen.js
 import React, { useMemo, useState } from 'react';
 import {
   View,
@@ -20,6 +19,7 @@ import colors from '../../theme/colors';
 import ButtonPrimary from '../../components/ButtonPrimary';
 import { apiClient } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
+import { USE_DUMMY_AUTH } from '../../config/env';
 
 const GENDER_OPTIONS = [
   { key: 'female', label: '여성' },
@@ -48,7 +48,7 @@ const REGION_OPTIONS = [
 
 export default function ProfileRegistrationScreen({ navigation, route }) {
   const { authenticateWithToken } = useAuth();
-  const { phone, verificationId, adminOverride } = route.params || {};
+  const { phone, verificationId: initialVerificationId, adminOverride } = route.params || {};
 
   const [nickname, setNickname] = useState('');
   const [birthYear, setBirthYear] = useState('');
@@ -95,6 +95,18 @@ export default function ProfileRegistrationScreen({ navigation, route }) {
   };
 
   const handleSubmit = async () => {
+    // verificationId와 adminOverride 플래그 결정
+    let verificationId = initialVerificationId;
+    let overrideFlag = adminOverride;
+
+    // 더미 모드에서는 verificationId 없이도 진행하도록 기본값 설정
+    if (USE_DUMMY_AUTH) {
+      if (!verificationId) {
+        verificationId = 'admin-override';
+      }
+      overrideFlag = true;
+    }
+
     if (!verificationId) {
       Alert.alert('오류', '인증 정보가 만료되었습니다. 처음부터 다시 진행해 주세요.');
       return;
@@ -115,26 +127,35 @@ export default function ProfileRegistrationScreen({ navigation, route }) {
         headline: headline.trim(),
         bio: bio.trim(),
         avatarUri: imageUri || undefined,
-                // adminOverride가 true이거나 verificationId 접두사가 'admin-'인 경우에만 adminOverride 플래그 전달
-        ...(adminOverride || String(verificationId || '').startsWith('admin-')
-          ? { adminOverride: true }
-          : {}),
+        // dummy 모드이거나 adminOverride가 true이거나 verificationId 접두사가 'admin-'인 경우 adminOverride 플래그 전달
+        ...(
+          overrideFlag ||
+          String(verificationId).startsWith('admin-')
+            ? { adminOverride: true }
+            : {}
+        ),
       };
-  const response = await apiClient.completePhoneSignup(payload);
-  const token =
-    response?.token || response?.accessToken || response?.access_token;
-  if (!token) {
-    Alert.alert('가입 실패', response?.error?.message || '서버에서 토큰을 받지 못했습니다. 잠시 후 다시 시도해 주세요.');
-    return;
-  }
-  const authResult = await authenticateWithToken(token, response?.user || null);
-  if (!authResult.success) {
-    Alert.alert('로그인 실패', authResult.error || '세션을 생성하지 못했습니다.');
-    return;
-  }
-  navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
+      const response = await apiClient.completePhoneSignup(payload);
+      const token =
+        response?.token || response?.accessToken || response?.access_token;
+      if (!token) {
+        Alert.alert(
+          '가입 실패',
+          response?.error?.message || '서버에서 토큰을 받지 못했습니다. 잠시 후 다시 시도해 주세요.',
+        );
+        return;
+      }
+      const authResult = await authenticateWithToken(token, response?.user || null);
+      if (!authResult.success) {
+        Alert.alert('로그인 실패', authResult.error || '세션을 생성하지 못했습니다.');
+        return;
+      }
+      navigation.reset({ index: 0, routes: [{ name: 'MainTabs' }] });
     } catch (error) {
-      Alert.alert('가입 실패', error?.message || '회원가입 처리 중 문제가 발생했습니다.');
+      Alert.alert(
+        '가입 실패',
+        error?.message || '회원가입 처리 중 문제가 발생했습니다.',
+      );
     } finally {
       setSubmitting(false);
     }
@@ -228,7 +249,9 @@ export default function ProfileRegistrationScreen({ navigation, route }) {
                       onPress={() => setGender(option.key)}
                       disabled={submitting}
                     >
-                      <Text style={[styles.genderText, active && styles.genderTextActive]}>{option.label}</Text>
+                      <Text style={[styles.genderText, active && styles.genderTextActive]}>
+                        {option.label}
+                      </Text>
                     </TouchableOpacity>
                   );
                 })}

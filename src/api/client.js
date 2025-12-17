@@ -265,23 +265,28 @@ export const apiClient = {
     }
   },
 
-  async requestPhoneOtp(payload = {}) {
-    const digits = String(payload?.phone || '')
-      .replace(/[^0-9]/g, '')
-      .replace(/^82/, '0');
-    if (!digits) {
-      throw normalizeError(new Error('휴대폰 번호를 입력해 주세요.'));
-    }
+async requestPhoneOtp(payload = {}) {
+  // 더미 모드에서는 실제 서버를 호출하지 않고 바로 requestId를 반환합니다.
+  if (USE_DUMMY_AUTH) {
+    return { requestId: `dummy-${Date.now()}` };
+  }
 
-    const body = {
-      phone: digits,
-      countryCode: payload?.countryCode || 'KR',
-    };
+  const digits = String(payload?.phone || '')
+    .replace(/[^0-9]/g, '')
+    .replace(/^82/, '0');
+  if (!digits) {
+    throw normalizeError(new Error('휴대폰 번호를 입력해 주세요.'));
+  }
 
-    try {
-      const { data } = await client.post('/auth/otp/request', body, unauthJsonConfig());
-      return data;
-    } catch (err) {
+  const body = {
+    phone: digits,
+    countryCode: payload?.countryCode || 'KR',
+  };
+
+  try {
+    const { data } = await client.post('/auth/otp/request', body, unauthJsonConfig());
+    return data;
+  } catch (err) {
       if ((err?.status || err?.response?.status) === 410) {
         const goneError = new Error('휴대폰 인증번호 요청이 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
         goneError.status = 410;
@@ -291,25 +296,30 @@ export const apiClient = {
     }
   },
 
-  async verifyPhoneOtp(payload = {}) {
-    const digits = String(payload?.phone || '')
-      .replace(/[^0-9]/g, '')
-      .replace(/^82/, '0');
-    const code = String(payload?.code || '').replace(/\D/g, '');
-    if (!digits || code.length < 4) {
-      throw normalizeError(new Error('휴대폰 번호와 인증번호를 확인해 주세요.'));
-    }
+async verifyPhoneOtp(payload = {}) {
+  // 더미 모드에서는 서버를 호출하지 않고 바로 토큰을 반환합니다.
+  if (USE_DUMMY_AUTH) {
+    return { token: 'dummy-token', adminOverride: true };
+  }
 
-    const body = {
-      phone: digits,
-      code,
-      requestId: payload?.requestId || payload?.verificationId || undefined,
-    };
+  const digits = String(payload?.phone || '')
+    .replace(/[^0-9]/g, '')
+    .replace(/^82/, '0');
+  const code = String(payload?.code || '').replace(/\D/g, '');
+  if (!digits || code.length < 4) {
+    throw normalizeError(new Error('휴대폰 번호와 인증번호를 확인해 주세요.'));
+  }
 
-    try {
-      const { data } = await client.post('/auth/otp/verify', body, unauthJsonConfig());
-      return data;
-    } catch (err) {
+  const body = {
+    phone: digits,
+    code,
+    requestId: payload?.requestId || payload?.verificationId || undefined,
+  };
+
+  try {
+    const { data } = await client.post('/auth/otp/verify', body, unauthJsonConfig());
+    return data;
+  } catch (err) {
       if ((err?.status || err?.response?.status) === 410) {
         const goneError = new Error('휴대폰 인증번호 확인이 더 이상 지원되지 않습니다. 고객센터로 문의해 주세요.');
         goneError.status = 410;

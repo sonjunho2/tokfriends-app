@@ -266,7 +266,7 @@ export const apiClient = {
   },
 
   async requestPhoneOtp(payload = {}) {
-    // 더미 모드: 서버 호출 없이 임의의 requestId 반환
+    // 더미 모드: 서버 호출 없이 requestId 반환
     if (USE_DUMMY_AUTH) {
       return { requestId: `dummy-${Date.now()}` };
     }
@@ -297,7 +297,7 @@ export const apiClient = {
   },
 
   async verifyPhoneOtp(payload = {}) {
-    // 더미 모드: 즉시 토큰 반환
+    // 더미 모드: 즉시 토큰과 adminOverride 반환
     if (USE_DUMMY_AUTH) {
       return { token: 'dummy-token', adminOverride: true };
     }

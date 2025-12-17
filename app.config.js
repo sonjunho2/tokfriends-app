@@ -131,6 +131,7 @@ module.exports = ({ config }) => {
     runtimeVersion: resolvedConfig.runtimeVersion ?? { policy: 'sdkVersion' },
     plugins,
     extra: {
+      // 기존 extra 값들을 펼칩니다.
       ...(resolvedConfig.extra ?? {}),
       // 통일된 API 주소 키
       // 우선순위: TOK_API_BASE_URL > EXPO_PUBLIC_API_BASE_URL > resolvedConfig.extra > 기본값
@@ -139,10 +140,14 @@ module.exports = ({ config }) => {
         process.env.EXPO_PUBLIC_API_BASE_URL ??
         resolvedConfig?.extra?.TOK_API_BASE_URL ??
         'https://tok-friends-api.onrender.com',
-ADMIN_OVERRIDE_CODES:
-  adminOverrideCodes && adminOverrideCodes.length > 0
-    ? adminOverrideCodes
-    : ['123456'],
+      // 관리자 우회 코드: 값이 없으면 기본값 사용
+      ADMIN_OVERRIDE_CODES:
+        adminOverrideCodes && adminOverrideCodes.length > 0
+          ? adminOverrideCodes
+          : ['123456'],
+      // EAS 빌드용 프로젝트 ID
+      eas: {
+        projectId: 'eb3c1b74-5c41-4ce0-9574-d0d3eb932d72',
       },
     },
   };

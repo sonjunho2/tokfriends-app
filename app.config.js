@@ -132,18 +132,15 @@ module.exports = ({ config }) => {
     plugins,
     extra: {
       ...(resolvedConfig.extra ?? {}),
-      // API 기본 주소: 환경변수 → Expo extra → 기본값 순
       TOK_API_BASE_URL:
         process.env.TOK_API_BASE_URL ??
         process.env.EXPO_PUBLIC_API_BASE_URL ??
         resolvedConfig?.extra?.TOK_API_BASE_URL ??
         'https://tok-friends-api.onrender.com',
-      // 관리자 우회 코드: 값이 없으면 기본값 사용
       ADMIN_OVERRIDE_CODES:
         adminOverrideCodes && adminOverrideCodes.length > 0
           ? adminOverrideCodes
           : ['123456'],
-      // EAS 빌드용 프로젝트 ID 그대로 유지
       eas: {
         projectId: 'eb3c1b74-5c41-4ce0-9574-d0d3eb932d72',
       },

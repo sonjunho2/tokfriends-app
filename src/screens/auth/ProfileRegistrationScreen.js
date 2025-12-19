@@ -117,6 +117,7 @@ export default function ProfileRegistrationScreen({ navigation, route }) {
     }
     setSubmitting(true);
     try {
+      const shouldIncludeAvatar = !USE_DUMMY_AUTH && imageUri;
       const payload = {
         verificationId,
         phone,
@@ -126,7 +127,7 @@ export default function ProfileRegistrationScreen({ navigation, route }) {
         region: region.trim() || null,
         headline: headline.trim(),
         bio: bio.trim(),
-        ...(USE_DUMMY_AUTH || !imageUri ? {} : { avatarUri: imageUri }),
+        ...(shouldIncludeAvatar ? { avatarUri: imageUri } : {}),
         // dummy 모드이거나 adminOverride가 true이거나 verificationId 접두사가 'admin-'인 경우 adminOverride 전달
         ...(overrideFlag || String(verificationId).startsWith('admin-')
           ? { adminOverride: true }

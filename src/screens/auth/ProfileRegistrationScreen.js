@@ -126,7 +126,7 @@ export default function ProfileRegistrationScreen({ navigation, route }) {
         region: region.trim() || null,
         headline: headline.trim(),
         bio: bio.trim(),
-        avatarUri: imageUri || undefined,
+        ...(USE_DUMMY_AUTH || !imageUri ? {} : { avatarUri: imageUri }),
         // dummy 모드이거나 adminOverride가 true이거나 verificationId 접두사가 'admin-'인 경우 adminOverride 전달
         ...(overrideFlag || String(verificationId).startsWith('admin-')
           ? { adminOverride: true }
